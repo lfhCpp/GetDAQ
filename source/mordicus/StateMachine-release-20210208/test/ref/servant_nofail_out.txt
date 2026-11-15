@@ -1,8 +1,0 @@
-Turned off
-Turned on
-Idling
-Activated
-Running
-Faulty
-Turned off
-Shutting down

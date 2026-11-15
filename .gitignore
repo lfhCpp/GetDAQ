@@ -40,3 +40,7 @@ __pycache__/
 
 # Private integration fixture trees
 /validation/**/distributed-*/
+
+# Historical source is kept locally and excluded from publication
+/source/
+.svn/

@@ -1,3 +1,0 @@
-connect device ctrl
-write pipeCtrl firmwareEnable 0
-write pipeCtrl testMode 0

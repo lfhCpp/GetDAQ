@@ -1,5 +1,0 @@
-connect device asad
-# ADC2: 0x200 = straight binary format, normal mode
-reg-write ADC2 0x200
-
-

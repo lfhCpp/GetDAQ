@@ -1,3 +1,0 @@
-connect device asad
-writeReg ADC2 0x200
-writeReg ADC5 0x401

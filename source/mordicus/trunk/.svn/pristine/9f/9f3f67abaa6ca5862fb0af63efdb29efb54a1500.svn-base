@@ -1,3 +1,0 @@
-#Thu Jun 17 14:20:05 CEST 2010
-eclipse.preferences.version=1
-environment/project/org.eclipse.linuxtools.cdt.autotools.core.configuration.build.1821657851.968482315=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\n<environment append\="true" appendContributed\="true">\n<variable delimiter\="\:" name\="PKG_CONFIG_PATH" operation\="replace" value\="/home/pzhao/workspace/usr/local/linux/lib/pkgconfig"/>\n</environment>\n

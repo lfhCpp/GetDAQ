@@ -1,6 +1,0 @@
-Turned off
-Turned on
-Idling
-Activated
-Hanging for 10 sec...
-Shutting down
