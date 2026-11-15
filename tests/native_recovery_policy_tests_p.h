@@ -1,0 +1,16 @@
+#ifndef GETDAQ_NATIVE_RECOVERY_POLICY_TESTS_P_H
+#define GETDAQ_NATIVE_RECOVERY_POLICY_TESTS_P_H
+
+namespace GetDAQTestInternal {
+
+void RunNativeReceiverFinalizationPolicyRequiresCompleteBoundEvidence();
+void RunNativeRecoverySnapshotPolicyRequiresExactDeploymentIdentity();
+void RunNativeRecoveryEvidencePolicyBindsInstanceAndReceiverSessions();
+void RunNativeCatalogRecoveryPolicyRequiresExactLivePreparedReplacement();
+void RunNativeAlarmRecoveryPolicyBindsOriginalOperationAndOutcome();
+void RunNativeCoBoMaintenancePolicySharesPreparedIdentityGate();
+void RunNativePlanRetirementProjectionPreservesOriginalInstanceGates();
+
+} // namespace GetDAQTestInternal
+
+#endif

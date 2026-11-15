@@ -1,0 +1,7 @@
+<RCC>
+ <qresource prefix="/console">
+  <file alias="up.xpm">icons/up.xpm</file>
+  <file alias="down.xpm">icons/down.xpm</file>
+  <file alias="check.xpm">icons/check.xpm</file>
+ </qresource>
+</RCC>

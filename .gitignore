@@ -1,0 +1,42 @@
+# Build outputs and local IDE state
+/build*/
+/bin/
+*.pro.user*
+*.o
+*.obj
+moc_*.cpp
+ui_*.h
+Makefile
+/Makefile*
+.qmake.stash
+__pycache__/
+*.py[cod]
+/demo-runs/
+/Testing/
+
+# Local delivery copies and generated archives
+/GetDAQ_*/
+/GetDAQ_*.tar.gz
+/GetDAQ_*.zip
+/source.zip
+
+# Site state, credentials and raw acquisition data
+/.aws/
+/.codex/
+/.agents/
+/.vscode/
+/connection-configs/
+/site/
+/run-records/
+/data/
+/.getdaq-*
+*.token
+*.key
+*.pem
+*.p12
+*.pfx
+*.graw
+*.gmat
+
+# Private integration fixture trees
+/validation/**/distributed-*/

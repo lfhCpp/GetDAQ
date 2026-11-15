@@ -1,0 +1,26 @@
+{
+    "schema_version": 1,
+    "kind": "getdaq.alignment-topology",
+    "encoding": "1.0",
+    "timeout_ms": 3000,
+    "mutants": [
+        {
+            "id": "MuTaNT0",
+            "expected_node_name": "REPLACE_MUTANT_NODE_NAME",
+            "node_proxy": "REPLACE_MUTANT_NODE_OBJECT:tcp -h 127.0.0.1 -p 46000",
+            "alignment_proxy": "MutantAlignmentServer:tcp -h 127.0.0.1 -p 46000",
+            "role": "master",
+            "hardware_description_file": "../../runtime/descriptions/mutant.json"
+        }
+    ],
+    "cobos": [
+        {
+            "id": "CoBo0",
+            "expected_node_name": "REPLACE_COBO_NODE_NAME",
+            "node_proxy": "REPLACE_COBO_NODE_OBJECT:tcp -h 127.0.0.1 -p 46001",
+            "link_proxy": "MutantLinkManager:tcp -h 127.0.0.1 -p 46001",
+            "enabled": true,
+            "hardware_description_file": "../../runtime/descriptions/cobo.json"
+        }
+    ]
+}

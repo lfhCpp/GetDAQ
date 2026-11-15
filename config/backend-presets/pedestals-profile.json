@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "getdaq.system-experiment-profile",
+  "cobos": [
+    {
+      "id": "0",
+      "enabled": true,
+      "hardware_version": "5",
+      "chip_versions": {
+        "0": "0x202",
+        "1": "0x202",
+        "2": "0x202",
+        "3": "0x202"
+      },
+      "buffer_layout": "per-asad",
+      "verify_hardware_version": true,
+      "firmware_info_registers": true,
+      "interrupt_rate_register": true,
+      "monitoring_mapping": "declared",
+      "led_policy": "required",
+      "delay_layout": "global",
+      "calibration_aget_register": true,
+      "clock_allow_nominal_difference": true,
+      "clock_allow_unverified_upstream": false,
+      "adc_mode": "DDR"
+    }
+  ],
+  "mutants": []
+}

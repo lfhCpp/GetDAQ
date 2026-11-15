@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ConfigurationReadbackWindow</class>
+ <widget class="QDialog" name="ConfigurationReadbackWindow">
+  <property name="geometry"><rect><x>0</x><y>0</y><width>1100</width><height>620</height></rect></property>
+  <property name="windowTitle"><string>Configure register readbacks</string></property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item><widget class="QLabel" name="ReadbackScope"><property name="text"><string>Historical checks during Configure. They do not prove the current loaded version or physical effects. Check current ECC, network and data status before operating.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+   <item><widget class="QLabel" name="ReadbackObservation"><property name="text"><string>Waiting for a bound ECC response</string></property><property name="wordWrap"><bool>true</bool></property><property name="textFormat"><enum>Qt::PlainText</enum></property></widget></item>
+   <item><widget class="QTableWidget" name="ReadbackSummary"><property name="editTriggers"><set>QAbstractItemView::NoEditTriggers</set></property><property name="columnCount"><number>2</number></property><column><property name="text"><string>Item</string></property></column><column><property name="text"><string>Historical observation</string></property></column></widget></item>
+   <item><widget class="QTableWidget" name="ReadbackHardware"><property name="editTriggers"><set>QAbstractItemView::NoEditTriggers</set></property><property name="columnCount"><number>10</number></property>
+    <column><property name="text"><string>Board</string></property></column>
+    <column><property name="text"><string>Stage</string></property></column>
+    <column><property name="text"><string>Writes acknowledged</string></property></column>
+    <column><property name="text"><string>Writes readback verified</string></property></column>
+    <column><property name="text"><string>Writes without full readback</string></property></column>
+    <column><property name="text"><string>Checks / warnings</string></property></column>
+    <column><property name="text"><string>Read-only / masked updates</string></property></column>
+    <column><property name="text"><string>Manager ACK / delays</string></property></column>
+    <column><property name="text"><string>Audit file</string></property></column>
+    <column><property name="text"><string>Audit SHA256</string></property></column>
+   </widget></item>
+   <item><widget class="QPushButton" name="ReadbackRefresh"><property name="text"><string>Refresh historical evidence</string></property></widget></item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

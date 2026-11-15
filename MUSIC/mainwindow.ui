@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>408</width>
+    <height>553</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <widget class="QWidget" name="layoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>382</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="minimumSize">
+        <size>
+         <width>75</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>网络状态：</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="CmdNetLabel">
+       <property name="minimumSize">
+        <size>
+         <width>9</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>1</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="DataNetLabel">
+       <property name="minimumSize">
+        <size>
+         <width>9</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>2</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QTextBrowser" name="TransmissionSpeed">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>31</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="html">
+        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;justify&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="BufferLabel">
+       <property name="minimumSize">
+        <size>
+         <width>9</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>3</string>
+       </property>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignHCenter">
+      <widget class="QCommandLinkButton" name="commandLinkButton">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>168</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>示波器</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="layoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>12</x>
+      <y>52</y>
+      <width>381</width>
+      <height>421</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QTextBrowser" name="textBrowser"/>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QComboBox" name="ModeBox">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <item>
+            <property name="text">
+             <string>采集模式</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>单通道模式</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>双通道模式</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>4通道模式</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>8通道模式</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>时间戳与事件数清零</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>重启数据板</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="SetThreshold">
+           <property name="text">
+            <string>获取阈值</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QPushButton" name="ReceiveData">
+         <property name="text">
+          <string>开始采集</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="StopReceive">
+         <property name="text">
+          <string>停止采集</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLineEdit" name="FilenemeEdit"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="SetFilename">
+           <property name="text">
+            <string>设置文件名</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="SetTh">
+           <property name="text">
+            <string>设定阈值</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>408</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_IP">
+    <property name="title">
+     <string>连接</string>
+    </property>
+    <addaction name="ConnectNet"/>
+    <addaction name="separator"/>
+    <addaction name="Cmd"/>
+    <addaction name="separator"/>
+   </widget>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>文件</string>
+    </property>
+    <addaction name="SavePath"/>
+    <addaction name="separator"/>
+    <addaction name="ana_file"/>
+    <addaction name="separator"/>
+   </widget>
+   <addaction name="menu"/>
+   <addaction name="menu_IP"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="action_5">
+   <property name="text">
+    <string>千兆网口</string>
+   </property>
+  </action>
+  <action name="action_6">
+   <property name="text">
+    <string>万兆网口</string>
+   </property>
+  </action>
+  <action name="ConnectNet">
+   <property name="text">
+    <string>连接网口</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="text">
+    <string>发送指令集</string>
+   </property>
+  </action>
+  <action name="Cmd">
+   <property name="text">
+    <string>发送指令集</string>
+   </property>
+  </action>
+  <action name="SavePath">
+   <property name="text">
+    <string>保存路径</string>
+   </property>
+  </action>
+  <action name="ana_file">
+   <property name="text">
+    <string>文件解码</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>commandLinkButton</tabstop>
+  <tabstop>FilenemeEdit</tabstop>
+  <tabstop>ReceiveData</tabstop>
+  <tabstop>StopReceive</tabstop>
+  <tabstop>textBrowser</tabstop>
+  <tabstop>SetFilename</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

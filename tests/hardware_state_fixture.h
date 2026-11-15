@@ -1,0 +1,10 @@
+#ifndef GETDAQ_HARDWARE_STATE_FIXTURE_H
+#define GETDAQ_HARDWARE_STATE_FIXTURE_H
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonDocument>
+namespace HardwareStateFixture {
+inline QByteArray Identity(){QJsonObject o;o["schema"]=1;o["service"]="getdaq-ecc-server";o["service_id"]="ecc-observer";o["client_id"]="client";for(const auto &p:{qMakePair(QString("instance_id"),QChar('a')),qMakePair(QString("snapshot_sha256"),QChar('b')),qMakePair(QString("input_binding_sha256"),QChar('c')),qMakePair(QString("configuration_sha256"),QChar('d')),qMakePair(QString("artifact_sha256"),QChar('e')),qMakePair(QString("data_binding_sha256"),QChar('f'))})o[p.first]=QString(64,p.second);return QJsonDocument(o).toJson();}
+inline QByteArray Observation(bool unknown=true,bool consistent=true,const QByteArray &source="live-controller-cache"){QJsonObject o;o["schema"]=1;o["kind"]="getdaq.hardware-state-observation";o["instance_id"]=QString(64,'a');o["snapshot_sha256"]=QString(64,'b');o["configuration_sha256"]=QString(64,'d');o["artifact_sha256"]=QString(64,'e');o["controller_operation_id"]="original-operation";o["controller_state"]=4;o["controller_outcome_unknown"]=unknown;o["controller_needs_reconciliation"]=unknown;o["busy"]=false;o["consistent"]=consistent;o["recovery_verified"]=false;o["actual_loaded_configuration_verified"]=false;o["global_control_verified"]=false;o["cobo_lifecycle_source"]=consistent ? QString::fromUtf8(source) : QString("unavailable");o["cobo_lifecycle_is_hardware_readback"]=false;QJsonArray lifecycle;if(consistent){QJsonObject board;board["id"]="C0";board["state"]="running";lifecycle.append(board);}o["cobo_lifecycle"]=lifecycle;QJsonObject n;n["id"]="C0";n["role"]="cobo";n["available"]=consistent;n["message"]="";n["observed_at_unix_ms"]=consistent ? "123456" : "0";QJsonObject bits;if(consistent)for(const auto field:{"firmwareEnable","intEnable","initDone","mutantMode"})bits[field]="0";n["values"]=bits;QJsonArray rows;rows.append(n);o["nodes"]=rows;return QJsonDocument(o).toJson();}
+}
+#endif

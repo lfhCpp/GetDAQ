@@ -1,0 +1,569 @@
+name: Native data path
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ubuntu24-current-source-full-suite:
+    name: Ubuntu 24 current-source full suite
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Record Ubuntu toolchain
+        run: |
+          cat /etc/os-release
+          uname -a
+          cmake --version
+          c++ --version
+          python3 --version
+
+      - name: Install full-suite Qt build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            build-essential cmake python3 qtbase5-dev qt5-qmake
+
+      - name: Check isolated validation space
+        run: |
+          df -h /tmp
+          mkdir -p /tmp/getdaq-ubuntu24-full-suite
+
+      - name: Build and run the complete Ubuntu 24 validation matrix
+        run: >-
+          python3 tests/ubuntu24_platform_validation.py
+          --work /tmp/getdaq-ubuntu24-full-suite --jobs 2 --stage all
+
+      - name: Remove and report any runner-owned raw left on failure
+        if: always()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import sys
+          root = Path('/tmp/getdaq-ubuntu24-full-suite')
+          leftovers = [path for path in root.rglob('*.graw')
+                       if path.is_file() or path.is_symlink()] if root.exists() else []
+          byte_count = sum(path.lstat().st_size for path in leftovers if not path.is_symlink())
+          for path in leftovers:
+              path.unlink()
+          print('runner-owned raw files found:', len(leftovers), 'bytes:', byte_count)
+          if leftovers:
+              print('Removed leftover raw files from the isolated CI work root.', file=sys.stderr)
+              sys.exit(1)
+          PY
+
+      - name: Upload Ubuntu 24 validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu24-current-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            /tmp/getdaq-ubuntu24-full-suite/platform-*.json
+            /tmp/getdaq-ubuntu24-full-suite/delivery/full/build-receipt.json
+            /tmp/getdaq-ubuntu24-full-suite/test-build-receipt.json
+            /tmp/getdaq-ubuntu24-full-suite/core/result.txt
+            /tmp/getdaq-ubuntu24-full-suite/widgets/result.txt
+            /tmp/getdaq-ubuntu24-full-suite/native-contracts/Testing/Temporary/LastTest.log
+            /tmp/getdaq-ubuntu24-full-suite/evidence/**/*.json
+            /tmp/getdaq-ubuntu24-full-suite/logs/*.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  windows-qt5142-control-build:
+    name: Windows Qt 5.14.2 MinGW control build
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install Qt 5.14.2 MinGW 7.3 x64
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '5.14.2'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_mingw73'
+          tools: 'tools_mingw,qt.tools.win64_mingw730'
+          cache: true
+
+      - name: Record Qt and MinGW versions
+        shell: pwsh
+        run: |
+          qmake -query QT_VERSION
+          g++ --version
+          mingw32-make --version
+          Get-ChildItem $env:IQTA_TOOLS
+
+      - name: Verify WSL and native Windows Qt build entrypoints
+        shell: pwsh
+        run: python tests/test_windows_build_entrypoints.py
+
+      - name: Build the eight Windows control programs from current source
+        shell: pwsh
+        run: |
+          python tools/build-windows-from-wsl.py `
+            --kit "$env:QT_ROOT_DIR" `
+            --compiler "$(Join-Path $env:IQTA_TOOLS 'mingw730_64')" `
+            --build-root "build-platform/windows-qt5142-control" --jobs 2
+
+      - name: Build current-source Windows Widgets and ECC client QtTests
+        shell: pwsh
+        run: |
+          python tests/build_windows_qt_validation.py `
+            --kit "$env:QT_ROOT_DIR" `
+            --compiler "$(Join-Path $env:IQTA_TOOLS 'mingw730_64')" `
+            --output "build-platform/windows-qt5142-control/qt-tests"
+
+      - name: Run complete Windows Widgets and ECC client QtTests
+        shell: pwsh
+        run: |
+          python tests/run_windows_qt_validation.py `
+            --build-root "build-platform/windows-qt5142-control/qt-tests" --only all
+
+      - name: Verify Windows QtTest results and temporary-data cleanup
+        shell: pwsh
+        run: |
+          $base = 'build-platform/windows-qt5142-control/qt-tests/native-windows-results'
+          $summary = @(Get-Content "$base/summary.json" -Raw | ConvertFrom-Json)
+          if ($summary.Count -ne 2) { throw "Expected two QtTest results; received $($summary.Count)" }
+          if (@($summary | Where-Object { $_.exit_code -ne 0 -or $_.failed -ne 0 }).Count -ne 0) { throw 'A Windows QtTest failed' }
+          $cleanup = Get-Content "$base/cleanup-receipt.json" -Raw | ConvertFrom-Json
+          if (-not $cleanup.temporary_root_removed -or $cleanup.raw_limit_exceeded) { throw 'Windows QtTest temporary-data cleanup failed' }
+          Write-Host "PASS: $($summary.Count) QtTest executables; private TEMP removed; raw ceiling respected"
+
+      - name: Build and test the native Windows scan journal store
+        shell: pwsh
+        run: |
+          $compiler = Join-Path $env:IQTA_TOOLS 'mingw730_64'
+          $build = 'build-platform/windows-qt5142-scan-journal'
+          cmake -S apps/ecc -B $build -G 'MinGW Makefiles' `
+            -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DGETDAQ_ECC_JOURNAL=ON `
+            "-DCMAKE_CXX_COMPILER=$(Join-Path $compiler 'bin/g++.exe')" `
+            "-DCMAKE_MAKE_PROGRAM=$(Join-Path $compiler 'bin/mingw32-make.exe')"
+          if ($LASTEXITCODE -ne 0) { throw 'Windows scan journal CMake configuration failed' }
+          cmake --build $build --parallel 2 --target scan-journal-store-tests getdaq-scan-journal-tool
+          if ($LASTEXITCODE -ne 0) { throw 'Windows scan journal build failed' }
+          ctest --test-dir $build --output-on-failure -R '^scan-journal-store$'
+          if ($LASTEXITCODE -ne 0) { throw 'Windows scan journal regression failed' }
+
+      - name: Verify the complete eight-program build receipt
+        shell: pwsh
+        run: |
+          $receipt = Get-Content 'build-platform/windows-qt5142-control/windows-build-receipt.json' -Raw | ConvertFrom-Json
+          $plan = Get-Content 'build-platform/windows-qt5142-control/windows-build-plan.json' -Raw | ConvertFrom-Json
+          $expected = @($plan.programs)
+          if ($receipt.status -ne 'complete' -or $receipt.qt_version -ne '5.14.2') { throw "Incomplete Qt build receipt: $($receipt.status), Qt $($receipt.qt_version)" }
+          $actual = @($receipt.programs.PSObject.Properties.Name | Sort-Object)
+          $wanted = @($expected | Sort-Object)
+          if (Compare-Object $wanted $actual) { throw "Windows control program set differs: $($actual -join ', ')" }
+          if (@($receipt.programs.PSObject.Properties | Where-Object { $_.Value.pe_machine -ne 'x86_64' }).Count -ne 0) { throw 'A Windows control program is not x86_64 PE' }
+          Write-Host "PASS: $($expected.Count) Windows control programs match the source build plan"
+
+      - name: Deploy and smoke-test the self-contained Windows runtime
+        shell: pwsh
+        run: |
+          python tools/deploy-windows-from-wsl.py `
+            --kit "$env:QT_ROOT_DIR" `
+            --compiler "$(Join-Path $env:IQTA_TOOLS 'mingw730_64')" `
+            --build-root "build-platform/windows-qt5142-control" `
+            --destination "build-platform/windows-qt5142-control/runtime"
+
+      - name: Verify native Windows configuration and all offline scan planners
+        shell: pwsh
+        run: |
+          python tests/system_experiment_integration.py `
+            "build-platform/windows-qt5142-control/runtime/getdaq-config.exe" `
+            "build-platform/windows-qt5142-control/runtime/getdaq-system-config.exe" `
+            --scan-checker "build-platform/windows-qt5142-control/runtime/getdaq-config-check.exe" `
+            --evidence "build-platform/windows-qt5142-control/config-scan-tests/result.json"
+
+      - name: Exercise the packaged native supervisor query client
+        shell: pwsh
+        run: |
+          python tests/windows_supervisor_query_integration.py `
+            --program "build-platform/windows-qt5142-control/runtime/getdaq-supervisor-query.exe" `
+            --temporary-root "build-platform/windows-qt5142-control/query-tests/temp" `
+            --evidence "build-platform/windows-qt5142-control/query-tests/supervisor-query-loopback.json"
+
+      - name: Verify the self-contained Windows runtime
+        shell: pwsh
+        run: |
+          python tools/refresh-package-docs.py `
+            --kind windows `
+            --candidate "build-platform/windows-qt5142-control/runtime"
+          python tools/deploy-windows-from-wsl.py `
+            --verify "build-platform/windows-qt5142-control/runtime"
+
+      - name: Upload Windows build receipt and log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-qt5142-control-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            build-platform/windows-qt5142-control/runtime/
+            build-platform/windows-qt5142-control/windows-build-receipt.json
+            build-platform/windows-qt5142-control/control-windows.log
+            build-platform/windows-qt5142-control/query-tests/supervisor-query-loopback.json
+            build-platform/windows-qt5142-control/peaking-scan-tests/result.json
+            build-platform/windows-qt5142-control/qt-tests/build-receipt.json
+            build-platform/windows-qt5142-control/qt-tests/widgets/build.log
+            build-platform/windows-qt5142-control/qt-tests/widgets/deploy.log
+            build-platform/windows-qt5142-control/qt-tests/client/build.log
+            build-platform/windows-qt5142-control/qt-tests/client/deploy.log
+            build-platform/windows-qt5142-control/qt-tests/native-windows-results/summary.json
+            build-platform/windows-qt5142-control/qt-tests/native-windows-results/cleanup-receipt.json
+            build-platform/windows-qt5142-control/qt-tests/native-windows-results/widgets-stdout.txt
+            build-platform/windows-qt5142-control/qt-tests/native-windows-results/client-stdout.txt
+          if-no-files-found: warn
+          retention-days: 14
+
+  macos-host-suite:
+    name: macOS Qt host suite C++11 build
+    runs-on: macos-14
+    timeout-minutes: 60
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install Qt 5 desktop kit
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '5.15.2'
+          host: 'mac'
+          target: 'desktop'
+          arch: 'clang_64'
+          cache: true
+
+      - name: Record macOS toolchain
+        run: |
+          mkdir -p build-platform/macos-full-suite
+          {
+            uname -a
+            cmake --version
+            c++ --version
+            qmake -query QT_VERSION
+            python3 --version
+            lipo -version
+          } | tee build-platform/macos-full-suite/macos-toolchain.txt
+
+      - name: Build every POSIX host program
+        run: >-
+          python3 tools/build-suite.py --profile full
+          --build-root build-platform/macos-full-suite --jobs 3
+
+      - name: Verify the complete suite receipt
+        run: |
+          python3 - <<'PY'
+          import argparse
+          import importlib.util
+          import json
+          import platform
+          from pathlib import Path
+          source = Path('tools/build-suite.py').resolve()
+          spec = importlib.util.spec_from_file_location('build_suite', source)
+          suite = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(suite)
+          args = argparse.Namespace(profile='full', cmake='cmake', qmake='qmake', make='make', jobs=3)
+          expected = {name for step in suite.plan(args, Path('build-platform/macos-full-suite/full'))
+                      for name in step['programs']}
+          receipt = json.loads(Path('build-platform/macos-full-suite/full/build-receipt.json').read_text())
+          actual = set(receipt['programs'])
+          assert receipt['status'] == 'complete', receipt['status']
+          assert actual == expected, {'missing': sorted(expected - actual), 'unexpected': sorted(actual - expected)}
+          assert receipt['platform']['qt'].startswith('5.'), receipt['platform']
+          aliases = {'aarch64': 'arm64', 'amd64': 'x86_64'}
+          host_architecture = aliases.get(platform.machine().lower(), platform.machine().lower())
+          for name, program in receipt['programs'].items():
+              mach_o = program['runtime']['mach_o']
+              assert mach_o['host_architecture'] == host_architecture, (name, mach_o, host_architecture)
+              assert host_architecture in mach_o['architectures'], (name, mach_o)
+          print('PASS: all Mach-O receipts contain runner architecture:', host_architecture)
+          print('PASS: complete POSIX host suite:', len(actual), 'programs')
+          PY
+
+      - name: Run native macOS integration for all offline scan planners
+        run: |
+          python3 tests/system_experiment_integration.py \
+            build-platform/macos-full-suite/full/bin/getdaq-config \
+            build-platform/macos-full-suite/full/native/getdaq-system-config \
+            --scan-checker build-platform/macos-full-suite/full/bin/getdaq-config-check \
+            --evidence build-platform/macos-full-suite/config-scan-tests/result.json
+
+      - name: Build the macOS Core, Widgets, and ECC client QtTest suites
+        run: |
+          python3 tests/test_macos_qttest_cleanup.py
+          python3 tests/build_qt_control_validation.py tests/xcfg_shared.pro \
+            build-platform/macos-full-suite/qt-tests/core --jobs 3
+          python3 tests/build_qt_control_validation.py tests/tests.pro \
+            build-platform/macos-full-suite/qt-tests/widgets --jobs 3
+          python3 tests/build_qt_control_validation.py tests/ecc_system_client.pro \
+            build-platform/macos-full-suite/qt-tests/ecc-client --jobs 3
+
+      - name: Run offscreen macOS Core, Widgets, and ECC client QtTests
+        env:
+          QT_QPA_PLATFORM: offscreen
+          HOME: ${{ github.workspace }}/build-platform/macos-full-suite/qt-test-temp/home
+          XDG_CACHE_HOME: ${{ github.workspace }}/build-platform/macos-full-suite/qt-test-temp/cache
+          XDG_CONFIG_HOME: ${{ github.workspace }}/build-platform/macos-full-suite/qt-test-temp/config
+          XDG_DATA_HOME: ${{ github.workspace }}/build-platform/macos-full-suite/qt-test-temp/data
+          XDG_RUNTIME_DIR: ${{ github.workspace }}/build-platform/macos-full-suite/qt-test-temp/runtime
+          TMPDIR: ${{ github.workspace }}/build-platform/macos-full-suite/qt-test-temp
+        run: |
+          mkdir -p "$HOME" "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_RUNTIME_DIR" "$TMPDIR"
+          chmod 700 "$XDG_RUNTIME_DIR"
+          build-platform/macos-full-suite/qt-tests/core/xcfg-shared-tests \
+            -o build-platform/macos-full-suite/qt-tests/core/results.txt,txt
+          build-platform/macos-full-suite/qt-tests/widgets/getdaq-tests \
+            -o build-platform/macos-full-suite/qt-tests/widgets/results.txt,txt
+          build-platform/macos-full-suite/qt-tests/ecc-client/ecc-system-client-tests \
+            -o build-platform/macos-full-suite/qt-tests/ecc-client/results.txt,txt
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          for label, path in (
+              ('Core', Path('build-platform/macos-full-suite/qt-tests/core/results.txt')),
+              ('Widgets', Path('build-platform/macos-full-suite/qt-tests/widgets/results.txt')),
+              ('ECC client', Path('build-platform/macos-full-suite/qt-tests/ecc-client/results.txt')),
+          ):
+              text = path.read_text()
+              match = re.search(r'Totals:\s+(\d+) passed, (\d+) failed, (\d+) skipped', text)
+              expected = {'Core': 151, 'Widgets': 119}.get(label)
+              assert match and int(match.group(1)) > 0 and int(match.group(2)) == 0, (label, text[-2000:])
+              assert expected is None or int(match.group(1)) == expected, (label, expected, text[-2000:])
+              print('PASS:', label, match.group(1), 'passed;', match.group(3), 'skipped')
+          PY
+
+      - name: Clean macOS QtTest private temporary data
+        if: always()
+        run: python3 tests/cleanup_macos_qttest.py
+
+      - name: Run macOS receiver and Sentry lifecycle integration
+        run: >-
+          python3 tests/receiver_integration.py
+          build-platform/macos-full-suite/full/receiver/getdaq-receiver
+          build-platform/macos-full-suite/full/bin/getdaq-sentry
+
+      - name: Check macOS integration left no synthetic data
+        if: always()
+        run: |
+          if find . -type f -name '*.graw' -print -quit | grep -q .; then
+            echo 'Synthetic .graw files remain after the macOS integration.' >&2
+            find . -type f -name '*.graw' -print
+            exit 1
+          fi
+
+      - name: Upload macOS host suite evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-host-suite-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            build-platform/macos-full-suite/full/build-receipt.json
+            build-platform/macos-full-suite/full/*.log
+            build-platform/macos-full-suite/macos-toolchain.txt
+            build-platform/macos-full-suite/config-scan-tests/result.json
+            build-platform/macos-full-suite/qt-test-cleanup.json
+            build-platform/macos-full-suite/qt-tests/core/build-receipt.json
+            build-platform/macos-full-suite/qt-tests/core/source-sha256.json
+            build-platform/macos-full-suite/qt-tests/core/build.log
+            build-platform/macos-full-suite/qt-tests/core/deploy.log
+            build-platform/macos-full-suite/qt-tests/core/results.txt
+            build-platform/macos-full-suite/qt-tests/widgets/build-receipt.json
+            build-platform/macos-full-suite/qt-tests/widgets/source-sha256.json
+            build-platform/macos-full-suite/qt-tests/widgets/build.log
+            build-platform/macos-full-suite/qt-tests/widgets/deploy.log
+            build-platform/macos-full-suite/qt-tests/widgets/results.txt
+            build-platform/macos-full-suite/qt-tests/ecc-client/build-receipt.json
+            build-platform/macos-full-suite/qt-tests/ecc-client/source-sha256.json
+            build-platform/macos-full-suite/qt-tests/ecc-client/build.log
+            build-platform/macos-full-suite/qt-tests/ecc-client/deploy.log
+            build-platform/macos-full-suite/qt-tests/ecc-client/results.txt
+            build-platform/macos-full-suite/qt-tests/*/results-verified-build.txt
+          if-no-files-found: warn
+          retention-days: 14
+
+  native-data-path:
+    name: ${{ matrix.os }} C++11 data path
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            receiver_tests: '^(receiver-core|exporter-lock|mfm-merge|gmat-conversion)$'
+            receiver_test_count: '4'
+            sentry_binary: 'build-platform/sentry-bin/getdaq-sentry'
+          - os: macos-14
+            receiver_tests: '^(receiver-core|mfm-merge|gmat-conversion)$'
+            receiver_test_count: '3'
+            sentry_binary: ''
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Record platform toolchain
+        run: |
+          uname -a
+          cmake --version
+          c++ --version
+          python3 --version
+
+      - name: Verify supervisor test data cleanup on failure
+        run: python3 tests/test_supervisor_control_cleanup.py
+
+      - name: Verify catalog transfer runner cleans up partial setup
+        run: python3 tests/test_catalog_plain_tcp_runner.py
+
+      - name: Verify large catalog transfer budget and timeout cleanup
+        run: python3 tests/test_catalog_large_tcp_runner.py
+
+      - name: Verify Ubuntu24 catalog package validation receipts
+        run: python3 tests/package_ubuntu24_catalog_ssh_test.py
+
+      - name: Verify WSL and native Windows build command selection
+        run: python3 tests/test_windows_build_entrypoints.py
+
+      - name: Verify current and archive Sentry examples
+        run: python3 tests/test_sentry_examples.py
+
+      - name: Verify packaged configuration example refresh
+        run: python3 tests/test_refresh_package_examples.py
+
+      - name: Verify native data and supervisor Qt build boundaries
+        run: python3 tests/host_suite_delivery_test.py
+
+      - name: Verify offline data profile inputs
+        run: python3 tools/verify-dependencies.py --profile data
+
+      - name: Install Qt for separate low-frequency sentry integration
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends qtbase5-dev qt5-qmake
+
+      - name: Build separate low-frequency sentry service
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p build-platform/sentry build-platform/sentry-bin
+          cd build-platform/sentry
+          qmake "$GITHUB_WORKSPACE/apps/sentry/sentry.pro" \
+            "GETDAQ_DESTDIR=$GITHUB_WORKSPACE/build-platform/sentry-bin"
+          make --jobs 2
+
+      - name: Configure native receiver
+        run: >-
+          cmake -S apps/datareceiver -B build-platform/receiver
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Build native receiver and tests
+        run: cmake --build build-platform/receiver --parallel 2
+
+      - name: Run receiver and offline-merger unit tests
+        env:
+          RECEIVER_TESTS: ${{ matrix.receiver_tests }}
+          EXPECTED_TEST_COUNT: ${{ matrix.receiver_test_count }}
+        run: |
+          ctest -N -R "$RECEIVER_TESTS" > ctest-list.txt
+          cat ctest-list.txt
+          grep -Eq "Total Tests: $EXPECTED_TEST_COUNT$" ctest-list.txt
+          ctest --output-on-failure -R "$RECEIVER_TESTS"
+        working-directory: build-platform/receiver
+
+      - name: Run bounded TCP and file-seal integration
+        env:
+          SENTRY_BINARY: ${{ matrix.sentry_binary }}
+        # Linux additionally exercises the separate low-frequency Qt sentry;
+        # the native receiver and bulk data path remain Qt-free.
+        run: |
+          if [ -n "$SENTRY_BINARY" ]; then
+            python3 tests/receiver_integration.py \
+              build-platform/receiver/getdaq-receiver "$SENTRY_BINARY"
+          else
+            python3 tests/receiver_integration.py \
+              build-platform/receiver/getdaq-receiver
+          fi
+        shell: bash
+
+      - name: Configure native archive and transfer tools
+        run: >-
+          cmake -S apps/datasupervisor -B build-platform/supervisor
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTING=ON
+          -DGETDAQ_BUILD_SUPERVISOR_SERVICE=OFF
+
+      - name: Build archive and transfer tests
+        run: >-
+          cmake --build build-platform/supervisor --parallel 2 --target
+          getdaq-catalog getdaq-supervisor-query receiver-catalog-tests catalog-transfer-tests supervisor-control-tests
+
+      - name: Verify native data tools do not link Qt
+        run: >-
+          python3 tools/check-no-qt-runtime.py
+          --binary build-platform/receiver/getdaq-receiver
+          --binary build-platform/receiver/getdaq-inspect
+          --binary build-platform/receiver/getdaq-merge
+          --binary build-platform/receiver/getdaq-matrix
+          --binary build-platform/supervisor/getdaq-catalog
+          --binary build-platform/supervisor/getdaq-supervisor-query
+
+      - name: Verify the Qt dependency guard catches the separate sentry
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          if output=$(python3 tools/check-no-qt-runtime.py \
+              --binary "$SENTRY_BINARY" 2>&1); then
+            echo 'The Qt-linked sentry was incorrectly accepted as a data tool.' >&2
+            exit 1
+          fi
+          printf '%s\n' "$output"
+          grep -Fq 'FAIL: Qt runtime dependency:' <<<"$output"
+        env:
+          SENTRY_BINARY: ${{ matrix.sentry_binary }}
+
+      - name: Run archive, exclusive-publish, and protocol tests
+        run: |
+          ctest -N -R '^(receiver-catalog-filesystem|catalog-transfer-filesystem|supervisor-control-codec)$' > ctest-list.txt
+          cat ctest-list.txt
+          grep -Eq 'Total Tests: 3$' ctest-list.txt
+          ctest --output-on-failure -R '^(receiver-catalog-filesystem|catalog-transfer-filesystem|supervisor-control-codec)$'
+        working-directory: build-platform/supervisor
+
+      - name: Configure and build the low-frequency supervisor service
+        if: runner.os == 'Linux'
+        run: >-
+          cmake -S apps/datasupervisor -B build-platform/supervisor
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTING=ON
+          -DGETDAQ_BUILD_SUPERVISOR_SERVICE=ON
+          -DGETDAQ_RECEIVER_EXECUTABLE=${{ github.workspace }}/build-platform/receiver/getdaq-receiver
+
+      - name: Build the Qt control service and its native fixture
+        if: runner.os == 'Linux'
+        run: >-
+          cmake --build build-platform/supervisor --parallel 2 --target
+          getdaq-supervisor supervisor-control-tests
+
+      - name: Run supervisor plan and full service lifecycle matrix
+        if: runner.os == 'Linux'
+        run: >-
+          python3 tests/run_supervisor_control_tests.py
+          build-platform/supervisor/getdaq-supervisor
+          build-platform/supervisor/supervisor-control-tests
+          build-platform/receiver/getdaq-receiver
+          --output-parent build-platform/supervisor-service-check
+          --jobs 3 --cleanup-raw
+
+      - name: Check no synthetic receiver files remain
+        if: always()
+        run: |
+          if find . -type f -name '*.graw' -print -quit | grep -q .; then
+            echo 'Synthetic .graw files remain after the test run.' >&2
+            find . -type f -name '*.graw' -print
+            exit 1
+          fi

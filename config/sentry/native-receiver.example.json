@@ -1,0 +1,9 @@
+{
+  "data_dir": "/data/getdaq/cobo0/incoming",
+  "process_name": "getdaq-receiver",
+  "disk_name": "CoBo 0 raw data",
+  "bind": "127.0.0.1",
+  "port": 8080,
+  "settle_ms": 0,
+  "check_process": false
+}

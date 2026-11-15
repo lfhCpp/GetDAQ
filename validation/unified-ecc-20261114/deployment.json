@@ -1,0 +1,17 @@
+{
+  "stage": "/home/user/DAQ/GetDAQ/runtime-linux-unified-ecc-v23",
+  "previous_runtime": "runtime-linux-soap-ecc-v21",
+  "program_count": 31,
+  "files_verified": 209,
+  "existing_gui_config_preserved": true,
+  "existing_ecc_readonly": {
+    "address": "192.168.40.16",
+    "entered_port": 46003,
+    "detected_protocol": "Ice",
+    "selected_soap_port": 8083,
+    "state": "Idle"
+  },
+  "target_native_loopback_checks": 7,
+  "hardware_commands_sent": false,
+  "gui_restart_required": true
+}

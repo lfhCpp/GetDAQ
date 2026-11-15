@@ -1,0 +1,20 @@
+#ifndef GETDAQ_OFFLINE_TOOLS_TESTS_P_H
+#define GETDAQ_OFFLINE_TOOLS_TESTS_P_H
+
+namespace GetDAQTestInternal {
+
+void RunWaveformToolBlocksRunUntilItsWindowIsClosed();
+void RunExternallyObservedRunClosesIntegratedWaveformViewer();
+void RunOfflineDataToolsRunExistingProgramsAndPreserveInput();
+void RunOfflineDataToolsMissingProgramsAndCloseDuringProcess_data();
+void RunOfflineDataToolsMissingProgramsAndCloseDuringProcess();
+void RunOfflineDataToolsAllCloseControls_data();
+void RunOfflineDataToolsAllCloseControls();
+void RunOfflineDataToolsMenuWindowClosesAndCanReopen_data();
+void RunOfflineDataToolsMenuWindowClosesAndCanReopen();
+void RunOfflineDataToolsClosePendingLocksMenuUntilProcessExits();
+void RunMultipleOfflineWindowsKeepRunLockedUntilBothClose();
+
+} // namespace GetDAQTestInternal
+
+#endif

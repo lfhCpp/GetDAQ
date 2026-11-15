@@ -1,0 +1,18 @@
+--- a/apps/hardware/hardwareclient_devices.cpp
++++ b/apps/hardware/hardwareclient_devices.cpp
+@@ -1,5 +1,6 @@
+ #include "hardwareclient_p.h"
+ #include "legacyregisteroffsets_p.h"
++#include "boundfieldpermissions_p.h"
+ #include <set>
+ #include <stdexcept>
+ 
+@@ -65,7 +66,7 @@
+                 const FieldInfo *defined = position == fieldMap.end() ? nullptr : position->second;
+                 if (!defined || defined->offset != field.offset || defined->width != field.width)
+                     throw std::runtime_error("Remote bit field differs from bound description");
+-                field.readOnly = field.readOnly || defined->readOnly || reg.readOnly;
++                ApplyBoundFieldPolicy(field,*defined,reg.readOnly);
+             }
+         }
+     }

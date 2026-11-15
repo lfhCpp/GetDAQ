@@ -1,0 +1,1 @@
+缺少本地配置备份源文件时以警告完成Run，journal保留missing状态且不生成backup.complete。回环验证完成/解锁、恢复旧未完成Run、Ready断开、Running及状态过期阻止断开、损坏XML仍失败、Prepare配置存储规则与请求超时不重试。专项5通过（含初始化/清理），不是实板采集验收。目标机增量构建和bin更新，不重启GUI或后台、不改写历史journal。

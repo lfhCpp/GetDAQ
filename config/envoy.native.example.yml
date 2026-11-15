@@ -1,0 +1,35 @@
+# 整系统控制模式模板。替换三个公开绑定值及所有地址/路径/ID后才能连接。
+# 认证值只保存在 credential_file 指向的本机文件，禁止放进本 YAML。
+experiment: NativeExperiment
+run_number: 0
+description: "Whole-system native ECC Run"
+fields:
+  Beam: ""
+  Target Gas: ""
+getdaq:
+  simulation: false
+  native_catalog: false # 全部数据节点配置了固定catalog_root后，可改true要求归档成功才Complete。
+  native_alarm_status: false # 新ECC支持/v1/alarms时启用；仅查看/核对，不启用服务端自动策略。
+  native_receiver_failure_status: false # 显示后台接收故障停采结果，不开启服务端策略或搬运原始数据。
+  native_configuration_status: false # 支持/v1/configuration时启用；Start前保存绑定的启动配置，未核对则不创建Run。
+  native_receiver_status: true # 新ECC支持/v1/receivers；只读进程提示，不自动停止硬件或清除故障。
+  config_dir: ./get-configs
+  output_dir: ../run-records
+  poll_ms: 1000
+  timeout_ms: 5000
+  step_timeout_ms: 600000
+  native_ecc:
+    address: 127.0.0.1
+    port: 24000
+    credential_file: /home/daq/getdaq-credentials/ecc-main.token
+    service_id: ecc-main
+    client_id: console-main
+    client_epoch: REPLACE_WITH_PERSISTENT_64_LOWERCASE_HEX
+    snapshot_sha256: REPLACE_WITH_REVIEWED_ECC_SNAPSHOT_SHA256
+    input_binding_sha256: REPLACE_WITH_REVIEWED_FIXED_INPUT_SHA256
+    timeout_ms: 5000
+    status_max_age_ms: 10000
+    record_dir: ../native-control-records
+  nodes:
+    - {id: 0, role: cobo, name: CoBo 0, native_sender_id: C0, native_agent_id: data-node-0}
+    - {id: 1, role: cobo, name: CoBo 1, native_sender_id: C1, native_agent_id: data-node-1}

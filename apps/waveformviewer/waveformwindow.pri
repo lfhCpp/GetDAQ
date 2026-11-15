@@ -1,0 +1,3 @@
+INCLUDEPATH += $$PWD
+SOURCES += $$PWD/waveformwindow.cpp $$PWD/waveformwindow_file.cpp $$PWD/waveformwindow_controls.cpp $$PWD/waveformwindow_presentation.cpp $$PWD/waveformframe.cpp $$PWD/waveformcanvas.cpp $$PWD/waveformcanvas_surface.cpp $$PWD/grawreader_index.cpp $$PWD/grawreader_waveform.cpp $$PWD/grawreader_decode_type1.cpp $$PWD/grawreader_decode_type2.cpp $$PWD/waveformanalysis.cpp $$PWD/waveformscananalysis.cpp $$PWD/waveformexport.cpp
+HEADERS += $$PWD/waveformwindow.h $$PWD/waveformwindow_p.h $$PWD/waveformframe.h $$PWD/waveformcanvas.h $$PWD/grawreader.h $$PWD/grawreader_decode_p.h $$PWD/waveformanalysis.h $$PWD/waveformscananalysis.h $$PWD/waveformexport.h $$PWD/waveformnavigation.h

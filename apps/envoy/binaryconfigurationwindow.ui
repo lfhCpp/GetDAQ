@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>BinaryConfigurationWindow</class>
+ <widget class="QDialog" name="BinaryConfigurationWindow">
+  <property name="windowTitle"><string>Legacy binary configuration conversion</string></property>
+  <property name="geometry"><rect><x>0</x><y>0</y><width>950</width><height>700</height></rect></property>
+  <layout class="QVBoxLayout" name="layout">
+   <item><widget class="QLabel" name="explanation"><property name="text"><string>Convert legacy version-1 .bcfg and editable XML. Review first, then save to a NEW file. Original sources remain unchanged. Binary format stores values and class metadata; XML comments and formatting are not retained. No hardware commands are sent.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+   <item><layout class="QFormLayout" name="form">
+    <item row="0" column="0"><widget class="QLabel" name="directionLabel"><property name="text"><string>Direction</string></property></widget></item>
+    <item row="0" column="1"><widget class="QComboBox" name="direction"><item><property name="text"><string>Import binary to XML</string></property></item><item><property name="text"><string>Export loaded XML to binary</string></property></item></widget></item>
+    <item row="1" column="0"><widget class="QLabel" name="sourceLabel"><property name="text"><string>Binary input</string></property></widget></item>
+    <item row="1" column="1"><widget class="QLineEdit" name="source"/></item>
+    <item row="2" column="0"><widget class="QLabel" name="pathLabel"><property name="text"><string>Export object path</string></property></widget></item>
+    <item row="2" column="1"><widget class="QLineEdit" name="objectPath"/></item>
+    <item row="3" column="0"><widget class="QLabel" name="modeLabel"><property name="text"><string>Export content</string></property></widget></item>
+    <item row="3" column="1"><widget class="QComboBox" name="mode"><item><property name="text"><string>Declarations including defaults</string></property></item><item><property name="text"><string>Effective concrete object</string></property></item></widget></item>
+    <item row="4" column="0"><widget class="QLabel" name="destinationLabel"><property name="text"><string>New output file</string></property></widget></item>
+    <item row="4" column="1"><widget class="QLineEdit" name="destination"/></item>
+   </layout></item>
+   <item><layout class="QHBoxLayout" name="browseRow"><item><widget class="QPushButton" name="browseSource"><property name="text"><string>Choose binary input...</string></property></widget></item><item><widget class="QPushButton" name="browseDestination"><property name="text"><string>Choose NEW output...</string></property></widget></item></layout></item>
+   <item><widget class="QPlainTextEdit" name="review"><property name="readOnly"><bool>true</bool></property></widget></item>
+   <item><widget class="QLabel" name="status"><property name="wordWrap"><bool>true</bool></property><property name="textFormat"><enum>Qt::PlainText</enum></property></widget></item>
+   <item><layout class="QHBoxLayout" name="actions"><item><widget class="QPushButton" name="preview"><property name="text"><string>Build preview</string></property></widget></item><item><widget class="QPushButton" name="save"><property name="text"><string>Save reviewed NEW file</string></property><property name="enabled"><bool>false</bool></property></widget></item><item><widget class="QPushButton" name="close"><property name="text"><string>Close</string></property></widget></item></layout></item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

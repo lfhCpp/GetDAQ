@@ -1,0 +1,5 @@
+<RCC><qresource prefix="/backend-presets">
+<file alias="pedestals-single-cobo.xcfg">../../config/backend-presets/pedestals-single-cobo.xcfg</file>
+<file alias="pedestals-profile.json">../../config/backend-presets/pedestals-profile.json</file>
+<file alias="cobo-hardware.xcfg">../../config/backend-presets/cobo-hardware.xcfg</file>
+</qresource></RCC>

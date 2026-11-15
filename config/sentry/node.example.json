@@ -1,0 +1,9 @@
+{
+    "data_dir": "../../data/incoming",
+    "process_name": "getdaq-receiver",
+    "disk_name": "DAQ storage",
+    "bind": "127.0.0.1",
+    "port": 8080,
+    "settle_ms": 30000,
+    "check_process": true
+}

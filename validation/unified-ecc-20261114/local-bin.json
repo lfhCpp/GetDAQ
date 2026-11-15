@@ -1,0 +1,13 @@
+{
+  "sha256": {
+    "GetDAQ": "3ddfd7caa1b7d2b29aa52122181346786245b479fc0e5b63401732aa8f141d08",
+    "getdaq-node-agent": "9db413dab67d80c982dbc6451dc3bba02e9ac0718f162c38a693eed201f672fd"
+  },
+  "full_regression": {
+    "passed": 33,
+    "failed": 0,
+    "skipped": 1
+  },
+  "main_layout_changed": false,
+  "physical_acquisition_accepted": false
+}

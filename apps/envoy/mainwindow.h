@@ -1,0 +1,217 @@
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+#include "runconfig.h"
+#include "consolelogstore.h"
+#include <QMainWindow>
+#include <QThread>
+#include <QElapsedTimer>
+#include <QPointer>
+class RunControl;
+class AutoRunWidget;
+class DiagnosticHighlighter;
+class WidgetPlot2D;
+class QAction;
+class QMenu;
+class QLabel;
+class QTableWidget;
+class ConfigurationReadbackWindow;
+class PlanTransitionWindow;
+class CoBoMaintenanceWindow;
+class FailedHandoffWindow;
+class ScanPlanWindow;
+class OfflineDataToolsWindow;
+class LocalDeploymentServices;
+class ApplicationInstance;
+class QTimer;
+namespace Ui { class MainWindow; }
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+public:
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow() override;
+    void SetApplicationInstance(ApplicationInstance *instance){fApplicationInstance=instance;}
+    void CreateParallelInstance(const QString &templatePath);
+    bool LoadConfig(const QString &path);
+    void SetConfig(const RunConfig &config);
+signals:
+    void ConnectSignal(RunConfig config);
+    void ConfigureAutoRunSignal(AutoRunSettings settings);
+    void SetAutoRunEnabledSignal(bool enabled);
+    void CancelAutomaticRunSignal(QString reason);
+    void UpdateRunMetadataSignal(RunConfig config);
+    void DisconnectSignal();
+    void ProgressSignal(int id);
+    void RegressSignal(int id);
+    void StartSignal(bool replaceCompletedRun);
+    void StartScanPointSignal(QString journalPath);
+    void OfflineToolsStateSignal(bool open);
+    void StopSignal();
+    void FinalizeSignal();
+    void RecoverSignal();
+    void ResumeCatalogReplacementSignal(QString failedOperationId,QString operationId);
+    void ShutdownSignal();
+    void StopProductionOnlySignal();
+    void AbortFailedReceiversSignal();
+    void RetireFailedReceiversSignal();
+    void RetireFailedSourcesSignal();
+    void ReconcileAcquisitionWithSourcesSignal();
+    void UnprepareAcquisitionAfterFailureSignal();
+    void ReconcileDescriptionSignal();
+    void ReconcilePreparationSignal();
+    void ReconcilePreparationWithAlarmSignal();
+    void ReleaseStoppedAlarmSignal();
+    void ReconcileAcquisitionSignal();
+    void ReconcileAcquisitionWithAlarmSignal();
+    void UnprepareAfterFailureSignal();
+    void BreakupAfterFailureSignal();
+    void PauseSignal();
+    void ResumeSignal();
+    void InspectConfigurationSignal();
+    void InspectOwnershipSignal(quint64 generation);
+    void InspectConfigureReadbacksSignal(quint64 generation);
+    void RetireDataPlansSignal(QByteArray successorBytes,QByteArray targetsBytes);
+    void InspectPlanRetirementReceiptSignal();
+    void CompletePlanRetirementSignal(QString originalOperationId);
+    void InspectPlanRetirementCompletionSignal();
+    void InspectCoBoMaintenanceTargetsSignal();
+    void ReprepareCoBoSignal(QString coboId,QString instanceId,QString snapshotSha256);
+    void ConfigureCoBoSignal(QString coboId,QString instanceId,QString snapshotSha256);
+    void SetCoBoLedSignal(QString coboId,unsigned int asadId,unsigned int ledType,unsigned int ledState,QString instanceId,QString snapshotSha256);
+    void BlinkCoBoLedsSignal(QString coboId,QString instanceId,QString snapshotSha256);
+    void FlipCoBoLedSignal(QString coboId,unsigned int ledId,QString instanceId,QString snapshotSha256);
+    void PulseCoBoLedSignal(QString coboId,unsigned int ledId,unsigned int periodMs,QString instanceId,QString snapshotSha256);
+    void TriggerAsAdPulserSignal(QString coboId,int voltageMv,QString instanceId,QString snapshotSha256);
+protected:
+    void closeEvent(QCloseEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+private slots:
+    void on_Connect_clicked();
+    void on_Disconnect_clicked();
+    void on_Progress_clicked();
+    void on_Regress_clicked();
+    void on_StartRun_clicked();
+    void on_StopRun_clicked();
+    void on_Finalize_clicked();
+    void on_Recover_clicked();
+    void on_ResumeCatalogReplacement_clicked();
+    void on_LoadConfig_clicked();
+    void on_SaveConfig_clicked();
+    void ExportVisibleLog();
+    void on_Nodes_clicked();
+    void on_AddField_clicked();
+    void on_RemoveField_clicked();
+    void on_NodeProgress_clicked();
+    void on_NodeRegress_clicked();
+    void ShowStatusSlot(QVector<NodeStatus> status);
+    void ShowControlSlot(QString phase, bool connected, bool busy, bool active);
+    void ShowLogSlot(QString message);
+    void ShowLogEntry(QString message,int severity);
+    void ShowConfigurationSlot(QByteArray body,QString error);
+    void ShowOwnershipSlot(QByteArray body,QString error,quint64 generation);
+    void ShowConfigureReadbacksSlot(QByteArray body,QString error,quint64 generation);
+    void ShowCoBoMaintenanceStateSlot(bool canSubmit,QByteArray status,QByteArray identity,QString reason);
+    void ShowCoBoMaintenanceTargetsSlot(QByteArray body,QString error);
+    void ShowCatalogRecoveryStateSlot(bool canResume,QString failedOperationId,QString reason);
+private:
+    AutoRunWidget *fAutoRunWidget=nullptr;
+    bool fAutomaticArmed=false;
+    DiagnosticHighlighter *fLogHighlighter=nullptr;
+    void ApplyAutoRunSettings(const AutoRunSettings &settings);
+    void OpenWaveformViewer();
+    void OpenDataTools();
+    void RefreshOfflineToolsGate();
+    bool RequireOfflineToolsClosed();
+    QAction *fWaveformViewerAction=nullptr;
+    QPointer<QMainWindow> fWaveformViewer;
+    QAction *fDataToolsAction=nullptr;
+    bool fDataToolsAvailable=false;
+    bool fDataToolsClosing=false;
+    QPointer<OfflineDataToolsWindow> fDataTools;
+    void InitializeConsole();
+    void ArrangeConsole();
+    void UpdateStatusPresentation(const QVector<NodeStatus> &status,const QMap<int,QString> &lifecycles={});
+    void InitializePar();
+    void InitializeMenus();
+    void InitializeRecoveryAndSafetyMenus(QMenu *configurationMenu,QMenu *runMenu,QMenu *recoveryMenu);
+    void InitializeRunControl();
+    void ResizeStatusTableToContents();
+    bool ReadConfig();
+    void StartConnectionLog();
+    void EndConnectionLog(const QString &message);
+    int SelectedId() const;
+    QString SelectedMaintenanceTarget() const;
+    bool SelectedSingleCoBoLifecycleTarget() const;
+    void OpenCoBoMaintenance(const QString &preferredTarget=QString());
+    Ui::MainWindow *ui;
+    RunConfig fConfig;
+    QThread fControlThread;
+    RunControl *fRunControl=nullptr;
+    WidgetPlot2D *fPlot;
+    ConsoleLogStore fLogStore;
+    ApplicationInstance *fApplicationInstance=nullptr;
+    bool AdoptConfiguration(const RunConfig &config);
+    LocalDeploymentServices *fLocalServices=nullptr;
+    bool fServiceStarting=false,fExitManaged=false,fExitAfterRun=false,fExitBreakup=false;
+    int fObservedEccState=-1;
+    QTimer *fServiceExitTimer=nullptr;
+    QElapsedTimer fExitClock;
+    struct Notification {QString message;int severity;bool acknowledged=false;};
+    QVector<Notification> fNotifications;
+    void OpenStatusManagement();
+    void RememberStartupConfiguration();
+    void CreateLocalServiceController();
+    void ContinueManagedExit();
+    void CancelManagedExit(const QString &reason);
+    bool fConnected = false;
+    bool fBusy = false;
+    bool fActive = false;
+    bool fRemoteRunning = false;
+    bool fClosing = false;
+    bool fCanClose = false;
+    QElapsedTimer fDisplayClock;
+    QAction *fProductionStop = nullptr, *fPause = nullptr, *fResume = nullptr;
+    QAction *fSourceRetirement = nullptr, *fSourceRecovery = nullptr;
+    QAction *fAlarmPreparationRecovery = nullptr, *fStoppedAlarmRelease = nullptr;
+    QAction *fReceiverAbort = nullptr, *fDescriptionRecovery = nullptr, *fPreparationRecovery = nullptr, *fFailureUnprepare = nullptr, *fFailureBreakup = nullptr;
+    QAction *fReceiverRetirement = nullptr;
+    QAction *fAcquisitionUnprepare = nullptr;
+    QAction *fAcquisitionRecovery = nullptr;
+    QAction *fAlarmAcquisitionRecovery = nullptr;
+    bool fHardwareOutcomeUnknown=false;
+    bool fNativeReady=false;
+    bool fCatalogRecoveryAvailable=false;
+    QString fCatalogRecoveryFailedOperationId;
+    QAction *fConfigurationInfo = nullptr;
+    QLabel *fConfigurationSummary = nullptr;
+    QTableWidget *fConfigurationView = nullptr;
+    QByteArray fConfigurationBody;
+    QString fConfigurationError;
+    QAction *fOwnershipInfo = nullptr;
+    QTableWidget *fOwnershipView = nullptr;
+    QByteArray fOwnershipBody;
+    QString fOwnershipError;
+    QElapsedTimer fOwnershipClock;
+    qint64 fOwnershipObservedAt = -1;
+    quint64 fOwnershipGeneration = 0;
+    bool fOwnershipConnected = false;
+    void RenderOwnership();
+    QAction *fReadbacksInfo = nullptr;
+    ConfigurationReadbackWindow *fReadbacksView = nullptr;
+    PlanTransitionWindow *fPlanTransition = nullptr;
+    CoBoMaintenanceWindow *fCoBoMaintenance=nullptr;
+    FailedHandoffWindow *fFailedHandoff=nullptr;
+    QPointer<ScanPlanWindow> fScanPlanWindow;
+    bool fCoBoCanSubmit=false;
+    QByteArray fCoBoStatus,fCoBoIdentity,fCoBoTargets;
+    QString fCoBoReason;
+    QString fSingleCoBoLifecycleTarget;
+    bool fPlanCanSubmit=false,fPlanCanInspect=false,fPlanRetired=false;
+    QByteArray fPlanStatus,fPlanIdentity,fPlanReceipt,fPlanRequest;
+    QString fPlanReason,fPlanError;
+    bool fPlanCanComplete=false,fPlanCanObserveCompletion=false;
+    QByteArray fPlanOriginalRequest,fPlanOriginalStatus,fPlanCompletionRequest;
+    QString fPlanCompletionPhase,fPlanCompletionReason;
+};
+#endif

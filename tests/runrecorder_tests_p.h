@@ -1,0 +1,13 @@
+#ifndef GETDAQ_RUNRECORDER_TESTS_P_H
+#define GETDAQ_RUNRECORDER_TESTS_P_H
+
+namespace GetDAQTestInternal {
+void RunRunReservationFailureDoesNotPublishPartialDirectory();
+void RunRunRecorderExplicitReplacementRetainsOldRunUntilFinalization();
+void RunRunRecorderWritesNativeReferencesWithOptionalCatalogMirror();
+void RunRunRecorderCompletesNativeRunInDurableOrder();
+void RunRunRecorderReplacementRejectsIncompleteOrMismatchedRun();
+void RunInterruptedRecovery();
+ }
+
+#endif

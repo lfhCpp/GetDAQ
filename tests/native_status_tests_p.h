@@ -1,0 +1,10 @@
+#ifndef GETDAQ_NATIVE_STATUS_TESTS_P_H
+#define GETDAQ_NATIVE_STATUS_TESTS_P_H
+
+namespace GetDAQTestInternal {
+void RunNativeStatusProjectionRequiresMatchingLiveReceiverEvidence();
+void RunNativeSystemStatusRowsPreserveReceiverOwnershipAndStateGates();
+void RunNativeStatusObservationCacheOwnsDecodeFreshnessAndReset();
+ }
+
+#endif

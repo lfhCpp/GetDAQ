@@ -1,0 +1,9 @@
+QT += core
+QT -= gui
+CONFIG += c++11 console
+TEMPLATE = app
+TARGET = current-configuration-probe
+INCLUDEPATH += ../common/config
+SOURCES += current_configuration_probe.cpp ../common/config/xcfgdocument.cpp ../common/config/xcfgdocument_io.cpp ../common/config/xcfgdocumentproperties.cpp ../common/config/xcfgscalartext.cpp ../common/config/xcfgdocument_effective.cpp ../common/config/configurationrange.cpp ../common/config/configurationrange_parse.cpp
+HEADERS += ../common/config/xcfgdocument.h ../common/config/configurationrange.h ../common/config/configurationrangeinternal_p.h
+strict_c++: QMAKE_CXXFLAGS += -pedantic-errors

@@ -1,0 +1,1422 @@
+{
+  "devices": [
+    {
+      "access": "MemBus16",
+      "base_address": "2163212288",
+      "name": "CARD_B_EMC",
+      "register_bytes": 2,
+      "registers": [
+        {
+          "fields": [
+            {
+              "name": "amc10_status_code",
+              "offset_bits": 4,
+              "read_only": true,
+              "width_bits": 4
+            },
+            {
+              "name": "amc11_status_code",
+              "offset_bits": 8,
+              "read_only": true,
+              "width_bits": 4
+            },
+            {
+              "name": "amc12_status_code",
+              "offset_bits": 12,
+              "read_only": true,
+              "width_bits": 4
+            },
+            {
+              "name": "amc9_status_code",
+              "offset_bits": 0,
+              "read_only": true,
+              "width_bits": 4
+            }
+          ],
+          "name": "AMC12_9_STATUS",
+          "offset": "138",
+          "read_only": true
+        },
+        {
+          "fields": [
+            {
+              "name": "amc1_status_code",
+              "offset_bits": 0,
+              "read_only": true,
+              "width_bits": 4
+            },
+            {
+              "name": "amc2_status_code",
+              "offset_bits": 4,
+              "read_only": true,
+              "width_bits": 4
+            },
+            {
+              "name": "amc3_status_code",
+              "offset_bits": 8,
+              "read_only": true,
+              "width_bits": 4
+            },
+            {
+              "name": "amc4_status_code",
+              "offset_bits": 12,
+              "read_only": true,
+              "width_bits": 4
+            }
+          ],
+          "name": "AMC4_1_STATUS",
+          "offset": "134",
+          "read_only": true
+        },
+        {
+          "fields": [
+            {
+              "name": "amc5_status_code",
+              "offset_bits": 0,
+              "read_only": true,
+              "width_bits": 4
+            },
+            {
+              "name": "amc6_status_code",
+              "offset_bits": 4,
+              "read_only": true,
+              "width_bits": 4
+            },
+            {
+              "name": "amc7_status_code",
+              "offset_bits": 8,
+              "read_only": true,
+              "width_bits": 4
+            },
+            {
+              "name": "amc8_status_code",
+              "offset_bits": 12,
+              "read_only": true,
+              "width_bits": 4
+            }
+          ],
+          "name": "AMC8_5_STATUS",
+          "offset": "136",
+          "read_only": true
+        },
+        {
+          "fields": [
+            {
+              "name": "ATO10",
+              "offset_bits": 9,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ATO11",
+              "offset_bits": 10,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ATO12",
+              "offset_bits": 11,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ATO1",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ATO2",
+              "offset_bits": 1,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ATO3",
+              "offset_bits": 2,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ATO4",
+              "offset_bits": 3,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ATO5",
+              "offset_bits": 4,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ATO6",
+              "offset_bits": 5,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ATO7",
+              "offset_bits": 6,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ATO8",
+              "offset_bits": 7,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ATO9",
+              "offset_bits": 8,
+              "read_only": false,
+              "width_bits": 1
+            }
+          ],
+          "name": "AMC_TAG_ONLY",
+          "offset": "18",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "CENTRUM_EVT_NUM_HIGH",
+          "offset": "162",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "CENTRUM_EVT_NUM_LOW",
+          "offset": "160",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "CENTRUM_TP_TS_HIGH",
+          "offset": "172",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "CENTRUM_TP_TS_LOW",
+          "offset": "170",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "CENTRUM_TS_HIGH",
+          "offset": "168",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "CENTRUM_TS_LOW",
+          "offset": "164",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "CENTRUM_TS_MID",
+          "offset": "166",
+          "read_only": true
+        },
+        {
+          "fields": [
+            {
+              "name": "ft",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 2
+            }
+          ],
+          "name": "FIFO_FRAME_TYPE",
+          "offset": "12",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "FIFO_WORD_COUNT",
+          "offset": "132",
+          "read_only": true
+        },
+        {
+          "fields": [
+            {
+              "name": "fp_log_insp1",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 8
+            },
+            {
+              "name": "fp_log_insp2",
+              "offset_bits": 8,
+              "read_only": false,
+              "width_bits": 8
+            }
+          ],
+          "name": "FP_LOG_IREG",
+          "offset": "96",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "C/S",
+              "offset_bits": 14,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "CENT",
+              "offset_bits": 15,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "HER",
+              "offset_bits": 12,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "JPM",
+              "offset_bits": 13,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "L0/L1",
+              "offset_bits": 8,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "L0EN",
+              "offset_bits": 4,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "L1EN",
+              "offset_bits": 5,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "L1SEL",
+              "offset_bits": 9,
+              "read_only": false,
+              "width_bits": 2
+            },
+            {
+              "name": "L2EN",
+              "offset_bits": 6,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "L2W",
+              "offset_bits": 7,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "M/S",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "SNUM",
+              "offset_bits": 1,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "TPD",
+              "offset_bits": 11,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "VPA_ON",
+              "offset_bits": 2,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "VPB_ON",
+              "offset_bits": 3,
+              "read_only": false,
+              "width_bits": 1
+            }
+          ],
+          "name": "GLOBAL_CONF",
+          "offset": "2",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "GMC",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 2
+            },
+            {
+              "name": "PromptWSCA",
+              "offset_bits": 4,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "WSCA",
+              "offset_bits": 2,
+              "read_only": false,
+              "width_bits": 2
+            }
+          ],
+          "name": "GMC_WSCA_SEL",
+          "offset": "0",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "L0_EVT_CNT_HIGH",
+          "offset": "194",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "L0_EVT_CNT_LOW",
+          "offset": "192",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "L0_GATE_DELAY",
+          "offset": "24",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "L0_GATE_DURATION",
+          "offset": "26",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "L1A_EVT_CNT_HIGH",
+          "offset": "198",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "L1A_EVT_CNT_LOW",
+          "offset": "196",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "L1B_EVT_CNT_HIGH",
+          "offset": "202",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "L1B_EVT_CNT_LOW",
+          "offset": "200",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "L1_A_HIGH_MULT_THRESHOLD",
+          "offset": "34",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "L1_A_HIGH_TH_N_BUCKETS",
+          "offset": "42",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "L1_A_LOW_MULT_THRESHOLD",
+          "offset": "32",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "L1_A_LOW_TH_N_BUCKETS",
+          "offset": "40",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "L1_B_HIGH_MULT_THRESHOLD",
+          "offset": "38",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "L1_B_HIGH_TH_N_BUCKETS",
+          "offset": "46",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "L1_B_LOW_MULT_THRESHOLD",
+          "offset": "36",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "L1_B_LOW_TH_N_BUCKETS",
+          "offset": "44",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "L1_B_TIMEOUT",
+          "offset": "48",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "L1_POST_TRIG_DELAY",
+          "offset": "50",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "L2_EVT_CNT_HIGH",
+          "offset": "206",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "L2_EVT_CNT_LOW",
+          "offset": "204",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "MULT_A_MEM",
+          "offset": "260",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "MULT_B_MEM",
+          "offset": "262",
+          "read_only": true
+        },
+        {
+          "fields": [
+            {
+              "name": "cfs0",
+              "offset_bits": 12,
+              "read_only": true,
+              "width_bits": 1
+            },
+            {
+              "name": "cfs1",
+              "offset_bits": 13,
+              "read_only": true,
+              "width_bits": 1
+            },
+            {
+              "name": "mrdy",
+              "offset_bits": 8,
+              "read_only": true,
+              "width_bits": 1
+            },
+            {
+              "name": "s0",
+              "offset_bits": 0,
+              "read_only": true,
+              "width_bits": 1
+            },
+            {
+              "name": "s0rdy",
+              "offset_bits": 9,
+              "read_only": true,
+              "width_bits": 1
+            },
+            {
+              "name": "s1a",
+              "offset_bits": 1,
+              "read_only": true,
+              "width_bits": 1
+            },
+            {
+              "name": "s1b",
+              "offset_bits": 2,
+              "read_only": true,
+              "width_bits": 1
+            },
+            {
+              "name": "s1rdy",
+              "offset_bits": 10,
+              "read_only": true,
+              "width_bits": 1
+            },
+            {
+              "name": "s2",
+              "offset_bits": 3,
+              "read_only": true,
+              "width_bits": 1
+            },
+            {
+              "name": "s3",
+              "offset_bits": 4,
+              "read_only": true,
+              "width_bits": 1
+            },
+            {
+              "name": "test",
+              "offset_bits": 15,
+              "read_only": true,
+              "width_bits": 1
+            }
+          ],
+          "name": "MUTANT_STATUS",
+          "offset": "130",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "PPC_MESSAGE_REG1",
+          "offset": "256",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "PPC_MESSAGE_REG2",
+          "offset": "258",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "PWR_STAT_B",
+          "offset": "128",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "RP_LOG_IREG",
+          "offset": "98",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "SCALER1_REG_HIGH",
+          "offset": "226",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "SCALER1_REG_LOW",
+          "offset": "224",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "SCALER2_REG_HIGH",
+          "offset": "230",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "SCALER2_REG_LOW",
+          "offset": "228",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "SCALER3_REG_HIGH",
+          "offset": "234",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "SCALER3_REG_LOW",
+          "offset": "232",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "SCALER4_REG_HIGH",
+          "offset": "238",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "SCALER4_REG_LOW",
+          "offset": "236",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "SCALER5_REG_HIGH",
+          "offset": "242",
+          "read_only": true
+        },
+        {
+          "fields": [],
+          "name": "SCALER5_REG_LOW",
+          "offset": "240",
+          "read_only": true
+        },
+        {
+          "fields": [
+            {
+              "name": "cs1",
+              "offset_bits": 5,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "cs2",
+              "offset_bits": 6,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "cs3",
+              "offset_bits": 7,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "cs4",
+              "offset_bits": 8,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "cs5",
+              "offset_bits": 9,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ens1",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ens2",
+              "offset_bits": 1,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ens3",
+              "offset_bits": 2,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ens4",
+              "offset_bits": 3,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ens5",
+              "offset_bits": 4,
+              "read_only": false,
+              "width_bits": 1
+            }
+          ],
+          "name": "SCALER_CTRL",
+          "offset": "8",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "SET_EVT_NUM_HIGH",
+          "offset": "72",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "SET_EVT_NUM_LOW",
+          "offset": "70",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "SET_TIME_HIGH",
+          "offset": "68",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "SET_TIME_LOW",
+          "offset": "64",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "SET_TIME_MID",
+          "offset": "66",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "SHELF_MASK",
+          "offset": "16",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "source",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 8
+            }
+          ],
+          "name": "SOURCE_SYSTEM",
+          "offset": "10",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "cl0c",
+              "offset_bits": 4,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "cl1ac",
+              "offset_bits": 5,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "cl1bc",
+              "offset_bits": 6,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "cl2c",
+              "offset_bits": 7,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "eec",
+              "offset_bits": 3,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "euc",
+              "offset_bits": 1,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "l2ptc",
+              "offset_bits": 8,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "lec",
+              "offset_bits": 2,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "luc",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 1
+            }
+          ],
+          "name": "TRIGGER_CMD",
+          "offset": "6",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "read_mode",
+              "offset_bits": 1,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "run",
+              "offset_bits": 15,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "test",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 1
+            }
+          ],
+          "name": "TRIGGER_CTRL",
+          "offset": "4",
+          "read_only": false
+        },
+        {
+          "fields": [],
+          "name": "USER_REG",
+          "offset": "20",
+          "read_only": false
+        }
+      ]
+    },
+    {
+      "access": "SPI",
+      "base_address": "0",
+      "name": "CLK200_SPI",
+      "register_bytes": 4,
+      "registers": [
+        {
+          "fields": [],
+          "name": "VCXO_CONTROL",
+          "offset": "104",
+          "read_only": false
+        }
+      ]
+    },
+    {
+      "access": "MemBus32",
+      "base_address": "2168455168",
+      "name": "GPIO_CLK_TREE",
+      "register_bytes": 4,
+      "registers": [
+        {
+          "fields": [
+            {
+              "name": "amc_clk1_out_en",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 12
+            },
+            {
+              "name": "amc_clk2_out_en",
+              "offset_bits": 12,
+              "read_only": false,
+              "width_bits": 12
+            },
+            {
+              "name": "clk1_fb",
+              "offset_bits": 30,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "clk2_fb",
+              "offset_bits": 31,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "mux_clk1_2_sel",
+              "offset_bits": 26,
+              "read_only": false,
+              "width_bits": 4
+            },
+            {
+              "name": "mux_clk1_sel",
+              "offset_bits": 24,
+              "read_only": false,
+              "width_bits": 2
+            }
+          ],
+          "name": "CLOCK_TREE_CONFIG1",
+          "offset": "0",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "clk_path_sel",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 9
+            },
+            {
+              "name": "start_pulse",
+              "offset_bits": 9,
+              "read_only": false,
+              "width_bits": 1
+            }
+          ],
+          "name": "CLOCK_TREE_CONFIG2",
+          "offset": "8",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "input_output",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "DIR1",
+          "offset": "4",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "input_output",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "DIR2",
+          "offset": "12",
+          "read_only": false
+        }
+      ]
+    },
+    {
+      "access": "MemBus32",
+      "base_address": "2168586240",
+      "name": "GPIO_SW_LEDS",
+      "register_bytes": 4,
+      "registers": [
+        {
+          "fields": [
+            {
+              "name": "avcc_mgt",
+              "offset_bits": 25,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "avcc_pll",
+              "offset_bits": 26,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "avtt_mgt",
+              "offset_bits": 27,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "ddr2",
+              "offset_bits": 24,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "mutant_id",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 24
+            },
+            {
+              "name": "p1v8",
+              "offset_bits": 28,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "p2v5",
+              "offset_bits": 29,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "p3v3_p1v0",
+              "offset_bits": 30,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "rs",
+              "offset_bits": 31,
+              "read_only": false,
+              "width_bits": 1
+            }
+          ],
+          "name": "BOARD_ID_PWR_STAT",
+          "offset": "8",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "input_output",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "DIR1",
+          "offset": "4",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "input_output",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "DIR2",
+          "offset": "12",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "fifo_almost_full",
+              "offset_bits": 6,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "fifo_empty",
+              "offset_bits": 4,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "fifo_full",
+              "offset_bits": 5,
+              "read_only": false,
+              "width_bits": 1
+            },
+            {
+              "name": "flgb",
+              "offset_bits": 4,
+              "read_only": false,
+              "width_bits": 4
+            },
+            {
+              "name": "gmc",
+              "offset_bits": 8,
+              "read_only": false,
+              "width_bits": 2
+            },
+            {
+              "name": "led",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 2
+            },
+            {
+              "name": "sw",
+              "offset_bits": 2,
+              "read_only": false,
+              "width_bits": 2
+            },
+            {
+              "name": "tdc",
+              "offset_bits": 10,
+              "read_only": false,
+              "width_bits": 4
+            }
+          ],
+          "name": "TDC_STAT_CARD_B_FLGS",
+          "offset": "0",
+          "read_only": false
+        }
+      ]
+    },
+    {
+      "access": "MemBus32",
+      "base_address": "2157969408",
+      "name": "TDC_EMC",
+      "register_bytes": 4,
+      "registers": [
+        {
+          "fields": [
+            {
+              "name": "0",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_0",
+          "offset": "0",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "10",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_10",
+          "offset": "40",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "11",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_11",
+          "offset": "44",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "12",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_12",
+          "offset": "48",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "14",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_14",
+          "offset": "52",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "1",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_1",
+          "offset": "4",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "2",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_2",
+          "offset": "8",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "3",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_3",
+          "offset": "12",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "4",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_4",
+          "offset": "16",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "5",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_5",
+          "offset": "20",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "6",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_6",
+          "offset": "24",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "7",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_7",
+          "offset": "28",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "8",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_8",
+          "offset": "32",
+          "read_only": false
+        },
+        {
+          "fields": [
+            {
+              "name": "1",
+              "offset_bits": 0,
+              "read_only": false,
+              "width_bits": 32
+            }
+          ],
+          "name": "TDC_REGISTER_9",
+          "offset": "36",
+          "read_only": false
+        }
+      ]
+    }
+  ],
+  "kind": "getdaq.hardware-description",
+  "node_id": "MuTanT",
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "source/get/GetBench-software-release-20210208/data/config/hardwareDescription_Mutant.xcfg",
+      "sha256": "4d4e456264c34cae4b3a66bde9dfb71848fe2945b91a6b5d31b56af33dc4e3a7"
+    }
+  ],
+  "warnings": [
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[AMC12_9_STATUS]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[AMC12_9_STATUS]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[AMC4_1_STATUS]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[AMC4_1_STATUS]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[AMC8_5_STATUS]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[AMC8_5_STATUS]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[CENTRUM_EVT_NUM_HIGH]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[CENTRUM_EVT_NUM_HIGH]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[CENTRUM_EVT_NUM_LOW]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[CENTRUM_EVT_NUM_LOW]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[CENTRUM_TS_HIGH]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[CENTRUM_TS_HIGH]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[CENTRUM_TS_LOW]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[CENTRUM_TS_LOW]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[CENTRUM_TS_MID]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[CENTRUM_TS_MID]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[FIFO_WORD_COUNT]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[FIFO_WORD_COUNT]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L0_EVT_CNT_HIGH]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L0_EVT_CNT_HIGH]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L0_EVT_CNT_LOW]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L0_EVT_CNT_LOW]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L1A_EVT_CNT_HIGH]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L1A_EVT_CNT_HIGH]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L1A_EVT_CNT_LOW]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L1A_EVT_CNT_LOW]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L1B_EVT_CNT_HIGH]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L1B_EVT_CNT_HIGH]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L1B_EVT_CNT_LOW]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L1B_EVT_CNT_LOW]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L2_EVT_CNT_HIGH]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L2_EVT_CNT_HIGH]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L2_EVT_CNT_LOW]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[L2_EVT_CNT_LOW]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[MULT_A_MEM]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[MULT_A_MEM]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[MULT_B_MEM]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[MULT_B_MEM]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[MUTANT_STATUS]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[MUTANT_STATUS]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[PPC_MESSAGE_REG1]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[PPC_MESSAGE_REG1]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[PPC_MESSAGE_REG2]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[PPC_MESSAGE_REG2]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[PWR_STAT_B]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[PWR_STAT_B]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER1_REG_HIGH]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER1_REG_HIGH]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER1_REG_LOW]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER1_REG_LOW]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER2_REG_HIGH]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER2_REG_HIGH]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER2_REG_LOW]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER2_REG_LOW]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER3_REG_HIGH]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER3_REG_HIGH]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER3_REG_LOW]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER3_REG_LOW]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER4_REG_HIGH]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER4_REG_HIGH]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER4_REG_LOW]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER4_REG_LOW]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER5_REG_HIGH]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER5_REG_HIGH]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER5_REG_LOW]: Legacy board DeviceImpl does not enforce/preserve readOnly; host policy remains necessary",
+    "Node[MuTanT]/Device[CARD_B_EMC]/Register[SCALER5_REG_LOW]: Register-level readOnly has no GET wire field",
+    "Node[MuTanT]/Device[GPIO_SW_LEDS]/Register[BOARD_ID_PWR_STAT]/BitField[avcc_mgt]: writeOnly has no field in the GET wire description; original declaration is preserved in source snapshot",
+    "Node[MuTanT]/Device[GPIO_SW_LEDS]/Register[BOARD_ID_PWR_STAT]/BitField[avcc_pll]: writeOnly has no field in the GET wire description; original declaration is preserved in source snapshot",
+    "Node[MuTanT]/Device[GPIO_SW_LEDS]/Register[BOARD_ID_PWR_STAT]/BitField[avtt_mgt]: writeOnly has no field in the GET wire description; original declaration is preserved in source snapshot",
+    "Node[MuTanT]/Device[GPIO_SW_LEDS]/Register[BOARD_ID_PWR_STAT]/BitField[ddr2]: writeOnly has no field in the GET wire description; original declaration is preserved in source snapshot",
+    "Node[MuTanT]/Device[GPIO_SW_LEDS]/Register[BOARD_ID_PWR_STAT]/BitField[mutant_id]: writeOnly has no field in the GET wire description; original declaration is preserved in source snapshot",
+    "Node[MuTanT]/Device[GPIO_SW_LEDS]/Register[BOARD_ID_PWR_STAT]/BitField[p1v8]: writeOnly has no field in the GET wire description; original declaration is preserved in source snapshot",
+    "Node[MuTanT]/Device[GPIO_SW_LEDS]/Register[BOARD_ID_PWR_STAT]/BitField[p2v5]: writeOnly has no field in the GET wire description; original declaration is preserved in source snapshot",
+    "Node[MuTanT]/Device[GPIO_SW_LEDS]/Register[BOARD_ID_PWR_STAT]/BitField[p3v3_p1v0]: writeOnly has no field in the GET wire description; original declaration is preserved in source snapshot",
+    "Node[MuTanT]/Device[GPIO_SW_LEDS]/Register[BOARD_ID_PWR_STAT]/BitField[rs]: writeOnly has no field in the GET wire description; original declaration is preserved in source snapshot",
+    "Node[MuTanT]/Device[TDC_EMC]/Register[TDC_REGISTER_10]/BitField[10]: writeOnly has no field in the GET wire description; original declaration is preserved in source snapshot",
+    "Node[MuTanT]/Device[TDC_EMC]/Register[TDC_REGISTER_8]/BitField[8]: writeOnly has no field in the GET wire description; original declaration is preserved in source snapshot",
+    "Node[MuTanT]/Device[TDC_EMC]/Register[TDC_REGISTER_9]/BitField[1]: writeOnly has no field in the GET wire description; original declaration is preserved in source snapshot"
+  ]
+}

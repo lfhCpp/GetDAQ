@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1536</width>
+    <height>1024</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>GetDAQ — AT-TPC Envoy Control</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="MainLayout">
+    <item>
+     <widget class="QFrame" name="HeaderPanel">
+      <layout class="QHBoxLayout" name="TitleLayout">
+       <item>
+        <widget class="QLabel" name="Title">
+         <property name="text">
+          <string>GetDAQ  /  Run Control</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="HeaderMenuPanel">
+         <layout class="QHBoxLayout" name="HeaderMenuLayout" />
+        </widget>
+       </item>
+       <item>
+        <spacer name="TitleSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="Mode">
+         <property name="text">
+          <string>SIMULATION</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="ConnectionStatusBadge">
+         <property name="accessibleName">
+          <string>Control connection status</string>
+         </property>
+         <layout class="QHBoxLayout" name="ConnectionStatusLayout">
+          <property name="leftMargin">
+           <number>9</number>
+          </property>
+          <property name="topMargin">
+           <number>5</number>
+          </property>
+          <property name="rightMargin">
+           <number>9</number>
+          </property>
+          <property name="bottomMargin">
+           <number>5</number>
+          </property>
+          <property name="spacing">
+           <number>8</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="Phase">
+            <property name="text">
+             <string>Disconnected</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="Elapsed">
+         <property name="text">
+          <string>Elapsed: 0 h 00 min 00 s</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QSplitter" name="MainContentSplitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QWidget" name="LeftColumn">
+       <layout class="QVBoxLayout" name="LeftContentLayout">
+        <item>
+         <widget class="QFrame" name="SetupPanel">
+          <layout class="QVBoxLayout" name="SetupPanelLayout">
+           <item>
+            <layout class="QHBoxLayout" name="SetupTitleLayout">
+             <item>
+              <widget class="QLabel" name="SetupPanelTitle">
+               <property name="text">
+                <string>Run setup</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="AutoRunSettingsButton">
+               <property name="text">
+                <string>Automatic Run…</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="SetupContentLayout">
+             <item>
+              <widget class="QWidget" name="SetupInputs">
+               <layout class="QVBoxLayout" name="SetupInputsLayout">
+                <item>
+                 <layout class="QHBoxLayout" name="ConfigLayout">
+                  <item>
+                   <widget class="QPushButton" name="LoadConfig">
+                    <property name="text">
+                     <string>Open YAML</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="SaveConfig">
+                    <property name="text">
+                     <string>Save YAML</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="Nodes">
+                    <property name="text">
+                     <string>Nodes / Paths</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="ConfigPath">
+                    <property name="text">
+                     <string>Unsaved configuration</string>
+                    </property>
+                    <property name="textInteractionFlags">
+                     <set>Qt::TextSelectableByMouse</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="RunLayout">
+                  <item>
+                   <widget class="QLabel" name="ExperimentLabel">
+                    <property name="text">
+                     <string>Experiment</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="Experiment">
+                    <property name="maximumWidth">
+                     <number>160</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="RunLabel">
+                    <property name="text">
+                     <string>Run</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="RunNumber">
+                    <property name="maximum">
+                     <number>2147483646</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="Description">
+                    <property name="placeholderText">
+                     <string>Run description / note</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QCheckBox" name="Simulation">
+                    <property name="text">
+                     <string>Simulation</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="RunPanel">
+          <layout class="QVBoxLayout" name="RunPanelLayout">
+           <item>
+            <widget class="QLabel" name="RunPanelTitle">
+             <property name="text">
+              <string>Acquisition controls</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QGridLayout" name="Controls">
+             <item row="0" column="0">
+              <widget class="QPushButton" name="StartRun">
+               <property name="text">
+                <string>Run start</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QPushButton" name="StopRun">
+               <property name="text">
+                <string>Run stop</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QPushButton" name="Connect">
+               <property name="text">
+                <string>Connect</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3">
+              <widget class="QPushButton" name="Disconnect">
+               <property name="text">
+                <string>Disconnect</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="4">
+              <widget class="QPushButton" name="Regress">
+               <property name="text">
+                <string>Regress all</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="5">
+              <widget class="QPushButton" name="Progress">
+               <property name="text">
+                <string>Progress all</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="6">
+              <widget class="QPushButton" name="Finalize">
+               <property name="text">
+                <string>Retry finalization</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="7">
+              <widget class="QPushButton" name="Recover">
+               <property name="text">
+                <string>Recover journal</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="CatalogRecoveryLayout">
+             <item>
+              <widget class="QPushButton" name="ResumeCatalogReplacement">
+               <property name="text">
+                <string>Resume failed catalog replacement</string>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="toolTip">
+                <string>Available only when the original replacement failed in this live ECC session and all recovery checks pass.</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="CatalogRecoveryReason">
+               <property name="text">
+                <string>Catalog replacement recovery is not available.</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="textInteractionFlags">
+                <set>Qt::TextSelectableByMouse</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="FieldsColumn">
+       <layout class="QVBoxLayout" name="FieldsColumnLayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QWidget" name="FieldsPanel">
+          <layout class="QVBoxLayout" name="FieldsLayout">
+           <item>
+            <widget class="QLabel" name="FieldsTitle">
+             <property name="text">
+              <string>Run record parameters</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="Fields" />
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="FieldButtons">
+             <item>
+              <widget class="QPushButton" name="AddField">
+               <property name="text">
+                <string>Add parameter</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="RemoveField">
+               <property name="text">
+                <string>Remove selected</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QSplitter" name="VerticalSplitter">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="QWidget" name="StatusPanel">
+       <layout class="QVBoxLayout" name="StatusLayout">
+        <item>
+         <widget class="QTableWidget" name="StatusTable">
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="NodeControls">
+          <item>
+           <widget class="QPushButton" name="NodeRegress">
+            <property name="text">
+             <string>Regress selected node</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="NodeProgress">
+            <property name="text">
+             <string>Progress selected node</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="OrderNote">
+            <property name="text">
+             <string>Prepare: MuTaNT first  ·  Configure / Start: CoBos first  ·  Stop: MuTaNT first</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QSplitter" name="BottomPanels">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <widget class="QWidget" name="PlotPanel">
+        <layout class="QVBoxLayout" name="PlotLayout" />
+       </widget>
+       <widget class="QWidget" name="LogPanel">
+        <layout class="QVBoxLayout" name="LogPanelLayout">
+         <item>
+          <widget class="QLabel" name="LogTitle">
+           <property name="text">
+            <string>Event log</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPlainTextEdit" name="Log">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+           <property name="placeholderText">
+            <string>Operation log</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources />
+ <connections />
+</ui>
