@@ -1,6 +1,7 @@
 # Build outputs and local IDE state
 /build*/
 /bin/
+/share/
 *.pro.user*
 *.o
 *.obj

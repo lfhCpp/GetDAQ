@@ -94,6 +94,7 @@ bool RunRecorder::Reserve(const RunConfig &c, bool replaceCompletedRun, QString 
     }
     const bool targetPresent = path.exists() || path.isSymLink();
     QString backupName;
+    QString retainedReason;
     if (replaceCompletedRun && !targetPresent) {
         *error = "The Run selected for replacement no longer exists; cancel and review the target again.";
         return false;
@@ -102,7 +103,12 @@ bool RunRecorder::Reserve(const RunConfig &c, bool replaceCompletedRun, QString 
         if (!replaceCompletedRun) {
             *error = "Run directory already exists: " + path.filePath(); return false;
         }
-        if (!InspectCompleteRun(path.filePath(), c, error)) return false;
+        if (!InspectCompleteRun(path.filePath(), c, error)) {
+            // Legacy SOAP users can explicitly reuse an interrupted/warning Run.
+            // Retain it intact; never treat it as a verified Complete backup to delete.
+            if(c.nativeEcc || path.isSymLink() || !path.isDir())return false;
+            retainedReason=*error;error->clear();
+        }
         backupName = "." + path.fileName() + ".replaced-" + QUuid::createUuid().toString(QUuid::WithoutBraces);
         if (QFileInfo(QDir(path.absolutePath()).filePath(backupName)).exists()) {
             *error = "Cannot reserve a unique replacement backup path; preserve existing Run."; return false;
@@ -123,13 +129,18 @@ bool RunRecorder::Reserve(const RunConfig &c, bool replaceCompletedRun, QString 
     journal["started_utc"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
     journal["catalog"] = QJsonObject();
     if (!backupName.isEmpty()) journal["replacement_backup"] = backupName;
+    if(!retainedReason.isEmpty()) {
+        journal["replacement_backup_policy"]="retain";
+        journal["retained_previous_run"]=backupName;
+        journal["previous_run_inspection_warning"]=retainedReason;
+    }
     if (!RunRecorderInternal::WriteRunFile(QDir(staging.path()).filePath("journal.json"), QJsonDocument(journal).toJson(), error)) return false;
 
     QDir parent(path.absolutePath());
     bool movedOldRun = false;
     if (!backupName.isEmpty()) {
         if (!parent.rename(path.fileName(), backupName)) {
-            *error = "Cannot retain the old Complete Run before replacement; preserve it.";
+            *error = "Cannot retain the old Run before replacement; preserve it.";
             return false;
         }
         movedOldRun = true;
@@ -159,6 +170,11 @@ bool RunRecorder::FinalizeReplacement(const RunConfig &c, QString *error)
         !backupName.startsWith("." + target.fileName() + ".replaced-")) {
         *error = "Replacement backup path is invalid; preserve it.";
         return false;
+    }
+    if(currentJournal.value("replacement_backup_policy").toString()=="retain") {
+        currentJournal["retained_previous_run"]=backupName;
+        currentJournal["replacement_cleanup_skipped"]=true;
+        return WriteJournal(c,currentJournal,error);
     }
     const QString backupPath = QDir(target.absolutePath()).filePath(backupName);
     const QFileInfo backupInfo(backupPath);

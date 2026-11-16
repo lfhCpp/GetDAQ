@@ -7,8 +7,8 @@
 // 运行记录按Run分目录；默认保留失败现场并拒绝覆盖。覆盖必须由独立的显式授权路径调用。
 namespace RunRecorder {
 bool Reserve(const RunConfig &config, QString *error);
-// replaceCompletedRun只能在操作员明确确认覆盖后为true。旧记录须为身份匹配的Complete Run，
-// 并在同卷隐藏目录保留到调用方确认所有数据节点替换成功后再FinalizeReplacement。
+// replaceCompletedRun只能在操作员明确确认同号覆盖后为true。Native仍要求匹配的Complete；
+// Legacy允许保留非Complete旧目录，明确标记retain，不能自动清理旧记录/旧数据。
 bool Reserve(const RunConfig &config, bool replaceCompletedRun, QString *error);
 bool WriteJournal(const RunConfig &config, const QJsonObject &journal, QString *error);
 bool ReadJournal(const RunConfig &config, QJsonObject *journal, QString *error);

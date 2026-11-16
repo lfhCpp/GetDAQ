@@ -54,6 +54,8 @@
 
 旧 Sentry 状态查询与归档请求使用独立通道。归档期间表格显示 **Archiving**；旧服务若阻塞状态响应，显示 **Archiving / status unavailable**，不声称仍有实时数据。数据率优先按两次有效字节计数差计算；旧返回只有GB时沿用兼容解析，目录改变、计数下降或状态过期时不显示虚假速率。Sentry只统计其配置的目录，需与接收程序实际写盘目录一致。
 
-**All configured nodes confirmed stopped (Ready)** 表示 ECC 已确认停止。随后 `/catalog` HTTP 500 属于数据归档失败，不能当成Stop失败，也不能按缺少配置备份的规则视为归档成功。软件显示 **Stopped; catalog inspection required**，最新状态全体Ready时可Disconnect并保留unknown归档记录；不自动重发catalog。需检查Sentry服务端错误、源文件与目标目录后处理，不能仅清错误或反复Stop。
+**All configured nodes confirmed stopped (Ready)** 表示 ECC 已确认停止。随后 `/catalog` HTTP 500 属于数据归档失败，不能当成Stop失败或归档成功。按当前旧Sentry兼容策略，全体ECC仍有最新Ready状态、所有已提交归档请求已返回后，软件以警告结束本地Run，显示 **Stopped (archive warning)**，递增运行号并解除锁定。`journal.json` 保留 `catalog=unknown`，阶段为 `CompleteWithWarnings`，并保存 `catalog-warning.json`；不自动重发归档、不删除原始文件、不清理替换Run的旧副本，也不把这个Run作为可覆盖的已验证Complete。自动续Run会取消，操作员可手动开始下一次采集。
+
+已卡住的旧Run可打开原 `run.yml`、Connect、Recover journal、Retry finalization，以同一警告规则结束，不重新提交原归档。Sentry服务端错误、源文件与目标目录仍可后续核查。下一次普通Start要求Sentry正常、有可用磁盘及空接收目录；若选择已存在的同一Run编号并明确确认覆盖，可保留现有接收文件继续采集，确认框说明这些文件可能与本次数据一起归档。旧本地记录移至独立备份且不自动清理。原生ECC的封存/归档门槛不受此旧Sentry策略影响。
 
 旧默认端口：DataRouter管理46003、数据接收46005。Router port填写实际数据接收端口，以现场启动参数为准；管理对象可达不证明该端口可接收TCP原始数据。

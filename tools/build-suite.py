@@ -15,7 +15,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 CONTROL = ['GetDAQ', 'getdaq-sentry', 'getdaq-simulator', 'getdaq-config',
            'getdaq-config-check', 'getdaq-config-upload', 'getdaq-supervisor-query',
-           'getdaq-waveform-viewer', 'getdaq-control-mcp']
+           'getdaq-waveform-viewer', 'getdaq-cconfig-editor', 'getdaq-control-mcp']
 GUI_CONTROL = [name for name in CONTROL if name != 'getdaq-control-mcp']
 QT_CONTROL = [name for name in CONTROL if name != 'getdaq-supervisor-query']
 RECEIVER = ['getdaq-receiver', 'getdaq-inspect', 'getdaq-merge', 'getdaq-matrix']
@@ -63,10 +63,10 @@ def source_hashes():
         for path in (ROOT / directory).rglob('*'):
             if path.is_file() and (path.suffix in suffixes or path.name == 'CMakeLists.txt'):
                 files.add(path)
-    for directory in ('source/mordicus/MDaq-release-20210208/src',
-                      'source/get/GetBench-software-release-20210208/src'):
-        files.update((ROOT / directory).rglob('*.ice'))
     files.add(ROOT / 'third_party/ice-compat/CMakeLists.txt')
+    for name in ('prepare-original-cconfig.py', 'prepare-original-getcontroller.py', 'build-original-getcontroller.py', 'verify-legacy-sources.py'):
+        files.add(ROOT / 'tools' / name)
+    files.update(p for p in (ROOT/'third_party/legacy-get').rglob('*') if p.is_file())
     files.update((ROOT / 'third_party/archives').glob('*.tar.gz'))
     files.update(p for p in (ROOT / 'config/backend-presets').rglob('*') if p.is_file())
     return {str(p.relative_to(ROOT)): sha(p) for p in sorted(files)}
@@ -108,7 +108,7 @@ def plan(args, build):
         directory = build / 'control'
         items.append({'component': 'control', 'directory': str(directory),
                       'configure': [args.qmake, str(ROOT / 'GetDAQ.pro'),
-                                    'GETDAQ_DESTDIR=' + str(build / 'bin'), '-after',
+                                    'GETDAQ_DESTDIR=' + str(build / 'bin'), 'GETDAQ_PYTHON=' + sys.executable, '-after',
                                     'CONFIG+=release', 'CONFIG-=debug', 'CONFIG-=app_bundle'],
                       'build': [args.make, '-j' + str(args.jobs)],
                       'programs': {n: str(build / 'bin' / (n + suffix)) for n in GUI_CONTROL}})
@@ -127,6 +127,16 @@ def plan(args, build):
                                     'CONFIG+=release', 'CONFIG-=debug'],
                       'build': [args.make, '-j' + str(args.jobs)],
                       'programs': {'getdaq-node-agent': str(build / 'bin/getdaq-node-agent')}})
+    if args.profile in ('control', 'full') and platform.system() == 'Linux':
+        directory = build / 'original-controller'
+        ice_build = build / 'native' if args.profile == 'full' else directory / 'ice'
+        command = [sys.executable, str(ROOT / 'tools/build-original-getcontroller.py'),
+                   '--build-dir', str(directory), '--ice-build', str(ice_build),
+                   '--destination', str(build / 'bin'), '--qmake', args.qmake,
+                   '--make', args.make, '--cmake', args.cmake, '--jobs', str(args.jobs)]
+        items.append({'component': 'original-controller', 'directory': str(directory),
+                      'configure': command + ['--configure-only'], 'build': command,
+                      'programs': {'getdaq-getcontroller': str(build / 'bin/getdaq-getcontroller')}})
     return items
 
 
@@ -225,6 +235,12 @@ def stage_files():
             files.append((p, 'share/' + str(p.relative_to(ROOT))))
     files += [(p, 'share/third_party/' + str(p.relative_to(ROOT / 'third_party')))
               for p in sorted((ROOT / 'third_party/licenses').rglob('*')) if p.is_file()]
+    files += [(p, 'share/licenses/cconfig-editor/' + p.name)
+              for p in sorted((ROOT / 'apps/cconfigeditor/licenses').iterdir()) if p.is_file()]
+    files += [(p, 'share/get-bench/format/' + p.name) for p in sorted(
+              (ROOT / 'third_party/legacy-get/getbench/data/format').glob('*.xcfg'))]
+    files += [(p, 'share/licenses/getcontroller/' + p.name)
+              for p in sorted((ROOT / 'apps/getcontroller/licenses').iterdir()) if p.is_file()]
     files += [(ROOT / 'third_party/ATTPC-LICENSE', 'share/third_party/ATTPC-LICENSE'),
               (ROOT / 'third_party/yaml-cpp/LICENSE', 'share/third_party/yaml-cpp/LICENSE'),
               (ROOT / 'third_party/dependencies.json', 'share/third_party/dependencies.json')]

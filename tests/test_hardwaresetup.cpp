@@ -71,6 +71,52 @@ class HardwareSetupTests:public QObject {
         QString error;if(!files.console.Save(files.console.filePath,&error))throw std::runtime_error(error.toStdString());return files;
     }
 private slots:
+    void legacyCatalogFailureClosesWithWarningAndAllowsNextRun() {
+        QTemporaryDir directory;QVERIFY(directory.isValid());QTcpServer server;QVERIFY(server.listen(QHostAddress::LocalHost,0));int state=4,catalogCalls=0,startCalls=0,cleanupCalls=0,incomingFiles=0;bool failCatalog=true;
+        connect(&server,&QTcpServer::newConnection,this,[&]{while(server.hasPendingConnections()) {
+            auto *socket=server.nextPendingConnection();socket->setParent(&server);auto bytes=std::make_shared<QByteArray>();
+            connect(socket,&QTcpSocket::readyRead,socket,[&,socket,bytes]{
+                *bytes+=socket->readAll();const int split=bytes->indexOf("\r\n\r\n");if(split<0 || socket->property("replied").toBool())return;
+                int length=0;for(const auto &line:bytes->left(split).split('\n'))if(line.toLower().startsWith("content-length:"))length=line.mid(15).trimmed().toInt();
+                if(bytes->size()<split+4+length)return;
+                socket->setProperty("replied",true);int code=200;QByteArray body;
+                if(bytes->startsWith("GET /status "))body=QJsonDocument(QJsonObject{{"disk","disk"},{"process","dataRouter"},{"data_path","/incoming"},{"data_written_gb",0.0},{"data_path_files",incomingFiles},{"disk_avail_gb",10.0},{"disk_total_gb",20.0}}).toJson();
+                else if(bytes->startsWith("POST /catalog ")){++catalogCalls;if(failCatalog){code=500;body="{\"error\":\"archive destination unavailable\"}";}else {incomingFiles=0;body=QJsonDocument(QJsonObject{{"disk","disk"},{"process","dataRouter"},{"data_path","/incoming"},{"data_written_gb",0.0},{"data_path_files",0},{"disk_avail_gb",10.0},{"disk_total_gb",20.0}}).toJson();}}
+                else if(bytes->startsWith("POST /catalog/finalize ")){++cleanupCalls;body="{\"replacement_cleanup_complete\":true}";}
+                else {if(bytes->contains("<ecc:Start>")){state=5;++startCalls;}if(bytes->contains("<ecc:Stop>"))state=4;
+                    body=QString("<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\"><s:Body><ResponseState><ErrorCode>0</ErrorCode><State>%1</State><Transition>0</Transition></ResponseState></s:Body></s:Envelope>").arg(state).toUtf8();}
+                socket->write("HTTP/1.1 "+QByteArray::number(code)+" Result\r\nContent-Length: "+QByteArray::number(body.size())+"\r\nConnection: close\r\n\r\n"+body);socket->disconnectFromHost();
+            });connect(socket,&QTcpSocket::disconnected,socket,&QObject::deleteLater);
+        }});
+        auto config=RunConfig::Default();config.simulation=false;config.pollMs=50;config.timeoutMs=500;config.stepTimeoutMs=2000;config.catalogTimeoutMs=1000;config.settleMs=0;
+        config.outputDir=directory.filePath("runs");config.configDir=directory.filePath("config");QVERIFY(QDir().mkpath(config.configDir));NodeConfig node;node.host="127.0.0.1";node.eccPort=node.sentryPort=server.serverPort();config.nodes={node};
+        RunControl control;QSignalSpy phases(&control,&RunControl::ControlSignal),observations(&control,&RunControl::StatusSignal),finished(&control,&RunControl::RunFinishedSignal);
+        control.ConnectSlot(config);QTRY_VERIFY_WITH_TIMEOUT(!observations.isEmpty() && qvariant_cast<QVector<NodeStatus>>(observations.last()[0])[0].sentryOnline,2000);
+        control.StartRunSlot(false);QTRY_VERIFY_WITH_TIMEOUT(phases.last()[0].toString()=="Running",2000);control.StopRunSlot();
+        QTRY_COMPARE_WITH_TIMEOUT(finished.size(),1,3000);QCOMPARE(finished[0][0].toInt(),1);QCOMPARE(phases.last()[0].toString(),QString("Stopped (archive warning)"));QVERIFY(!phases.last()[3].toBool());
+        QString error;QJsonObject journal;QVERIFY(RunRecorder::ReadJournal(config,&journal,&error));QCOMPARE(journal["phase"].toString(),QString("CompleteWithWarnings"));QCOMPARE(journal["catalog"].toObject()["0"].toString(),QString("unknown"));
+        QVERIFY(QFile::exists(QDir(config.RunDirectory()).filePath("catalog-warning.json")));QVERIFY(!RunRecorder::Reserve(config,false,&error));
+        QTRY_VERIFY_WITH_TIMEOUT(qvariant_cast<QVector<NodeStatus>>(observations.last()[0])[0].sentryOnline,2000);
+        control.StartRunSlot(false);QTRY_VERIFY_WITH_TIMEOUT(phases.last()[0].toString()=="Running",2000);QCOMPARE(startCalls,2);QCOMPARE(catalogCalls,1);
+        control.StopRunSlot();QTRY_COMPARE_WITH_TIMEOUT(finished.size(),2,3000);QCOMPARE(catalogCalls,2);
+        incomingFiles=1;QTRY_COMPARE_WITH_TIMEOUT(qvariant_cast<QVector<NodeStatus>>(observations.last()[0])[0].files,1,2000);
+        control.StartRunSlot(false);QTest::qWait(80);QCOMPARE(startCalls,2);
+        control.UpdateRunMetadataSlot(config);QTRY_VERIFY_WITH_TIMEOUT(qvariant_cast<QVector<NodeStatus>>(observations.last()[0])[0].sentryOnline,2000);
+        control.StartRunSlot(true);QTRY_VERIFY_WITH_TIMEOUT(phases.last()[0].toString()=="Running",2000);QCOMPARE(startCalls,3);
+        QVERIFY(RunRecorder::ReadJournal(config,&journal,&error));QCOMPARE(journal["replacement_backup_policy"].toString(),QString("retain"));
+        QVERIFY(journal["same_run_existing_incoming_acknowledged"].toBool());QCOMPARE(journal["existing_incoming_data"].toArray()[0].toObject()["files"].toInt(),1);
+        const auto retained=QDir(QFileInfo(config.RunDirectory()).absolutePath()).filePath(journal["retained_previous_run"].toString());QVERIFY(QFile::exists(retained+"/catalog-warning.json"));
+        failCatalog=false;control.StopRunSlot();QTRY_COMPARE_WITH_TIMEOUT(finished.size(),3,3000);QCOMPARE(cleanupCalls,0);QVERIFY(QFile::exists(retained+"/catalog-warning.json"));
+        QVERIFY(RunRecorder::ReadJournal(config,&journal,&error));QVERIFY(journal["replacement_cleanup_skipped"].toBool());control.DisconnectSlot();
+    }
+    void confirmedLegacyReplacementRetainsPartialRecords() {
+        QTemporaryDir directory;QVERIFY(directory.isValid());auto config=RunConfig::Default();config.outputDir=directory.path();
+        QVERIFY(QDir().mkpath(config.RunDirectory()));WriteHardwareSetupFile(QDir(config.RunDirectory()).filePath("old-record.txt"),"preserve this partial record");
+        QString error;QVERIFY(!RunRecorder::Reserve(config,false,&error));QVERIFY(QFile::exists(QDir(config.RunDirectory()).filePath("old-record.txt")));
+        QVERIFY2(RunRecorder::Reserve(config,true,&error),qPrintable(error));QJsonObject journal;QVERIFY(RunRecorder::ReadJournal(config,&journal,&error));
+        QCOMPARE(journal["replacement_backup_policy"].toString(),QString("retain"));const auto old=QDir(QFileInfo(config.RunDirectory()).absolutePath()).filePath(journal["retained_previous_run"].toString());
+        QVERIFY(QFile::exists(old+"/old-record.txt"));journal["phase"]="Complete";QVERIFY(RunRecorder::WriteJournal(config,journal,&error));QVERIFY(RunRecorder::FinalizeReplacement(config,&error));QVERIFY(QFile::exists(old+"/old-record.txt"));
+    }
     void sentryRateUsesByteCountersAndResetsOnCounterDecrease() {
         auto config=RunConfig::Default();config.simulation=false;config.pollMs=3600000;
         NodeConfig node;node.host="127.0.0.1";node.eccPort=1;node.sentryPort=1;config.nodes={node};
@@ -129,8 +175,8 @@ private slots:
         journal["phase"]="Error";journal["catalog"]=QJsonObject{{"0","unknown"}};journal.remove("local_finalization_failed");journal.remove("error");
         QVERIFY(RunRecorder::WriteJournal(config,journal,&error));control.ConnectSlot(config);QTest::qWait(150);control.RecoverSlot();
         QTRY_VERIFY_WITH_TIMEOUT(phases.last()[0].toString()=="Stopped; catalog inspection required",1500);
-        control.FinalizeSlot();QTest::qWait(100);control.DisconnectSlot();QVERIFY(!phases.last()[1].toBool());
-        QVERIFY(RunRecorder::ReadJournal(config,&journal,&error));QCOMPARE(journal["phase"].toString(),QString("Catalog inspection required (disconnected)"));QCOMPARE(journal["catalog"].toObject()["0"].toString(),QString("unknown"));
+        control.FinalizeSlot();QTRY_VERIFY_WITH_TIMEOUT(!phases.last()[3].toBool(),3000);control.DisconnectSlot();QVERIFY(!phases.last()[1].toBool());
+        QVERIFY(RunRecorder::ReadJournal(config,&journal,&error));QCOMPARE(journal["phase"].toString(),QString("CompleteWithWarnings"));QCOMPARE(journal["catalog"].toObject()["0"].toString(),QString("unknown"));
         for(const auto &request:requests)QVERIFY(request.contains("ecc:GetState"));
     }
     void legacyPrepareBackupUsesConfigureStorage() {

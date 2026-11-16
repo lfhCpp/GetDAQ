@@ -1,4 +1,5 @@
 #include "runcontrol.h"
+#include "diagnostics.h"
 
 QVector<int> RunControl::Cobos() const { return fSentry.keys().toVector(); }
 QVector<int> RunControl::All() const { return fEcc.keys().toVector(); }
@@ -73,7 +74,16 @@ void RunControl::SentryReplySlot(int id, bool catalog, NodeStatus status, QStrin
             results[QString::number(id)] = "unknown";
             fJournal["catalog"] = results;
             fCatalogResultUncertain=true;
-            Fail(QString("Acquisition stopped; Node %1 catalog result uncertain: %2. Inspect its Run directory and receiver files before recovery. Disconnect is available while every ECC is confirmed Ready; the unknown catalog journal is retained.").arg(id).arg(error));
+            auto errors=fJournal.value("catalog_errors").toObject();
+            const auto detail=error.isEmpty()?QString("Sentry did not confirm an empty incoming directory (%1 files)").arg(status.files):error;
+            errors[QString::number(id)]=detail;fJournal["catalog_errors"]=errors;
+            ReportLog(QString("Node %1 archive warning: %2. Keeping the unknown result and raw files; no automatic retry.").arg(id).arg(detail),Diagnostics::Warning);
+            if(!Journal("Cataloging with warnings")){Fail("Cannot preserve the failed archive result.");return;}
+            fAwaitCatalog.remove(id);
+            if(fAwaitCatalog.isEmpty()) {
+                if(!AllAt(All(),4)){Fail("Archive warning recorded, but ECC stop state is not confirmed. Inspect states before closing the Run.");return;}
+                StartFiles();
+            }
         } else {
             results[QString::number(id)] = "complete";
             fJournal["catalog"] = results;

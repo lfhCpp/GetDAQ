@@ -1,6 +1,6 @@
 # GetDAQ
 
-> 发布范围：本仓库不包含本地历史 `source/` 目录。构建完整原生 ECC／可选 ICE 组件时，需要在本地另行提供版本匹配的 GET/MDaq 历史接口；请勿将这些本地依赖提交到仓库。普通数据程序不依赖该目录。
+> 发布范围：不上传本地历史 `source/` 目录。原版配置编辑器、GetController 和 Ice/GET 通信构建所需代码已抽取到 `third_party/legacy-get/`，这些 Linux 工具的构建不再读取 `source/`。使用说明见 [原版配置编辑器](docs/ORIGINAL_CCONFIG_EDITOR.md)、[GetController](docs/ORIGINAL_GETCONTROLLER.md)。
 
 GET / AT-TPC 的主机端DAQ软件套件，使用C++11重写操作台及必要配套程序。代码优先沿用MUSIC的类、信号槽和 `.h/.cpp/.ui` 结构；专用依赖保留本地来源与许可，尽量离线构建。
 

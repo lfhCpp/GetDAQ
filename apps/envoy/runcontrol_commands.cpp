@@ -4,6 +4,7 @@
 #include "diagnostics.h"
 #include <QDir>
 #include <QFileInfo>
+#include <QJsonArray>
 #include <QUuid>
 
 void RunControl::ProgressSlot(int id)
@@ -55,14 +56,27 @@ void RunControl::StartRunSlot(bool replaceCompletedRun)
     }
     if (!Available() || fActive) return;
     if (!AllAt(All(), 4)) { emit LogSignal("Start requires every ECC in Ready with fresh status."); return; }
+    QJsonArray retainedIncoming;
     for (int id : Cobos()) {
-        if (!fStatus[id].sentryOnline || fStatus[id].files != 0 || fStatus[id].availableGB <= 0) {
-            emit LogSignal("Start requires healthy sentries, available disk space, and empty incoming directories."); return;
+        const auto &status=fStatus[id];
+        if (!status.sentryOnline || status.availableGB <= 0) {
+            emit LogSignal("Start requires healthy sentries and available disk space."); return;
+        }
+        if(status.files!=0) {
+            if(!replaceCompletedRun){emit LogSignal("Incoming files are present. To reuse this same Run number, explicitly confirm replacement; existing raw files will be retained and may be archived with the new acquisition.");return;}
+            retainedIncoming.append(QJsonObject{{"node_id",id},{"data_path",status.dataPath},{"files",status.files},{"data_written_gb",status.writtenGB}});
         }
     }
     QString error;
     if (!RunRecorder::Reserve(fConfig, replaceCompletedRun, &error)) { CancelAutoRun("Automatic Run canceled: Run reservation failed."); ReportLog(error + " Use another run number, or Recover the existing journal.",Diagnostics::Error); return; }
     if (!RunRecorder::ReadJournal(fConfig, &fJournal, &error)) { emit LogSignal(error); return; }
+    if(!retainedIncoming.isEmpty()) {
+        fJournal["same_run_existing_incoming_acknowledged"]=true;
+        fJournal["existing_incoming_data"]=retainedIncoming;
+        fJournal["replacement_backup_policy"]="retain";
+        fJournal["retained_previous_run"]=fJournal.value("replacement_backup");
+        ReportLog("Same Run replacement confirmed with existing incoming files. Raw files are left in place and may be archived with this acquisition; old local records and replacement data backups will not be automatically cleaned up.",Diagnostics::Warning);
+    }
     fReplacementOperationId.clear();
     if (replaceCompletedRun) {
         fReplacementOperationId = "gui-" + QUuid::createUuid().toString(QUuid::WithoutBraces);
@@ -123,7 +137,8 @@ void RunControl::RecoverSlot()
     fReplacementOperationId = fJournal.value("replacement_operation_id").toString();
     const bool replacementPending = !fReplacementOperationId.isEmpty() &&
         (!fJournal.value("replacement_cleanup_complete").toBool() || fJournal.contains("replacement_backup"));
-    if (fJournal.value("phase").toString() == "Complete" && !replacementPending) {
+    if (fJournal.value("phase").toString() == "CompleteWithWarnings" ||
+        (fJournal.value("phase").toString() == "Complete" && !replacementPending)) {
         emit LogSignal("Run already complete; choose a new run number."); return;
     }
     fConfig.description = saved.description;

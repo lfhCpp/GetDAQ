@@ -131,7 +131,8 @@ class WindowsBuildEntrypointsTest(unittest.TestCase):
         self.assertIn("Get-Content 'build-platform/windows-qt5142-control/windows-build-plan.json' -Raw", windows_job)
         self.assertIn('$expected = @($plan.programs)', windows_job)
         self.assertIn('Compare-Object $wanted $actual', windows_job)
-        self.assertEqual(len(BUILD.suite.CONTROL), 9)
+        self.assertEqual(len(BUILD.suite.CONTROL), 10)
+        self.assertIn("getdaq-cconfig-editor", BUILD.suite.CONTROL)
         self.assertIn('getdaq-control-mcp', BUILD.suite.CONTROL)
         self.assertIn('getdaq-waveform-viewer', BUILD.suite.CONTROL)
 

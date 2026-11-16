@@ -103,6 +103,26 @@ void MainWindow::InitializeMenus()
     auto *localServices=toolsMenu->addAction(tr("ECC / data service manager…"));localServices->setObjectName("StartLocalServices");
     connect(localServices,&QAction::triggered,this,manageBackends);
     auto configuration = configurationMenu->addAction(tr("GET configuration files..."));
+    auto originalController=toolsMenu->addAction(tr("GET Controller…"));
+    originalController->setObjectName(QStringLiteral("OriginalGetController"));
+    connect(originalController,&QAction::triggered,this,[this] {
+        if(fConnected || fActive || fBusy || !ui->Connect->isEnabled()) {
+            QMessageBox::information(this,tr("GET Controller"),tr("Disconnect GetDAQ before opening GET Controller to control hardware."));
+            return;
+        }
+        const QString executable=QCoreApplication::applicationDirPath()+QStringLiteral("/getdaq-getcontroller");
+        if(!QFileInfo(executable).isExecutable()) {
+            QMessageBox::warning(this,tr("GET Controller"),tr("The bundled original GET Controller is missing: %1\nBuild or install the original GetController component.").arg(executable));
+            return;
+        }
+        const QString formats=QCoreApplication::applicationDirPath()+QStringLiteral("/../share/get-bench/format/CoboFormats.xcfg");
+        if(!QFileInfo(formats).isReadable()) {
+            QMessageBox::warning(this,tr("GET Controller"),tr("GET frame formats are missing: %1").arg(formats));
+            return;
+        }
+        if(!QProcess::startDetached(executable,{QStringLiteral("--format"),QFileInfo(formats).absoluteFilePath()},QFileInfo(fConfig.configDir).absoluteFilePath()))
+            QMessageBox::warning(this,tr("GET Controller"),tr("Could not start the bundled GET Controller."));
+    });
     auto scanPlans=toolsMenu->addAction(tr("Scan plans and runtime checks..."));scanPlans->setObjectName("NativeOfflineScanPlans");
     connect(scanPlans,&QAction::triggered,this,[this]{
         if(fScanPlanWindow){fScanPlanWindow->show();fScanPlanWindow->raise();fScanPlanWindow->activateWindow();return;}
@@ -183,6 +203,24 @@ void MainWindow::InitializeMenus()
     });
     InitializeRecoveryAndSafetyMenus(configurationMenu,runMenu,recoveryMenu);
     connect(configuration, &QAction::triggered, this, [this]() {
-        ConfigWindow dialog(fConfig.configDir, fConnected || fActive || fBusy || !ui->Connect->isEnabled(), this); dialog.exec();
+        if(fConnected || fActive || fBusy || !ui->Connect->isEnabled()) {
+            QMessageBox::information(this,tr("Configuration editor"),tr("Disconnect before editing configuration files."));
+            return;
+        }
+        QString editor=QCoreApplication::applicationDirPath()+QStringLiteral("/getdaq-cconfig-editor");
+#ifdef Q_OS_WIN
+        editor+=QStringLiteral(".exe");
+#endif
+        if(!QFileInfo(editor).isExecutable()) {
+            QMessageBox::warning(this,tr("Configuration editor"),tr("The bundled original configuration editor is missing: %1\nRebuild or reinstall GetDAQ with getdaq-cconfig-editor.").arg(editor));
+            return;
+        }
+        const QString directory=QFileInfo(fConfig.configDir).absoluteFilePath();
+        if(!QFileInfo(directory).isDir()) {
+            QMessageBox::warning(this,tr("Configuration editor"),tr("Configuration directory does not exist: %1").arg(directory));
+            return;
+        }
+        if(!QProcess::startDetached(editor,{QStringLiteral("--path"),directory},directory))
+            QMessageBox::warning(this,tr("Configuration editor"),tr("Could not start the bundled configuration editor."));
     });
 }

@@ -5,6 +5,7 @@
 #include "diagnostics.h"
 #include <QFile>
 #include <QJsonDocument>
+#include <QSaveFile>
 #include <QDir>
 #include <QFileInfo>
 #include <QtConcurrent>
@@ -18,11 +19,15 @@ void RunControl::StartCatalog()
     for (int id : Cobos()) {
         const QString result = results.value(QString::number(id)).toString();
         if (result == "complete") continue;
-        if ((result == "sent" || result == "unknown") && fReplacementOperationId.isEmpty()) {
-            Fail("Uncertain catalog result in journal. Inspect the server and reconcile journal before retrying."); return;
+        if (result == "sent" || result == "unknown") {
+            fCatalogResultUncertain=true;
+            results[QString::number(id)]="unknown";
+            ReportLog(QString("Node %1 archive result remains unknown; preserving it without retry. The stopped Run will close with an archive warning.").arg(id),Diagnostics::Warning);
+            continue;
         }
         fAwaitCatalog.insert(id);
     }
+    fJournal["catalog"]=results;
     if (fAwaitCatalog.isEmpty()) { StartFiles(); return; }
     // 发送前持久化，崩溃恢复时不会把归档命令当成从未发送过。
     for (int id : fAwaitCatalog) results[QString::number(id)] = "sent";
@@ -57,6 +62,18 @@ void RunControl::FileFinishedSlot()
         Fail("Acquisition was stopped; local finalization failed: " + error + ". Run records remain incomplete. Retry finalization after fixing the path or permissions, or disconnect while every ECC is confirmed Ready; the journal will be retained."); return;
     }
     fLocalFinalizationFailed=false;fJournal.remove("local_finalization_failed");
+    if(fCatalogResultUncertain) {
+        if(!AllAt(All(),4)){Fail("Archive warning retained, but ECC is no longer confirmed Ready; inspect hardware state before closing the Run.");return;}
+        const QJsonObject warning{{"archive_confirmed",false},{"catalog",fJournal.value("catalog")},
+            {"errors",fJournal.value("catalog_errors")},{"automatic_retry",false},{"raw_data_preserved",true}};
+        QSaveFile file(QDir(fConfig.RunDirectory()).filePath("catalog-warning.json"));
+        const auto bytes=QJsonDocument(warning).toJson();
+        if(!file.open(QIODevice::WriteOnly) || file.write(bytes)!=bytes.size() || !file.commit()) {Fail("Cannot preserve the archive warning receipt: "+file.errorString());return;}
+        fJournal["archive_status"]="unknown";
+        fJournal["closed_with_archive_warning"]=true;
+        CancelAutoRun("Archive result is unknown; automatic continuation canceled. Manual next Run is available after checking receiver status.");
+        ReportLog("Acquisition stopped. Closing Run with an archive warning; raw files and the unknown archive result are retained. No catalog retry or replacement cleanup will be sent.",Diagnostics::Warning);
+    }
     QFile warningFile(QDir(fConfig.RunDirectory()).filePath("configuration-backup-warning.json"));
     if(warningFile.exists()) {
         if(warningFile.size()>65536 || !warningFile.open(QIODevice::ReadOnly)) {Fail("Cannot read the configuration backup warning receipt.");return;}
@@ -69,7 +86,15 @@ void RunControl::FileFinishedSlot()
         fJournal["configuration_backup_status"]=fConfig.simulation ? "not_required" : "complete";
         fJournal.remove("configuration_backup_warning");
     }
-    if (!Journal("Complete")) { Fail("Files saved but completion journal failed."); return; }
+    const bool retainPrevious=fJournal.value("replacement_backup_policy").toString()=="retain";
+    if(retainPrevious) {
+        fJournal["closed_with_retained_previous_run"]=true;
+        fJournal["replacement_cleanup_skipped"]=true;
+        ReportLog("Previous interrupted/warning Run retained at "+QDir(QFileInfo(fConfig.RunDirectory()).absolutePath()).filePath(fJournal.value("retained_previous_run").toString())+"; no old-record or old-data cleanup will be requested.",Diagnostics::Warning);
+    }
+    if (!Journal(fCatalogResultUncertain || retainPrevious ? "CompleteWithWarnings" : "Complete")) { Fail("Files saved but completion journal failed."); return; }
+    if(fCatalogResultUncertain) { fReplacementOperationId.clear();CompleteRun();return; }
+    if(retainPrevious) {fReplacementOperationId.clear();CompleteRun();return;}
     if (!fReplacementOperationId.isEmpty()) { StartReplacementCleanup(); return; }
     CompleteRun();
 }
@@ -113,8 +138,10 @@ void RunControl::StartReplacementCleanup()
 void RunControl::CompleteRun()
 {
     fActive = false; fBusy = false;
-    fPhase = fJournal.value("configuration_backup_status").toString()=="missing" ? "Complete (configuration backup warning)" : "Complete";
-    emit LogSignal("Run saved: " + fConfig.RunDirectory());
+    const bool archiveWarning=fJournal.value("closed_with_archive_warning").toBool();
+    fCatalogResultUncertain=false;
+    fPhase = archiveWarning ? "Stopped (archive warning)" : fJournal.value("closed_with_retained_previous_run").toBool() ? "Complete (previous Run retained)" : fJournal.value("configuration_backup_status").toString()=="missing" ? "Complete (configuration backup warning)" : "Complete";
+    emit LogSignal((archiveWarning ? QString("Run record saved; archive unconfirmed: ") : QString("Run saved: ")) + fConfig.RunDirectory());
     const QString snapshot = QDir(fConfig.RunDirectory()).filePath("run.yml");
     const bool openedSnapshot = QFileInfo(fConfig.filePath).absoluteFilePath() == QFileInfo(snapshot).absoluteFilePath();
     ++fConfig.runNumber;

@@ -2,9 +2,17 @@
 
 本文说明GetDAQ的Run编号语义、用户确认的同名raw覆盖范围及各运行模式的实现状态。覆盖仅能由操作员在Start时明确确认；默认Sentry `/catalog`仍拒绝覆盖已有Run，显式替换有单独的operation ID。
 
+## 2026-11-16：旧 ECC 同号确认覆盖
+
+旧 SOAP ECC 在 Start 时发现相同 Run 编号，仍须先由操作员确认。正常 Complete 记录沿用既有替换流程；警告、中断或残缺的本地记录也可确认后同号采集：先完整移入旁边的 `.run_NNNN.replaced-<uuid>`，新 Run 从独立记录开始。新 journal 标记 `replacement_backup_policy=retain`、`retained_previous_run`，这类旧记录及旧数据副本不自动清理。Native 的状态和封存校验不因这个旧接口兼容分支放宽。
+
+如果旧 Sentry 接收目录已有未归档文件，普通未确认的 Start 仍拒绝；确认同号覆盖后可保留这些文件继续采集。确认框明确说明：这些旧文件可能与本次同号数据一起归档，软件会保存节点、路径和文件数的确认记录，不提前删除文件。Sentry不可用、磁盘不足、ECC未确认Ready或本地Run路径为符号链接时仍拒绝。
+
+归档结果未知时按旧Sentry警告策略结束本地Run并递增编号，不伪称归档成功、不重试catalog；仍可手动调回原编号并再次确认同号覆盖。对于保留旧记录的分支，即使本次归档成功，也不发送旧副本cleanup。下文旧Complete替换/清理规则仅适用于通过原完整性与身份检查、且没有保留未归档文件的正常替换分支。
+
 ## 编号规则
 
-Run编号在操作台的Run字段中配置。操作员可手动把自动递增后的编号改回之前的值；目前没有单独的“回退”按钮。旧SOAP/模拟路径仅在本地Run文件写入成功并将journal置为`Complete`后递增；显式覆盖时，还必须完成所有legacy Sentry主机的同名raw替换/保留收尾和本机旧Run记录更新。Native路径在Run记录和journal成功完成、接收器退出与seal核验成功、且启用Native catalog时catalog核验成功后递增；用户配置文件可写且不是当前Run的`run.yml`快照时，会自动保存下一个编号。中断、超时、未知结果和未完成归档不得递增。
+Run编号在操作台的Run字段中配置。操作员可手动把自动递增后的编号改回之前的值；目前没有单独的“回退”按钮。旧SOAP/模拟路径在本地Run文件与journal成功保存后递增；普通成功为`Complete`，旧Sentry归档警告或保留旧记录的同号分支为`CompleteWithWarnings`，两者不能等同为归档成功。正常完整Run替换仍等待既有收尾。Native路径在Run记录和journal成功完成、接收器退出与seal核验成功、且启用Native catalog时catalog核验成功后递增；用户配置文件可写且不是当前Run的`run.yml`快照时，会自动保存下一个编号。Native中断、超时、未知结果和未完成归档不由上述旧Sentry策略放宽。
 
 回退本身只选择目标编号，不能因此推定目标数据可以删除。覆盖必须由单独的明确操作授权。
 
@@ -12,7 +20,7 @@ Run编号在操作台的Run字段中配置。操作员可手动把自动递增�
 
 ## 覆盖对象与规则
 
-Run编号可以在断开控制台后手动调回。回退编号不会删除任何原始文件；旧Run已存在时，只有操作者在点击Start后确认，才进入替换流程。未确认、旧Run不完整、身份不匹配、文件类型异常或接收目录仍有活动写入时均拒绝。
+Run编号可以在断开控制台后手动调回。回退编号不会删除任何原始文件；旧Run已存在时，只有操作者在点击Start后确认，才进入替换流程。未确认或Run根路径为符号链接/非目录时拒绝。旧SOAP的非Complete/身份不匹配记录只按上方保留副本分支处理，不能套用正常Complete的自动清理。
 
 用户选择的 raw 语义是**只按完全相同的文件名覆盖**：
 
@@ -55,7 +63,7 @@ Native目录布局有意保留可验证的session/catalog关系。不能只删�
 
 ## 当前实现与待完成项
 
-- Run spinbox可手动调号。legacy路径在Start时确认替换，RunControl固定operation ID；本机Run元数据目录仅在旧journal完整且身份匹配时备份替换。
+- Run spinbox可手动调号。legacy路径在Start时确认替换，RunControl固定operation ID；完整且匹配的旧记录沿用正常替换；其他旧SOAP记录经确认后完整保留，不自动清理。
 - legacy Sentry的POST /catalog默认拒绝既有Run；显式替换要求replace_completed_run=true和operation ID。Finalize在新Run完成后将旧catalog中不同名的raw同卷迁入新catalog，保留新raw的同名胜出，并删除备份中的旧同名raw及旧catalog元数据。manifest记录迁移进度，Finalize重复调用及rename后回执落盘前的中断可用原operation ID恢复。
 - RunControl等待各Sentry catalog成功和本机Run journal完成后才请求Finalize；清理回执写入journal，所有节点完成才递增Run号。跨节点不是原子提交，未决操作须保留journal并使用原operation ID恢复。
 - Native目前仍拒绝已有Run/catalog替换。Native接收session是唯一目录，旧catalog使用硬链接关联session；满足同名替换、不同名raw保留仍需为Native catalog/session设计和实现配套逻辑。
