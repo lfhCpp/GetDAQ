@@ -10,6 +10,8 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QLabel>
+#include <QLineEdit>
+#include <QDialogButtonBox>
 #include "runconfig.h"
 #include "runcontrol.h"
 #include "runrecorder.h"
@@ -29,7 +31,7 @@ using namespace GetDAQTestSupport;
 class ProductTests:public QObject {Q_OBJECT
 private slots:
  void initTestCase(){QCoreApplication::setOrganizationName("GetDAQ-Product-Tests");QCoreApplication::setApplicationName("OriginalBackendBaseline");qRegisterMetaType<QVector<NodeStatus>>();}
- void yamlAndRetiredProfileGuard(){QTemporaryDir dir;auto c=Config(dir.path());QString error;QVERIFY(c.Save(dir.filePath("envoy.yml"),&error));QFile f(dir.filePath("envoy.yml"));QVERIFY(f.open(QIODevice::ReadOnly));const auto bytes=f.readAll();QVERIFY(!bytes.contains("native_ecc"));QVERIFY(!bytes.contains("simulation"));RunConfig loaded;QVERIFY(loaded.Load(f.fileName(),&error));QCOMPARE(loaded.nodes.size(),2);c.nativeEcc=true;QVERIFY(!c.Validate(&error));QVERIFY(error.contains("removed"));c.nativeEcc=false;c.simulation=true;QVERIFY(!c.Validate(&error));}
+ void yamlAndRetiredProfileGuard(){QTemporaryDir dir;auto c=Config(dir.path());QString error;QVERIFY(c.Save(dir.filePath("envoy.yml"),&error));QFile f(dir.filePath("envoy.yml"));QVERIFY(f.open(QIODevice::ReadOnly));const auto bytes=f.readAll();QVERIFY(!bytes.contains("native_ecc"));QVERIFY(!bytes.contains("simulation"));RunConfig loaded;QVERIFY(loaded.Load(f.fileName(),&error));QCOMPARE(loaded.nodes.size(),2);QCOMPARE(loaded.configDir,c.configDir);QCOMPARE(loaded.outputDir,c.outputDir);c.nativeEcc=true;QVERIFY(!c.Validate(&error));QVERIFY(error.contains("removed"));c.nativeEcc=false;c.simulation=true;QVERIFY(!c.Validate(&error));}
  void remoteReceiverProtocol(){NodeConfig node;node.id=8;node.host="192.0.2.16";node.routerHost="198.51.100.16";node.routerPort=46005;node.exporterPort=0;auto body=Protocol::EccRequest(node,"pedestals","Configure");QVERIFY(body.contains("DataRouter"));QVERIFY(body.contains("198.51.100.16"));QVERIFY(body.contains("46005"));QVERIFY(!body.contains("DataExporter"));QVERIFY(body.contains("CoBo[8]"));}
  void fullSoapLifecycle(){QTemporaryDir dir;auto c=Config(dir.path());RunControl control;QSignalSpy states(&control,&RunControl::StatusSignal),finished(&control,&RunControl::RunFinishedSignal);control.ConnectSlot(c);QTRY_VERIFY_WITH_TIMEOUT(At(states,1),3000);control.ProgressSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,2),3000);control.ProgressSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,3),3000);control.ProgressSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,4),3000);control.StartRunSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,5),3000);control.PauseSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,6),3000);control.ResumeSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,5),3000);control.StopRunSlot();QTRY_VERIFY_WITH_TIMEOUT(finished.size()==1,7000);QVERIFY(At(states,4));QJsonObject journal;QString error;QVERIFY(RunRecorder::ReadJournal(c,&journal,&error));QCOMPARE(journal["phase"].toString(),QString("Complete"));control.DisconnectSlot();}
  void missingBackupIsWarning(){QTemporaryDir dir;auto c=Config(dir.path());RunControl control;QSignalSpy states(&control,&RunControl::StatusSignal),finished(&control,&RunControl::RunFinishedSignal);control.ConnectSlot(c);QTRY_VERIFY_WITH_TIMEOUT(At(states,1),3000);for(int s=2;s<=4;++s){control.ProgressSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,s),3000);}control.StartRunSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,5),3000);QVERIFY(QFile::remove(c.configDir+"/describe-"+c.nodes[0].ConfigId("describe",c.experiment)+".xcfg"));control.StopRunSlot();QTRY_VERIFY_WITH_TIMEOUT(finished.size()==1,7000);QVERIFY(At(states,4));QVERIFY(QFileInfo::exists(c.RunDirectory()+"/configuration-backup-warning.json"));control.DisconnectSlot();}
@@ -88,6 +90,15 @@ private slots:
     group["prepare_id"]="alignment";add("alignment","configure-alignment.xml");group["repository_files"]=entries;Deployment::ValidateOriginalFiles(group,files);
     group["prepare_id"]="missing";QVERIFY_EXCEPTION_THROWN(Deployment::ValidateOriginalFiles(group,files),std::exception);
  }
+ void reusingManagedGroupPreservesLocalFolderChoices(){
+    QTemporaryDir dir;auto base=RunConfig::Default();base.outputDir=dir.filePath("chosen-records");
+    QJsonObject group{{"id","group1"},{"name","ECC"},{"backend","original-soap"},{"experiment","pedestals"},{"board_index",0},{"master_repository",dir.filePath("source-configs")},{"receiver_ip","127.0.0.1"},{"data_port",46005},{"sentry_port",8080},{"ecc",QJsonObject{{"address","127.0.0.1"},{"port",8083}}}};
+    QJsonArray entries;for(const auto &name:{"describe-cobo0.xcfg","configure-pedestals.xcfg"})entries.append(QJsonObject{{"path",name}});group["repository_files"]=entries;
+    QJsonObject master{{"root",dir.filePath("master")}},active{{"release_id",Deployment::Sha("release")}};
+    auto config=Deployment::OriginalConsole(master,group,active,base);QCOMPARE(config.outputDir,base.outputDir);
+    config.configDir=dir.filePath("local-mirror");config.outputDir=dir.filePath("other-records");QString error;QVERIFY(config.Save(config.filePath,&error));
+    auto restored=Deployment::OriginalConsole(master,group,active,base);QCOMPARE(restored.configDir,config.configDir);QCOMPARE(restored.outputDir,config.outputDir);
+ }
  void slaveRefreshKeepsControlsAndObservedPaths(){
     HostRoleWindow window(RunConfig::Default());auto *role=window.findChild<QComboBox *>("MachineRoleSelector");QVERIFY(role);role->setCurrentIndex(1);
     auto *start=window.findChild<QPushButton *>("StartSlaveAgent");auto *table=window.findChild<QTableWidget *>("SlaveCachedInstances");QVERIFY(start);QVERIFY(table);
@@ -104,6 +115,17 @@ private slots:
     auto c=RunConfig::Default();NodeStatus status;status.id=0;status.dataPath="/receiver/raw-folder";status.sentryOnline=true;
     IPWindow window(c,nullptr,{status});auto *path=window.findChild<QLabel *>("ObservedReceiverDataPaths");QVERIFY(path);QVERIFY(path->text().contains("/receiver/raw-folder"));
     QVERIFY(!window.findChild<QPushButton *>("OpenLocalServices"));QVERIFY(window.findChild<QPushButton *>("OpenHardwareSetup"));
+ }
+ void localPathsCanBeSelectedSavedAndUsed(){
+    QTemporaryDir dir;auto c=Config(dir.path());c.filePath=dir.filePath("envoy.yml");QString error;QVERIFY(c.Save(c.filePath,&error));
+    const auto configPath=dir.filePath("chosen-configs"),recordsPath=dir.filePath("chosen-records");QVERIFY(QDir().mkpath(configPath));
+    IPWindow window(c);auto *config=window.findChild<QLineEdit *>("LocalConfigurationDirectory");auto *records=window.findChild<QLineEdit *>("LocalRunRecordsDirectory");QVERIFY(config);QVERIFY(records);QVERIFY(!config->isReadOnly());QVERIFY(!records->isReadOnly());
+    QVERIFY(window.findChild<QPushButton *>("BrowseLocalConfigurationDirectory"));QVERIFY(window.findChild<QPushButton *>("BrowseLocalRunRecordsDirectory"));
+    config->setText(configPath);records->setText(recordsPath);window.findChild<QDialogButtonBox *>()->button(QDialogButtonBox::Ok)->click();QCOMPARE(window.result(),int(QDialog::Accepted));
+    RunConfig restored;QVERIFY(restored.Load(c.filePath,&error));QCOMPARE(restored.configDir,configPath);QCOMPARE(restored.outputDir,recordsPath);
+    QVERIFY(RunRecorder::Reserve(restored,&error));QVERIFY(QFileInfo::exists(restored.RunDirectory()+"/run.yml"));QVERIFY(!QFileInfo::exists(c.RunDirectory()));
+    IPWindow canceled(restored);canceled.findChild<QLineEdit *>("LocalRunRecordsDirectory")->setText(dir.filePath("canceled-records"));canceled.reject();
+    RunConfig unchanged;QVERIFY(unchanged.Load(c.filePath,&error));QCOMPARE(unchanged.outputDir,recordsPath);
  }
  void waveformRawFrames(){GetDAQTestInternal::RunWaveformViewerIndexesRawAndLayeredFrames();}
  void waveformCompactFrames(){GetDAQTestInternal::RunWaveformViewerDecodesCompactCoboFrames();}

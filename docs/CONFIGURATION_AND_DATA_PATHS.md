@@ -87,3 +87,12 @@ Nodes / Paths 的 Local XML/XCFG mirror 供本地编辑及备份，不是自动�
 源码依据：`apps/deployment/nodeagentoriginal.cpp`、`originaldeployment.cpp`、
 `apps/envoy/protocol.cpp`、`apps/sentry/sentryservice_catalog.cpp`，以及内置原版
 `getbench/src/get/rc/ConfigManager.cpp` 与 `getbench/src/get/daq/FrameStorage.cpp`。
+
+## 修改这两个本地目录
+
+断开连接后进入 Nodes / Paths，两个目录均可直接输入，或点击各自的 Browse… 选择文件夹。
+点击 Save and apply 后写入当前 YAML，重开程序会恢复。新建且尚无 YAML 的设置会自动保存为
+独立连接配置，保存位置显示在 Event log。Cancel 不保存。相对路径以当前 YAML 所在目录解析。
+
+Local XML/XCFG mirror 用于本机配置编辑器和 Run 配置备份；GUI Run records root
+用于后续 Run 的记录目录。更改设置不会移动旧 Run，也不会改变外部 ECC 的仓库或原始数据目录。

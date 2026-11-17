@@ -35,6 +35,9 @@ bool RunConfig::Load(const QString &path, QString *error)
         const QString base = QFileInfo(path).absolutePath();
         if (settings) {
             if (!settings.IsMap()) throw std::runtime_error("getdaq must be a mapping.");
+            if(settings["config_dir"])c.configDir=Resolve(base,Text(settings["config_dir"]));
+            if(settings["output_dir"])c.outputDir=Resolve(base,Text(settings["output_dir"]));
+            if(settings["ecc_name"])c.eccName=Text(settings["ecc_name"]);
             if(settings["auto_run"]) {
                 const auto a=settings["auto_run"];
                 if(!a.IsMap())throw std::runtime_error("auto_run must be a mapping");

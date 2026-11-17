@@ -44,7 +44,12 @@ int OriginalEccState(const QString &address,int port){
     Require(!xml.hasError() && error==0 && state>=1 && transition==0,"Original ECC is busy or its state is unknown");return state;
 }
 RunConfig OriginalConsole(const QJsonObject &master,const QJsonObject &group,const QJsonObject &active,const RunConfig &base){
-    const auto root=master["root"].toString();const auto directory=root+"/console/"+active["release_id"].toString()+'/'+Id(group["id"].toString());PrivateDirectory(directory);RunConfig c=base;c.simulation=false;c.nativeEcc=false;c.eccName=group["name"].toString();c.experiment=group["experiment"].toString();c.autoRun.enabled=false;c.configDir=group["master_repository"].toString();c.outputDir=directory+"/run-records";c.filePath=directory+"/envoy.yml";c.stepTimeoutMs=30000;c.nodes.clear();
+    const auto root=master["root"].toString();const auto directory=root+"/console/"+active["release_id"].toString()+'/'+Id(group["id"].toString());PrivateDirectory(directory);RunConfig c=base;c.simulation=false;c.nativeEcc=false;c.eccName=group["name"].toString();c.experiment=group["experiment"].toString();c.autoRun.enabled=false;c.configDir=group["master_repository"].toString();c.outputDir=base.outputDir;c.filePath=directory+"/envoy.yml";c.stepTimeoutMs=30000;c.nodes.clear();
+    // Reusing an activated group must preserve locally saved folder choices.
+    if(QFileInfo::exists(c.filePath)){
+        RunConfig saved;QString error;Require(saved.Load(c.filePath,&error),"Cannot reload saved console paths: "+error);
+        c.configDir=saved.configDir;c.outputDir=saved.outputDir;
+    }
     NodeConfig n;n.id=group["board_index"].toInt();n.name=QString("CoBo %1").arg(n.id);n.describeId=ConfigIdFor(group,"describe");n.prepareId=ConfigIdFor(group,"prepare");n.configureId=ConfigIdFor(group,"configure");n.host=group["ecc"].toObject()["address"].toString();n.eccPort=group["ecc"].toObject()["port"].toInt();n.routerHost=group["receiver_ip"].toString();n.routerPort=group["data_port"].toInt();n.exporterPort=0;n.sentryHost=n.routerHost;n.sentryPort=group["sentry_port"].toInt();c.nodes.append(n);QString error;Require(c.Validate(&error) && c.Save(c.filePath,&error),error);return c;
 }
 }

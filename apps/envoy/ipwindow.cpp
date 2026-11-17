@@ -17,6 +17,9 @@
 #include <QDir>
 #include <QUuid>
 #include <QScrollArea>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QStandardPaths>
 
 IPWindow::IPWindow(const RunConfig &config, QWidget *parent, const QVector<NodeStatus> &status) : QDialog(parent), fConfig(config)
 {
@@ -59,9 +62,22 @@ IPWindow::IPWindow(const RunConfig &config, QWidget *parent, const QVector<NodeS
     connect(remove, &QPushButton::clicked, this, &IPWindow::RemoveNodeSlot);
     QFormLayout *form = new QFormLayout;
     fConfigDir = new QLineEdit(config.configDir, this); fOutputDir = new QLineEdit(config.outputDir, this);
+    fConfigDir->setObjectName("LocalConfigurationDirectory");
+    fOutputDir->setObjectName("LocalRunRecordsDirectory");
     fConfigDir->setToolTip(tr("Local files used by the configuration editor and Run backup. Existing remote ECC reads its own --config-repo-url directory / NFS mount; this field does not upload files. Managed services receive a cache from the master."));
     fOutputDir->setToolTip(tr("Local run.yml, journal.json, CSV and configuration backups. Raw .graw files remain on the receiver host in the directory reported by Sentry."));
-    form->addRow(tr("Local XML/XCFG mirror (backup / editor)"), fConfigDir); form->addRow(tr("GUI Run records root (not raw data)"), fOutputDir);
+    auto directoryRow=[this](QLineEdit *edit,const QString &name,const QString &title){
+        auto *row=new QWidget(this);auto *line=new QHBoxLayout(row);line->setContentsMargins(0,0,0,0);line->addWidget(edit,1);
+        auto *browse=new QPushButton(tr("Browse…"),row);browse->setObjectName(name);line->addWidget(browse);
+        connect(browse,&QPushButton::clicked,this,[this,edit,title]{
+            const auto path=QFileDialog::getExistingDirectory(this,title,edit->text());
+            if(!path.isEmpty())edit->setText(QDir::cleanPath(path));
+        });return row;
+    };
+    form->addRow(tr("Local XML/XCFG mirror (backup / editor)"), directoryRow(fConfigDir,"BrowseLocalConfigurationDirectory",tr("Choose local XML/XCFG directory")));
+    form->addRow(tr("GUI Run records root (not raw data)"), directoryRow(fOutputDir,"BrowseLocalRunRecordsDirectory",tr("Choose GUI Run records root")));
+    auto *pathHelp=new QLabel(tr("Type a path or Browse. Save and apply writes both paths to the current YAML; a new setup gets its own saved YAML automatically. These settings do not move existing files or change an external ECC / receiver directory."),this);
+    pathHelp->setWordWrap(true);form->addRow(pathHelp);
     QStringList observedPaths;
     for(const auto &entry:status)if(!entry.dataPath.isEmpty())
         observedPaths.append(tr("Node %1: %2%3").arg(entry.id).arg(entry.dataPath,entry.sentryOnline?QString():tr(" (last observed; offline / stale)")));
@@ -83,6 +99,7 @@ IPWindow::IPWindow(const RunConfig &config, QWidget *parent, const QVector<NodeS
     QScrollArea *scroll=new QScrollArea(this); scroll->setObjectName("NodeSettingsScroll"); scroll->setWidgetResizable(true); scroll->setWidget(settings);
     layout->addWidget(scroll,2);
     QDialogButtonBox *box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    box->button(QDialogButtonBox::Ok)->setText(tr("Save and apply"));
     layout->addWidget(box);
     connect(box, &QDialogButtonBox::accepted, this, &IPWindow::ApplySlot);
     connect(box, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -127,10 +144,21 @@ void IPWindow::ApplySlot()
         n.sentryHost = text(13);
         config.nodes.append(n);
     }
-    config.configDir = fConfigDir->text(); config.outputDir = fOutputDir->text();
+    const QDir base(fConfig.filePath.isEmpty()?QDir::currentPath():QFileInfo(fConfig.filePath).absolutePath());
+    config.configDir = QDir::cleanPath(base.absoluteFilePath(fConfigDir->text().trimmed()));
+    config.outputDir = QDir::cleanPath(base.absoluteFilePath(fOutputDir->text().trimmed()));
+    if(fConfigDir->text().trimmed().isEmpty() || fOutputDir->text().trimmed().isEmpty()) {
+        QMessageBox::warning(this,tr("Configuration"),tr("Choose both the local configuration directory and the GUI Run records directory."));return;
+    }
     config.pollMs = fPoll->value(); config.timeoutMs = fTimeout->value(); config.stepTimeoutMs = fStepTimeout->value(); config.settleMs = fSettle->value();
     config.catalogTimeoutMs = fCatalogTimeout->value();
     QString error;
     if (!config.Validate(&error)) { QMessageBox::warning(this, tr("Configuration"), error); return; }
+    if(config.filePath.isEmpty()) {
+        const auto directory=QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)+"/connections/"+QUuid::createUuid().toString(QUuid::WithoutBraces);
+        if(!QDir().mkpath(directory)){QMessageBox::warning(this,tr("Configuration"),tr("Cannot create the settings directory: %1").arg(directory));return;}
+        config.filePath=directory+"/envoy.yml";
+    }
+    if(!config.Save(config.filePath,&error)){QMessageBox::warning(this,tr("Configuration"),tr("Cannot save settings: %1").arg(error));return;}
     fConfig = config; accept();
 }

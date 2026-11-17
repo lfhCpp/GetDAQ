@@ -146,7 +146,10 @@ void DistributedDeploymentWindow::UpdatePathSummary(){
         }
     }
     QString records=fBase.outputDir;
-    if(!fMaster.isEmpty() && !fActivation["release_id"].toString().isEmpty())records=fMaster["root"].toString()+"/console/"+fActivation["release_id"].toString()+'/'+selected+"/run-records";
+    if(!fMaster.isEmpty() && !fActivation["release_id"].toString().isEmpty()){
+        const auto path=fMaster["root"].toString()+"/console/"+fActivation["release_id"].toString()+'/'+selected+"/envoy.yml";
+        RunConfig saved;QString error;if(QFileInfo::exists(path) && saved.Load(path,&error))records=saved.outputDir;
+    }
     lines<<tr("GUI records root (YAML / journal / CSV / backups, not raw data): %1").arg(records);
     fPathSummary->setText(lines.join('\n'));
 }
