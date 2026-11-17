@@ -37,7 +37,7 @@ signals:
     void DisconnectSignal();
     void ProgressSignal(int id);
     void RegressSignal(int id);
-    void StartSignal(bool replaceCompletedRun);
+    void StartSignal(bool replaceCompletedRun, bool acceptExistingIncoming = false);
     void OfflineToolsStateSignal(bool open);
     void StopSignal();
     void FinalizeSignal();

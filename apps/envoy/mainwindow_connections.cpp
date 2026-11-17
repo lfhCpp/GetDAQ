@@ -3,6 +3,8 @@
 #include "runcontrol.h"
 #include "autorunwidget.h"
 #include <QAction>
+#include <QMessageBox>
+#include <QPushButton>
 #include <QSignalBlocker>
 #include <QSpinBox>
 #include <QThread>
@@ -18,6 +20,18 @@ void MainWindow::InitializeRunControl()
     connect(this, &MainWindow::ProgressSignal, fRunControl, &RunControl::ProgressSlot);
     connect(this, &MainWindow::RegressSignal, fRunControl, &RunControl::RegressSlot);
     connect(this, &MainWindow::StartSignal, fRunControl, &RunControl::StartRunSlot);
+    connect(fRunControl, &RunControl::IncomingFilesConfirmationSignal, this,
+            [this](bool replaceCompletedRun, const QString &summary) {
+        QMessageBox confirmation(QMessageBox::Warning, tr("Files already in receiver directory"),
+            tr("The receiver directory contains unarchived files. This does not mean that the selected Run number already exists.\n\n%1\n\n"
+               "Start acquisition while retaining these files? They will remain in place and may be archived together with this Run. "
+               "No existing raw files will be deleted.").arg(summary), QMessageBox::Cancel, this);
+        confirmation.setObjectName("IncomingFilesConfirmation");
+        auto *start = confirmation.addButton(tr("Start and retain files"), QMessageBox::AcceptRole);
+        confirmation.setDefaultButton(QMessageBox::Cancel);
+        confirmation.exec();
+        if (confirmation.clickedButton() == start) emit StartSignal(replaceCompletedRun, true);
+    });
     connect(this,&MainWindow::OfflineToolsStateSignal,fRunControl,&RunControl::SetOfflineToolsOpenSlot);
     connect(this,&MainWindow::StopSignal,fRunControl,&RunControl::StopRunSlot);
     connect(this,&MainWindow::FinalizeSignal,fRunControl,&RunControl::FinalizeSlot);

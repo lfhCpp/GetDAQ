@@ -25,7 +25,7 @@ public slots:
     void DisconnectSlot();
     void ProgressSlot(int id = -1);
     void RegressSlot(int id = -1);
-    void StartRunSlot(bool replaceCompletedRun = false);
+    void StartRunSlot(bool replaceCompletedRun = false, bool acceptExistingIncoming = false);
     void StopRunSlot();
     void FinalizeSlot();
     void RecoverSlot();
@@ -33,6 +33,7 @@ public slots:
     void PauseSlot();
     void ResumeSlot();
 signals:
+    void IncomingFilesConfirmationSignal(bool replaceCompletedRun, QString summary);
     void StatusSignal(QVector<NodeStatus> status);
     void ControlSignal(QString phase, bool connected, bool busy, bool active);
     void LogSignal(QString message);

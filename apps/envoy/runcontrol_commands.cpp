@@ -42,7 +42,7 @@ void RunControl::SetOfflineToolsOpenSlot(bool open) {
     if(open)CancelAutoRun("Automatic Run canceled: offline data tool opened.");
 }
 
-void RunControl::StartRunSlot(bool replaceCompletedRun)
+void RunControl::StartRunSlot(bool replaceCompletedRun, bool acceptExistingIncoming)
 {
     if(fOfflineToolsOpen){ReportLog("Control rejected Run start while an offline data tool is open. Close its window first.",Diagnostics::Warning);return;}
     const auto view=AutoRunView();
@@ -58,19 +58,34 @@ void RunControl::StartRunSlot(bool replaceCompletedRun)
             emit LogSignal("Start requires healthy sentries and available disk space."); return;
         }
         if(status.files!=0) {
-            if(!replaceCompletedRun){emit LogSignal("Incoming files are present. To reuse this same Run number, explicitly confirm replacement; existing raw files will be retained and may be archived with the new acquisition.");return;}
             retainedIncoming.append(QJsonObject{{"node_id",id},{"data_path",status.dataPath},{"files",status.files},{"data_written_gb",status.writtenGB}});
         }
+    }
+    if (!retainedIncoming.isEmpty() && !replaceCompletedRun && !acceptExistingIncoming) {
+        CancelAutoRun("Automatic Run canceled: existing incoming files require manual confirmation.");
+        ReportLog("Receiver directory contains unarchived files; this does not establish that the selected Run number exists. Confirm retaining these files before starting.", Diagnostics::Warning);
+        if (!fAutomaticDispatch) {
+            QStringList summary;
+            for (const auto &value : retainedIncoming) {
+                const auto entry=value.toObject();
+                summary.append(QString("Node %1: %2 file(s) in %3").arg(entry["node_id"].toInt()).arg(entry["files"].toInt()).arg(entry["data_path"].toString()));
+            }
+            emit IncomingFilesConfirmationSignal(replaceCompletedRun, summary.join('\n'));
+        }
+        return;
     }
     QString error;
     if (!RunRecorder::Reserve(fConfig, replaceCompletedRun, &error)) { CancelAutoRun("Automatic Run canceled: Run reservation failed."); ReportLog(error + " Use another run number, or Recover the existing journal.",Diagnostics::Error); return; }
     if (!RunRecorder::ReadJournal(fConfig, &fJournal, &error)) { emit LogSignal(error); return; }
     if(!retainedIncoming.isEmpty()) {
-        fJournal["same_run_existing_incoming_acknowledged"]=true;
+        fJournal["existing_incoming_acknowledged"]=true;
+        if (replaceCompletedRun) fJournal["same_run_existing_incoming_acknowledged"]=true;
         fJournal["existing_incoming_data"]=retainedIncoming;
-        fJournal["replacement_backup_policy"]="retain";
-        fJournal["retained_previous_run"]=fJournal.value("replacement_backup");
-        ReportLog("Same Run replacement confirmed with existing incoming files. Raw files are left in place and may be archived with this acquisition; old local records and replacement data backups will not be automatically cleaned up.",Diagnostics::Warning);
+        if (replaceCompletedRun) {
+            fJournal["replacement_backup_policy"]="retain";
+            fJournal["retained_previous_run"]=fJournal.value("replacement_backup");
+        }
+        ReportLog("Existing incoming files explicitly accepted. Raw files are left in place and may be archived with this acquisition.",Diagnostics::Warning);
     }
     fReplacementOperationId.clear();
     if (replaceCompletedRun) {
