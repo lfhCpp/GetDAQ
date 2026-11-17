@@ -1,0 +1,10 @@
+QStandardPaths: could not set correct permissions on runtime directory /mnt/wslg/runtime-dir: Read-only file system
+********* Start testing of CoBoConnectionTests *********
+Config: Using QtTest library 5.12.8, Qt 5.12.8 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 9.3.0)
+PASS   : CoBoConnectionTests::initTestCase()
+PASS   : CoBoConnectionTests::successfulConnectionUsesOnlyFixedReadOperations()
+PASS   : CoBoConnectionTests::failureDoesNotShowConnectedOrOldValues()
+PASS   : CoBoConnectionTests::editingEndpointCancelsObservation()
+PASS   : CoBoConnectionTests::cleanupTestCase()
+Totals: 5 passed, 0 failed, 0 skipped, 0 blacklisted, 1473ms
+********* Finished testing of CoBoConnectionTests *********

@@ -9,7 +9,7 @@
   "monitor": "getdaq-sentry",
   "keep": [
     "original cconfiged",
-    "original GetController",
+    "direct read-only CoBo information",
     "master/slave file distribution and cache",
     "multiple backend instances",
     "SOAP lifecycle and pause/resume",
@@ -26,8 +26,8 @@
     "native MCP controller",
     "native scans and plan handoff/reconciliation",
     "rewritten configuration editor",
-    "direct board-control UI",
-    "manual native credentials/snapshot hashes"
+    "manual native credentials/snapshot hashes",
+    "original GetController application"
   ],
   "protected_main_ui_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec"
 }

@@ -11,7 +11,7 @@ Retained functions:
 
 - Original main Run Control layout, node selection, XML configuration IDs and
   YAML files; the main `.ui` layout file is protected by a recorded SHA256.
-- Original cconfiged and GetController as independent integrated tools.
+- Original cconfiged as an independent integrated tool; direct read-only CoBo information under Tools.
 - Master / Slave configuration release distribution, automatic worker caching,
   multiple backend instances, exact instance startup and shutdown.
 - SOAP Describe / Prepare / Configure / Start / Stop, Pause / Resume, automatic
@@ -28,7 +28,12 @@ Removed product routes:
 - Rewritten native ECC, native receiver, supervisor and MCP controller.
 - Native scan execution, plan handoff, reconciliation and hardware override UI.
 - Rewritten configuration-editor windows and manual native credentials/hashes.
-- Direct board-control UI and the old separate-GUI-instance setup workflow.
+- Original GetController application and the old separate-GUI-instance setup workflow.
+
+The direct CoBo information tool is retained: `HwNode:46001`, device names,
+hardware/firmware versions and fixed control bits. Its `getdaq-cobo-info` helper
+provides only metadata reads; it does not Configure/Start, write registers or
+change the main ECC state.
 
 Retired profiles are diagnosed explicitly and never silently converted into
 hardware-control profiles. Source releases containing retired native groups

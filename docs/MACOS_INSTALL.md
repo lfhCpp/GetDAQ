@@ -31,7 +31,7 @@ Qt 5 automatically. An independently installed Qt 5 kit can be selected explicit
 ```
 
 The default is the full POSIX host suite. `--profile control` builds the GUI and
-control/offline tools, including original cconfiged and GetController, without
+control/offline tools, including original cconfiged, without
 the backend processes. `--build-only` skips app packaging.
 
 The output directory must be new. To build another package without replacing a
@@ -45,15 +45,14 @@ previous one:
 
 Double-click `dist-macos/GetDAQ.app` or `dist-macos/start-getdaq.command`.
 The app includes Qt frameworks/plugins and the original helper executables.
-The configuration editor and GET Controller use the existing menus; no main
+The configuration editor use the existing menus; no main
 window layout is changed. The frame dictionary and license notices are stored
 inside `GetDAQ.app/Contents/share/`, matching the helper lookup paths.
 
 Do not copy Ubuntu `site/` state or assume its absolute configuration paths are
 valid on the Mac. Open a configuration with paths for this Mac. The packaged app
 does not auto-connect to a board. Settings remain separate from the Ubuntu host.
-Original GetController still requires an Ice GetEcc service; a SOAP-only or
-native HTTP endpoint does not become compatible merely by using macOS.
+The CoBo information helper uses the board Ice HwNode directly for fixed metadata reads.
 
 The package is locally ad-hoc signed and signature-verified; it is not Apple
 notarized. Use the Mac's normal Open workflow if it requests confirmation for an
@@ -84,7 +83,7 @@ python3 tools/verify-legacy-sources.py
 ```
 
 The macOS host-suite GitHub Actions job additionally builds/runs original-editor
-and GetController workspace/plot/SVG/loopback-Ice smoke checks, then produces a
+and direct read-only CoBo metadata checks, then produces a
 `GetDAQ-macos.zip` artifact. That workflow code is an execution path, not evidence
 of success until a specific macOS run passes. Native Intel/Apple Silicon builds,
 launching the deployed app and physical acquisition must be verified on the

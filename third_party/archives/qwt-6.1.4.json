@@ -1,8 +1,0 @@
-{
-  "name": "Qwt",
-  "version": "6.1.4",
-  "archive": "qwt-6.1.4.tar.bz2",
-  "sha256": "1529215329e51fc562e0009505a838f427919a18b362afff441f035b2d9b5bd9",
-  "source": "https://sourceforge.net/projects/qwt/files/qwt/6.1.4/qwt-6.1.4.tar.bz2/download",
-  "scope": "original GetController optional Linux build; static sources; no build-time download"
-}

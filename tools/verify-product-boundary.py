@@ -20,8 +20,10 @@ def verify():
  from types import SimpleNamespace
  args=SimpleNamespace(profile='full',root_config=[],cmake='cmake',qmake='qmake',make='make',jobs=2)
  steps=suite.plan(args,ROOT/'build-boundary-probe');programs={name for step in steps for name in step['programs']}
- assert {'GetDAQ','getEccSoapServer','DataExporter','getdaq-node-agent','getdaq-getcontroller','getdaq-sentry'}<=programs
- assert not programs & {'getdaq-ecc-server','getdaq-receiver','getdaq-supervisor','getdaq-control-mcp','getdaq-config','getdaq-config-check','getdaq-config-upload'}
+ assert {'GetDAQ','getEccSoapServer','DataExporter','getdaq-node-agent','getdaq-cobo-info','getdaq-sentry'}<=programs
+ assert not programs & {'getdaq-ecc-server','getdaq-receiver','getdaq-supervisor','getdaq-control-mcp','getdaq-config','getdaq-config-check','getdaq-config-upload','getdaq-getcontroller'}
+ assert 'OriginalGetController' not in menus and 'DirectCoBoInformation' in menus
+ assert not (ROOT/'apps/getcontroller').exists()
  assert not any((ROOT/'apps'/name).exists() for name in ['ecc','datasupervisor','iceingress','configtool','configtransfer','configcheck'])
  print('PASS product baseline:',features['baseline'],'; main UI protected; original SOAP / receiver paths only')
 if __name__=='__main__':verify()

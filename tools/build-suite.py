@@ -59,7 +59,7 @@ def source_hashes():
             if path.is_file() and (path.suffix in suffixes or path.name == 'CMakeLists.txt'):
                 files.add(path)
     files.add(ROOT / 'third_party/ice-compat/CMakeLists.txt')
-    for name in ('original-backend-patches.py', 'verify-original-backends.py', 'build-original-backends.py', 'prepare-original-cconfig.py', 'prepare-original-getcontroller.py', 'build-original-getcontroller.py', 'verify-legacy-sources.py', 'prepare-ice-platform.py', 'build-macos.py', 'package-macos.py'):
+    for name in ('original-backend-patches.py', 'verify-original-backends.py', 'build-original-backends.py', 'prepare-original-cconfig.py', 'verify-legacy-sources.py', 'prepare-ice-platform.py', 'build-macos.py', 'package-macos.py'):
         files.add(ROOT / 'tools' / name)
     files.update(p for directory in ('third_party/legacy-get', 'third_party/DataExporter') for p in (ROOT/directory).rglob('*') if p.is_file())
     files.update((ROOT / 'third_party/archives').glob('*.tar.gz'))
@@ -89,7 +89,7 @@ def plan(args, build):
     elif args.profile != 'control':
         cmake('receiver', 'apps/datareceiver', RECEIVER, RECEIVER)
         if args.profile == 'full':
-            cmake('native', 'third_party/ice-compat', ['compat-GET'], [],
+            cmake('native', 'third_party/ice-compat', ['compat-GET', 'getdaq-cobo-info'], ['getdaq-cobo-info'],
                   [])
             cmake('repository', 'apps/configrepository', REPOSITORY, REPOSITORY)
     if args.profile in ('control', 'full'):
@@ -115,23 +115,11 @@ def plan(args, build):
                                     'DESTDIR=' + str(build / 'bin'), '-after', 'CONFIG+=release', 'CONFIG-=debug'],
                       'build': [args.make, '-j' + str(args.jobs)],
                       'programs': {'getdaq-sentry': str(build / 'bin/getdaq-sentry')}})
-    if args.profile in ('control', 'full') and platform.system() in ('Linux', 'Darwin'):
-        directory = build / 'original-controller'
-        ice_build = build / 'native' if args.profile == 'full' else directory / 'ice'
-        command = [sys.executable, str(ROOT / 'tools/build-original-getcontroller.py'),
-                   '--build-dir', str(directory), '--ice-build', str(ice_build),
-                   '--destination', str(build / 'bin'), '--qmake', args.qmake,
-                   '--make', args.make, '--cmake', args.cmake, '--jobs', str(args.jobs)]
-        if platform.system() == 'Linux' and os.environ.get('GETDAQ_SVG_HEADERS'):
-            command += ['--svg-headers', os.environ['GETDAQ_SVG_HEADERS']]
-        items.append({'component': 'original-controller', 'directory': str(directory),
-                      'configure': command + ['--configure-only'], 'build': command,
-                      'programs': {'getdaq-getcontroller': str(build / 'bin/getdaq-getcontroller')}})
     if args.profile in ('full', 'control', 'data-host') and platform.system() in ('Linux', 'Darwin'):
         directory = build / 'original-backends'
-        ice_build = build / 'native' if args.profile == 'full' else build / 'original-controller/ice'
-        if args.profile == 'data-host':
-            cmake('original-controller/ice', 'third_party/ice-compat', ['compat-GET'], [],
+        ice_build = build / 'native' if args.profile == 'full' else build / 'ice'
+        if args.profile in ('control', 'data-host'):
+            cmake('ice', 'third_party/ice-compat', ['compat-GET', 'getdaq-cobo-info'], ['getdaq-cobo-info'],
                   [])
         command = [sys.executable, str(ROOT / 'tools/build-original-backends.py'),
                    '--build-dir', str(directory), '--ice-build', str(ice_build), '--jobs', str(args.jobs)]
@@ -242,8 +230,6 @@ def stage_files():
               for p in sorted((ROOT / 'apps/cconfigeditor/licenses').iterdir()) if p.is_file()]
     files += [(p, 'share/get-bench/format/' + p.name) for p in sorted(
               (ROOT / 'third_party/legacy-get/getbench/data/format').glob('*.xcfg'))]
-    files += [(p, 'share/licenses/getcontroller/' + p.name)
-              for p in sorted((ROOT / 'apps/getcontroller/licenses').iterdir()) if p.is_file()]
     files += [(ROOT / 'third_party/ATTPC-LICENSE', 'share/third_party/ATTPC-LICENSE'),
               (ROOT / 'third_party/yaml-cpp/LICENSE', 'share/third_party/yaml-cpp/LICENSE'),
               (ROOT / 'third_party/dependencies.json', 'share/third_party/dependencies.json')]

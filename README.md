@@ -10,7 +10,7 @@ GetDAQ 是 GET 采集操作界面。当前固定方案使用原版 **getEccSoapS
 - [原版后端配置、启动及外部 DataRouter 连接](docs/ORIGINAL_BACKENDS.md)
 - [构建与安装](docs/HOST_SUITE_BUILD.md)
 - [原版配置编辑器](docs/ORIGINAL_CCONFIG_EDITOR.md)
-- [原版 GetController](docs/ORIGINAL_GETCONTROLLER.md)
+- [直连 CoBo 只读信息工具](docs/DIRECT_COBO_INFO.md)
 - [自动采集](docs/AUTOMATIC_RUN.md)
 - [波形查看、事件与通道](docs/WAVEFORM_VIEWER.md)
 - [简易 PDF 说明书](docs/manual/GetDAQ-Quick-Guide.pdf)
@@ -25,7 +25,7 @@ GetDAQ 是 GET 采集操作界面。当前固定方案使用原版 **getEccSoapS
 原始 XML/XCFG 配置目录，填写 IP / 端口，启动并使用配置。Slave 自动缓存文件。
 支持同机多套后台实例，各自使用独立端口、数据目录和进程身份。
 
-原版配置编辑器和 GetController 从菜单打开。运行记录、已有 Run 覆盖确认、告警管理、
+原版配置编辑器和 CoBo 只读信息工具从菜单打开。运行记录、已有 Run 覆盖确认、告警管理、
 自动采集及波形的事件/通道选择保留。重写的原生 ECC、receiver/supervisor、原生扫描与交接
 等路线已从当前构建和界面移除。旧原生配置会明确报错，不会自动转换后操作硬件。
 

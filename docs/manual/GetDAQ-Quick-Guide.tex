@@ -107,7 +107,7 @@ SSH / 管理地址 & 电脑管理网地址 & 用于登录、复制文件或主�
 ECC 端口填\textbf{目标服务实际监听的端口}，并让软件检查服务类型。
 旧系统常见默认值：Ice ECC 为 46002、DataRouter 管理为 46003、数据接收为 46005；
 现场可以改端口，因此不能仅按数字判断服务。\par
-当前受管主从流程使用原版 SOAP ECC（默认 8083）和 ATTPC DataExporter；重写的原生 ECC 已停用自动启动。原版 GetController 使用 Ice/GetEcc。
+当前受管主从流程使用原版 SOAP ECC（默认 8083）和 ATTPC DataExporter；重写的原生 ECC 已停用自动启动。直连 CoBo 信息工具使用 Ice/HwNode，只读查询。
 旧 Sentry 常见监控端口为 8080。\textbf{监控端口、管理端口、数据端口是不同用途。}
 \note{接收地址必须属于真正的接收电脑。接收主机在哪台、绑定哪个网卡、监听什么端口，就填那一组地址。接收协议也必须与发送端一致。}
 
@@ -176,7 +176,7 @@ GetDAQ YAML & 记录节点、ECC / 接收地址、路径、实验与运行设置
 
 \newpage
 % -------------------- 5 --------------------
-\pagehead{5\quad 配置编辑器、GetController 和波形}{这些工具从菜单打开；它们与主采集界面有各自的职责。}
+\pagehead{5\quad 配置编辑器、CoBo 信息和波形}{这些工具从菜单打开；它们与主采集界面有各自的职责。}
 \subsection*{编辑配置文件}
 选择 \ui{Configuration → GET configuration files…} 打开随包提供的原版 cconfiged。
 在原来的树形界面中打开、修改、校验并保存实验配置。
@@ -185,13 +185,10 @@ GetDAQ YAML & 记录节点、ECC / 接收地址、路径、实验与运行设置
 \item 保存文件\textbf{不会直接给板卡写寄存器}。对应配置在后续重新加载 / Prepare / Configure 时使用。
 \item 原版 CompoundConfig、TinyXML 等必需代码已随工具编译；源代码集中在项目内的抽取目录。
 \end{itemize}
-\subsection*{使用原版 GetController}
-选择 \ui{Tools → GET Controller…}。先在 GetDAQ 断开，再在原版工作区向导中打开或新建工作区，按原界面选择 test、ECC、DAQ 和参数路径。
-\begin{itemize}
-\item GetController 的工作区 \code{.xcfg} 与 GetDAQ 的 \code{envoy.yml} 不是同一种配置文件。
-\item 它使用原版 \textbf{Ice / GetEcc} 接口；不能直接连接 SOAP-only 或新版 HTTP ECC。
-\item 它可有自己的内部接收流程。两个程序独立运行，不能假定 GetDAQ 会接管它的 Run 或同一硬件控制。
-\end{itemize}
+\subsection*{直连 CoBo 查看信息}
+选择 \ui{Tools → CoBo information (direct, read-only)…}，填写板卡 IP，默认控制端口
+\code{46001}、对象 \code{HwNode}，点击连接/刷新。工具读取设备列表、硬件/固件版本
+及固定状态位；它不会 Prepare、Configure、Start 或写寄存器，也不改变 ECC 状态。
 \subsection*{查看离线波形}
 从 Tools 的波形入口打开查看器，或运行 \code{getdaq-waveform-viewer}。
 \begin{enumerate}

@@ -1,16 +1,14 @@
 # Project-local legacy GET sources
 
 This directory contains the curated source inputs for the original cconfiged
-and GetController integrations. Their build scripts do **not** read `source/`.
+and original SOAP ECC / DataExporter integrations. Their build scripts do **not** read `source/`.
 Keep this directory when copying the project to another computer.
 
 | Directory | Contents |
 |---|---|
 | `widgets`, `compound`, `tinyxml` | Configuration UI, parser and serializers |
-| `controller` | Original GetController UI and control/test code |
 | `getbench`, `mdaq`, `multiframe`, `utilities` | Required client, data, frame, utility code and Slice interfaces |
 | `boost_1_55_0` | Selected headers and program_options/filesystem/system source dependencies |
-| `qwt-6.1.4` | Used plotting sources and headers; excludes demos and documentation |
 | `ice` | Ice runtime, Slice compiler and required Ice/IceStorm interface sources; excludes unrelated servers/tests/examples |
 | `licenses` | Original copyright and license notices |
 

@@ -1,0 +1,1 @@
+PASS six real Ice metadata queries; 12 read-only RPCs; encoding 1.0; invalid/write commands rejected before connecting

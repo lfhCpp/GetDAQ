@@ -14,3 +14,6 @@ FORMS += ../apps/envoy/mainwindow.ui
 RESOURCES += ../apps/envoy/consoleicons.qrc
 include(../apps/waveformviewer/waveformwindow.pri)
 include(../apps/envoy/originalservices.pri)
+
+SOURCES += ../apps/envoy/coboconnectionwindow.cpp
+HEADERS += ../apps/envoy/coboconnectionwindow.h

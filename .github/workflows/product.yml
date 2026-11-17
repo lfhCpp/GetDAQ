@@ -24,3 +24,12 @@ jobs:
         run: python3 tests/original_backends_payload_smoke.py dist/bin
       - name: Test master and worker process management
         run: python3 tests/original_backends_integration.py dist/bin tests/original_backends_fixture.py --evidence build-ci/evidence
+      - name: Test read-only CoBo information window
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: mkdir -p build-cobo-tests && cd build-cobo-tests && qmake ../tests/coboconnection.pro && make -j2 && ./cobo-connection-tests
+      - name: Test direct read-only Ice queries
+        run: |
+          cmake -S third_party/ice-compat -B build-ci/full/native -DGETDAQ_BUILD_COBO_INFO_FIXTURE=ON
+          cmake --build build-ci/full/native --parallel 2 --target cobo-info-fixture getdaq-cobo-info
+          python3 tests/cobo_info_integration.py build-ci/full/native/getdaq-cobo-info build-ci/full/native/cobo-info-fixture

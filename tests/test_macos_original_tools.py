@@ -13,7 +13,6 @@ def module(name,path):
     spec=importlib.util.spec_from_file_location(name,ROOT/path)
     result=importlib.util.module_from_spec(spec);spec.loader.exec_module(result);return result
 patcher=module('ice_platform','tools/prepare-ice-platform.py')
-prepare=module('original_controller','tools/prepare-original-getcontroller.py')
 suite=module('suite_macos','tools/build-suite.py')
 packager=module('package_macos','tools/package-macos.py')
 
@@ -34,26 +33,13 @@ class MacOSOriginalToolsTests(unittest.TestCase):
                 self.assertIn('#define ICE_'+('64' if width==8 else '32'),output)
             self.assertEqual(before,source.read_bytes())
 
-    def test_darwin_recipe_excludes_unavailable_posix_timers_and_linux_libraries(self):
-        with tempfile.TemporaryDirectory() as temp:
-            base=Path(temp);ice=base/'ice';(ice/'vendor/ice-test/cpp/include').mkdir(parents=True)
-            prepare.prepare(base/'build',ice,target_system='Darwin')
-            recipe=(base/'build/getcontroller.pri').read_text()
-            wrappers='\n'.join(p.read_text() for p in (base/'build/units').glob('*.cpp'))
-            for source in ('mdaq/mt/Timer.cpp','mdaq/mt/SigAction.cpp','mdaq/daq/NetPerfProcessor.cpp','get/daq/FrameCounter.cpp'):
-                self.assertNotIn(source,wrappers)
-            self.assertIn('get/daq/FrameStorage.cpp',wrappers)
-            self.assertIn('get/TestController.cpp',wrappers)
-            self.assertNotIn('-lrt',recipe);self.assertNotIn('-ldl',recipe)
-            inputs=json.loads((base/'build/original-inputs.json').read_text())
-            self.assertTrue(all(p.startswith('third_party/legacy-get/') for p in inputs))
 
-    def test_macos_suite_contains_original_controller_and_no_linux_agent(self):
+    def test_macos_suite_contains_readonly_board_tool_and_no_linux_agent(self):
         args=type('Args',(),dict(profile='control',cmake='cmake',qmake='qmake',make='make',jobs=2))()
         with mock.patch.object(suite.platform,'system',return_value='Darwin'):
             plan=suite.plan(args,Path('/tmp/getdaq-macos-plan'))
         programs={name for step in plan for name in step['programs']}
-        self.assertIn('getdaq-getcontroller',programs);self.assertIn('getdaq-cconfig-editor',programs)
+        self.assertNotIn('getdaq-getcontroller',programs);self.assertIn('getdaq-cobo-info',programs);self.assertIn('getdaq-cconfig-editor',programs)
         self.assertNotIn('getdaq-node-agent',programs)
 
     def test_packager_refuses_incomplete_build_and_missing_helpers(self):

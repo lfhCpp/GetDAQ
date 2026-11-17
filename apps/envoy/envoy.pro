@@ -34,3 +34,6 @@ SOURCES += mainwindow_services.cpp
 SOURCES += applicationinstance.cpp
 HEADERS += applicationinstance.h
 SOURCES += mainwindow_statemanagement.cpp
+
+SOURCES += coboconnectionwindow.cpp
+HEADERS += coboconnectionwindow.h

@@ -1,3 +1,4 @@
+#include "coboconnectionwindow.h"
 #include "mainwindow.h"
 #ifdef Q_OS_LINUX
 #include "hostrolewindow.h"
@@ -100,26 +101,9 @@ void MainWindow::InitializeMenus()
     auto *localServices=toolsMenu->addAction(tr("ECC / data service manager…"));localServices->setObjectName("StartLocalServices");
     connect(localServices,&QAction::triggered,this,manageBackends);
     auto configuration = configurationMenu->addAction(tr("GET configuration files..."));
-    auto originalController=toolsMenu->addAction(tr("GET Controller…"));
-    originalController->setObjectName(QStringLiteral("OriginalGetController"));
-    connect(originalController,&QAction::triggered,this,[this] {
-        if(fConnected || fActive || fBusy || !ui->Connect->isEnabled()) {
-            QMessageBox::information(this,tr("GET Controller"),tr("Disconnect GetDAQ before opening GET Controller to control hardware."));
-            return;
-        }
-        const QString executable=QCoreApplication::applicationDirPath()+QStringLiteral("/getdaq-getcontroller");
-        if(!QFileInfo(executable).isExecutable()) {
-            QMessageBox::warning(this,tr("GET Controller"),tr("The bundled original GET Controller is missing: %1\nBuild or install the original GetController component.").arg(executable));
-            return;
-        }
-        const QString formats=QCoreApplication::applicationDirPath()+QStringLiteral("/../share/get-bench/format/CoboFormats.xcfg");
-        if(!QFileInfo(formats).isReadable()) {
-            QMessageBox::warning(this,tr("GET Controller"),tr("GET frame formats are missing: %1").arg(formats));
-            return;
-        }
-        if(!QProcess::startDetached(executable,{QStringLiteral("--format"),QFileInfo(formats).absoluteFilePath()},QFileInfo(fConfig.configDir).absoluteFilePath()))
-            QMessageBox::warning(this,tr("GET Controller"),tr("Could not start the bundled GET Controller."));
-    });
+    auto *boardInfo=toolsMenu->addAction(tr("CoBo information (direct, read-only)…"));
+    boardInfo->setObjectName("DirectCoBoInformation");
+    connect(boardInfo,&QAction::triggered,this,[this]{CoBoConnectionWindow window(this);window.exec();});
     InitializeRecoveryAndSafetyMenus(configurationMenu,runMenu,recoveryMenu);
     connect(configuration, &QAction::triggered, this, [this]() {
         if(fConnected || fActive || fBusy || !ui->Connect->isEnabled()) {

@@ -29,7 +29,7 @@ def main():
         if not screenshot.is_file() or screenshot.stat().st_size==0:raise RuntimeError('Packaged main window did not render')
         result['programs']['GetDAQ']='rendered'
         formats=package/'GetDAQ.app/Contents/share/get-bench/format/CoboFormats.xcfg'
-        for name,options in [('getdaq-cconfig-editor',[]),('getdaq-getcontroller',['--format',str(formats)])]:
+        for name,options in [('getdaq-cconfig-editor',[])]:
             with (evidence/(name+'.log')).open('w') as log:
                 process=subprocess.Popen([str(binary/name)]+options,env=env,stdout=log,stderr=subprocess.STDOUT)
                 try:
