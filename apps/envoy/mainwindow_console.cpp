@@ -81,7 +81,7 @@ void MainWindow::InitializeConsole()
     auto *header=new QWidget(ui->LeftColumn);header->setObjectName("StatusOverview");
     auto *headerLayout=new QHBoxLayout(header);headerLayout->setContentsMargins(0,0,0,0);headerLayout->setSpacing(8);
     auto *title=new QLabel(tr("System and receiver status"),header);title->setObjectName("StatusSectionTitle");
-    title->setToolTip(tr("Select a row to inspect node details. Native ECC lifecycle actions apply to the whole system."));
+    title->setToolTip(tr("Select a row to inspect node details."));
     headerLayout->addWidget(title);headerLayout->addStretch();
     for(const auto &name:{"CoBoOverview","RateOverview","ErrorOverview"}) {
         auto *label=new QLabel(header);label->setObjectName(name);label->setProperty("summary",true);headerLayout->addWidget(label);
@@ -138,7 +138,7 @@ void MainWindow::UpdateStatusPresentation(const QVector<NodeStatus> &status,cons
         const auto state=lifecycles.value(node.id);const auto found=byId.constFind(node.id);
         if(node.mutant || found==byId.constEnd() || (state!="unknown" && state!="transitioning"))continue;
         const auto &s=found.value();
-        if(s.eccOnline && s.state==4 && s.transition==0 && !s.nativeHardwareOutcomeUnknown)--overview.ready;
+        if(s.eccOnline && s.state==4 && s.transition==0)--overview.ready;
         if(state=="unknown" && NodeHealth(&s,false,fConfig)!=Fault)++overview.errors;
     }
     const auto set=[this](const char *name,const QString &text,const QString &tip,bool fault) {
@@ -149,7 +149,7 @@ void MainWindow::UpdateStatusPresentation(const QVector<NodeStatus> &status,cons
     set("CoBoOverview",tr("%1 CoBos ready").arg(overview.ready),
         tr("Configured CoBos with a fresh ECC Ready state and stable transition. MuTaNT is excluded. Unknown nodes are not ready."),false);
     set("RateOverview",overview.rateKnown ? tr("%1 MB/s").arg(overview.rateMB,0,'f',2) : tr("Rate: —"),
-        tr("Sum of current CoBo Sentry rates in MB/s. Unknown if any configured CoBo is unobserved. Native metadata does not supply this rate."),false);
+        tr("Sum of current CoBo Sentry rates in MB/s. Unknown if any configured CoBo is unobserved."),false);
     set("ErrorOverview",overview.errors ? tr("%1 node(s) with errors").arg(overview.errors) : overview.errorsKnown ? tr("No errors") : tr("Errors: unknown"),
         tr("Nodes with reported control, receiver, source or Sentry faults. Missing observations are unknown, not healthy."),overview.errors>0);
     const int column=ui->StatusTable->columnCount()-1;
@@ -163,8 +163,8 @@ void MainWindow::UpdateStatusPresentation(const QVector<NodeStatus> &status,cons
         lamp->setData(LampRole,int(health));
         const auto tooltip=s ? tr("%1\nECC: %2 · %3\nReceiver/Sentry: %4\n%5%6%7%8")
             .arg(node.name,s->eccOnline ? StateName(s->state) : tr("Offline / stale"),TransitionName(s->transition),
-                 node.mutant ? tr("Not applicable (MuTaNT)") : fConfig.nativeEcc ? s->process : s->sentryOnline ? tr("Online") : tr("Offline / stale"),
-                 s->error,s->sentryError,s->nativeReceiverError,s->nativeSourceError) : tr("%1: not observed").arg(node.name);
+                 node.mutant ? tr("Not applicable (MuTaNT)") : s->sentryOnline ? tr("Online") : tr("Offline / stale"),
+                 s->error,s->sentryError,QString(),QString()) : tr("%1: not observed").arg(node.name);
         const auto detail=tooltip+(lifecycles.contains(node.id) ? tr("\nCoBo lifecycle: %1 (journal projection)").arg(lifecycles.value(node.id)) : QString());
         lamp->setToolTip(detail);lamp->setData(Qt::AccessibleTextRole,detail);
     }

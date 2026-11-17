@@ -11,11 +11,6 @@ target_sources(getdaq-experiment-core PRIVATE configurationselection.cpp)
 target_sources(getdaq-experiment-core PRIVATE configurationreadback.cpp)
 target_sources(getdaq-experiment-core PRIVATE effectiveconfigurationrecord.cpp "${CMAKE_CURRENT_SOURCE_DIR}/../config/configurationrange.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/../config/configurationrange_parse.cpp")
 target_include_directories(getdaq-experiment-core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../config")
-add_executable(getdaq-config-check
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../apps/configcheck/main.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../apps/configcheck/artifactcommands.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../apps/configcheck/scancommands.cpp")
-target_link_libraries(getdaq-config-check PRIVATE getdaq-experiment-core)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
   target_compile_options(getdaq-experiment-core PRIVATE -Wall -Wextra -Wpedantic)
 endif()

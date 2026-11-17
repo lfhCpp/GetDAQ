@@ -47,26 +47,7 @@ bool RunConfig::Load(const QString &path, QString *error)
                 c.autoRun.durationMs=a["duration_ms"].as<qint64>();c.autoRun.fileBytes=a["file_bytes"].as<quint64>();
                 c.autoRun.maximumRuns=a["maximum_runs"].as<int>();
             }
-            if (settings["native_catalog"]) c.nativeCatalog=settings["native_catalog"].as<bool>();
-            if (settings["native_alarm_status"]) c.nativeClient.alarmStatusEnabled=settings["native_alarm_status"].as<bool>();
-            if (settings["native_configuration_status"]) c.nativeClient.configurationStatusEnabled=settings["native_configuration_status"].as<bool>();
-            if (settings["native_receiver_status"]) c.nativeClient.receiverStatusEnabled=settings["native_receiver_status"].as<bool>();
-            if(settings["native_source_status"])c.nativeClient.sourceStatusEnabled=settings["native_source_status"].as<bool>();
-            if(settings["native_receiver_failure_status"])c.nativeClient.receiverFailureStatusEnabled=settings["native_receiver_failure_status"].as<bool>();
-            if (settings["simulation"]) c.simulation = settings["simulation"].as<bool>();
-            if (settings["ecc_name"]) c.eccName=Text(settings["ecc_name"]);
-            if (settings["native_ecc"]) {
-                const auto native=settings["native_ecc"];
-                if (!native.IsMap() || native.size()!=11) throw std::runtime_error("native_ecc requires exactly eleven fixed client fields.");
-                const char *keys[]={"address","port","credential_file","service_id","client_id","client_epoch","snapshot_sha256","input_binding_sha256","timeout_ms","status_max_age_ms","record_dir"};
-                for (const char *key:keys) if (!native[key]) throw std::runtime_error("Missing native_ecc field.");
-                c.nativeEcc=true; c.nativeClient.address=Text(native["address"]); c.nativeClient.port=native["port"].as<int>();
-                c.nativeClient.credentialFile=Resolve(base,Text(native["credential_file"])); c.nativeClient.serviceId=Text(native["service_id"]); c.nativeClient.clientId=Text(native["client_id"]);
-                c.nativeClient.clientEpoch=Text(native["client_epoch"]); c.nativeClient.snapshotSha256=Text(native["snapshot_sha256"]); c.nativeClient.inputBindingSha256=Text(native["input_binding_sha256"]);
-                c.nativeClient.timeoutMs=native["timeout_ms"].as<int>(); c.nativeClient.statusMaxAgeMs=native["status_max_age_ms"].as<int>(); c.nativeRecordDir=Resolve(base,Text(native["record_dir"]));
-            }
-            if (settings["config_dir"]) c.configDir = Resolve(base, Text(settings["config_dir"]));
-            if (settings["output_dir"]) c.outputDir = Resolve(base, Text(settings["output_dir"]));
+            if(settings["native_ecc"]){const auto old=settings["native_ecc"];if(old.IsMap() || old.as<bool>())throw std::runtime_error("The rewritten native ECC backend has been removed. Select an original SOAP ECC configuration.");}
             if (settings["poll_ms"]) c.pollMs = settings["poll_ms"].as<int>();
             if (settings["timeout_ms"]) c.timeoutMs = settings["timeout_ms"].as<int>();
             if (settings["catalog_timeout_ms"]) c.catalogTimeoutMs = settings["catalog_timeout_ms"].as<int>();
@@ -95,8 +76,6 @@ bool RunConfig::Load(const QString &path, QString *error)
                     if (item["configure_id"]) n.configureId = Text(item["configure_id"]);
                     if (item["soap_namespace"]) n.soapNamespace = Text(item["soap_namespace"]);
                     if (item["soap_inline_xml"]) n.soapInlineXml = item["soap_inline_xml"].as<bool>();
-                    if (item["native_sender_id"]) n.nativeSenderId=Text(item["native_sender_id"]);
-                    if (item["native_agent_id"]) n.nativeAgentId=Text(item["native_agent_id"]);
                     c.nodes.append(n);
                 }
             }
@@ -119,25 +98,13 @@ bool RunConfig::Save(const QString &path, QString *error) const
     for (auto it = fields.constBegin(); it != fields.constEnd(); ++it) root["fields"][Utf8(it.key())] = Utf8(it.value());
     YAML::Node g = root["getdaq"];
     if(!eccName.isEmpty())g["ecc_name"]=Utf8(eccName);
-    g["simulation"] = simulation;
     auto automation=g["auto_run"];
     automation["enabled"]=autoRun.enabled;
     automation["condition"]=autoRun.condition==AutoRunSettings::Time ? "time" : autoRun.condition==AutoRunSettings::FileSize ? "file_size" : autoRun.condition==AutoRunSettings::Either ? "either" : "none";
     automation["action"]=autoRun.action==AutoRunSettings::Stop ? "stop" : "next_run";
     automation["duration_ms"]=autoRun.durationMs;automation["file_bytes"]=autoRun.fileBytes;
     automation["maximum_runs"]=autoRun.maximumRuns;
-    if (nativeEcc) {
-        g["native_catalog"]=nativeCatalog;
-        g["native_alarm_status"]=nativeClient.alarmStatusEnabled;
-        g["native_configuration_status"]=nativeClient.configurationStatusEnabled;
-        g["native_receiver_status"]=nativeClient.receiverStatusEnabled;
-        g["native_source_status"]=nativeClient.sourceStatusEnabled;
-        g["native_receiver_failure_status"]=nativeClient.receiverFailureStatusEnabled;
-        auto n=g["native_ecc"]; n["address"]=Utf8(nativeClient.address); n["port"]=nativeClient.port; n["credential_file"]=Utf8(nativeClient.credentialFile);
-        n["service_id"]=Utf8(nativeClient.serviceId); n["client_id"]=Utf8(nativeClient.clientId); n["client_epoch"]=Utf8(nativeClient.clientEpoch);
-        n["snapshot_sha256"]=Utf8(nativeClient.snapshotSha256); n["input_binding_sha256"]=Utf8(nativeClient.inputBindingSha256); n["timeout_ms"]=nativeClient.timeoutMs;
-        n["status_max_age_ms"]=nativeClient.statusMaxAgeMs; n["record_dir"]=Utf8(nativeRecordDir);
-    }
+
     g["config_dir"] = Utf8(configDir);
     g["output_dir"] = Utf8(outputDir);
     g["poll_ms"] = pollMs;
@@ -163,7 +130,6 @@ bool RunConfig::Save(const QString &path, QString *error) const
         item["configure_id"] = Utf8(n.configureId);
         item["soap_namespace"] = Utf8(n.soapNamespace);
         item["soap_inline_xml"] = n.soapInlineXml;
-        if (nativeEcc) { item["native_sender_id"]=Utf8(n.nativeSenderId); item["native_agent_id"]=Utf8(n.nativeAgentId); }
         g["nodes"].push_back(item);
     }
     YAML::Emitter out;

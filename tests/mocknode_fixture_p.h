@@ -9,6 +9,8 @@ namespace GetDAQTestFixtures {
 class MockNode : public QTcpServer
 {
 public:
+    bool generateData = false;
+    quint64 generatedBytes = 0;
     int state = 1;
     int transition = 0;
     bool failStart = false;

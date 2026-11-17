@@ -22,7 +22,7 @@ private:
     void AddRow(const NodeConfig &node);
     RunConfig fConfig;
     QTableWidget *fNodes;
-    QLabel *fLegacyTopologyNote,*fNativeTopologyNote;
+    QLabel *fLegacyTopologyNote;
     QLineEdit *fConfigDir;
     QLineEdit *fOutputDir;
     QSpinBox *fPoll;
@@ -30,8 +30,5 @@ private:
     QSpinBox *fCatalogTimeout;
     QSpinBox *fStepTimeout;
     QSpinBox *fSettle;
-    QCheckBox *fNative,*fNativeCatalog,*fNativeAlarms,*fNativeReceivers,*fNativeSources,*fNativeReceiverFailure;
-    QLineEdit *fNativeHost, *fNativeCredential, *fNativeService, *fNativeClient, *fNativeEpoch, *fNativeSnapshot, *fNativeInput, *fNativeRecords;
-    QSpinBox *fNativePort, *fNativeTimeout, *fNativeStatusAge;
 };
 #endif

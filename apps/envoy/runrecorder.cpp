@@ -26,38 +26,13 @@ bool RunRecorder::ReadJournal(const RunConfig &c, QJsonObject *journal, QString 
     return true;
 }
 
-bool RunRecorder::WriteNativeReferences(const RunConfig &c,
-                                       const QByteArray &receiverStatus,
-                                       const QByteArray &eccIdentity,
-                                       const QByteArray &eccConfiguration,
-                                       bool includeCatalogReference,
-                                       QString *error)
-{
-    const QDir run(c.RunDirectory());
-    if (!RunRecorderInternal::WriteRunFile(run.filePath("receiver-status.json"), receiverStatus, error) ||
-        !RunRecorderInternal::WriteRunFile(run.filePath("ecc-identity.json"), eccIdentity, error)) {
-        *error = "Cannot save native seal/session references: " + *error;
-        return false;
-    }
-    if (!eccConfiguration.isEmpty() &&
-        !RunRecorderInternal::WriteRunFile(run.filePath("ecc-configuration.json"), eccConfiguration, error)) {
-        *error = "Cannot save native startup configuration reference: " + *error;
-        return false;
-    }
-    if (includeCatalogReference &&
-        !RunRecorderInternal::WriteRunFile(run.filePath("data-catalogs.json"), receiverStatus, error)) {
-        *error = "Cannot save native data-host catalog references: " + *error;
-        return false;
-    }
-    return true;
-}
+
 
 QString RunRecorder::Finish(const RunConfig &c, double seconds)
 {
     const QDir run(c.RunDirectory());
     QString error;
-    // 模拟运行不会访问或复制真实 GET 配置。
-    if (!c.nativeEcc && !c.simulation && !QFileInfo::exists(run.filePath("backup.complete"))) {
+    if (!c.nativeEcc && !QFileInfo::exists(run.filePath("backup.complete"))) {
         bool missingFile=false;
         if (!RunRecorderInternal::SnapshotConfiguration(c, &error, &missingFile)) {
             if(!missingFile)return error;
@@ -78,30 +53,4 @@ QString RunRecorder::Finish(const RunConfig &c, double seconds)
     return QString();
 }
 
-bool RunRecorder::CompleteNativeRun(const RunConfig &c,
-                                    const QByteArray &receiverStatus,
-                                    const QByteArray &eccIdentity,
-                                    const QByteArray &eccConfiguration,
-                                    bool includeCatalogReference,
-                                    double seconds,
-                                    QJsonObject *journal,
-                                    QString *error,
-                                    QString *replacementCleanupWarning)
-{
-    if (!journal || !error || !replacementCleanupWarning) return false;
-    replacementCleanupWarning->clear();
-    if (!WriteNativeReferences(c, receiverStatus, eccIdentity, eccConfiguration,
-                               includeCatalogReference, error)) return false;
-    *error = Finish(c, seconds);
-    if (!error->isEmpty()) return false;
-    (*journal)["phase"] = "Complete";
-    (*journal)["updated_utc"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
-    if (!WriteJournal(c, *journal, error)) return false;
-    if (journal->value("replace_completed_run").toBool() &&
-        !FinalizeReplacement(c, replacementCleanupWarning)) {
-        // Complete is already durable. Preserve the backup and report cleanup
-        // as a warning rather than turning a finished Run into a failed one.
-        return true;
-    }
-    return true;
-}
+

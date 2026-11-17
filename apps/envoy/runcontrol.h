@@ -8,7 +8,6 @@
 #include <QJsonObject>
 #include <QSet>
 #include <QTimer>
-class NativeRunControl;
 
 // 控制对象整体移入 QThread；全部状态只在这个线程更新。
 class RunControl : public QObject
@@ -30,47 +29,9 @@ public slots:
     void StopRunSlot();
     void FinalizeSlot();
     void RecoverSlot();
-    void ResumeCatalogReplacementSlot(QString failedOperationId,QString operationId);
     void ShutdownSlot();
-    void StopProductionAfterFailureSlot();
-    void AbortFailedReceiversSlot();
-    void RetireFailedReceiversSlot();
-    void RetireFailedSourcesSlot();
-    void ReconcileAcquisitionWithSourcesSlot();
-    void UnprepareAcquisitionAfterFailureSlot();
-    void ReconcileDescriptionSlot();
-    void ReconcilePreparationSlot();
-    void ReconcilePreparationWithAlarmSlot();
-    void ReleaseStoppedAlarmSlot();
-    void ReconcileAcquisitionSlot();
-    void ReconcileAcquisitionWithAlarmSlot();
-    void UnprepareAfterFailureSlot();
-    void BreakupAfterFailureSlot();
     void PauseSlot();
     void ResumeSlot();
-    void InspectConfigurationSlot();
-    void InspectOwnershipSlot(quint64 generation);
-    void InspectConfigureReadbacksSlot(quint64 generation);
-    void RetireDataPlansSlot(QByteArray successorBytes,QByteArray targetsBytes);
-    void InspectPlanRetirementReceiptSlot();
-    void CompletePlanRetirementSlot(QString originalOperationId);
-    void InspectPlanRetirementCompletionSlot();
-    void InspectCoBoMaintenanceTargetsSlot();
-    void ReprepareCoBoSlot(QString coboId,QString instanceId,QString snapshotSha256);
-    void ConfigureCoBoSlot(QString coboId,QString instanceId,QString snapshotSha256);
-    void SetCoBoLedSlot(QString coboId,unsigned int asadId,unsigned int ledType,unsigned int ledState,QString instanceId,QString snapshotSha256);
-    void BlinkCoBoLedsSlot(QString coboId,QString instanceId,QString snapshotSha256);
-    void FlipCoBoLedSlot(QString coboId,unsigned int ledId,QString instanceId,QString snapshotSha256);
-    void PulseCoBoLedSlot(QString coboId,unsigned int ledId,unsigned int periodMs,QString instanceId,QString snapshotSha256);
-    void TriggerAsAdPulserSlot(QString coboId,int voltageMv,QString instanceId,QString snapshotSha256);
-    void QueryScanRuntimeIdentitySlot(QString journalPath,QString planDirectory,
-                                      QByteArray snapshotBytes,unsigned int pointIndex);
-    void QueryScanEventCountBaselineSlot(QString journalPath);
-    void ExecuteScanPointLifecycleOperationSlot(QString journalPath,QString command);
-    void ObservePendingScanLifecycleOperationSlot(QString journalPath,QString operationId,
-                                                  QString expectedPlanSha256,
-                                                  QByteArray snapshotBytes);
-    void StartScanPointSlot(QString journalPath);
 signals:
     void StatusSignal(QVector<NodeStatus> status);
     void ControlSignal(QString phase, bool connected, bool busy, bool active);
@@ -80,20 +41,6 @@ signals:
     void AutoRunEnabledSignal(bool enabled);
     void RunFinishedSignal(int nextRun);
     void ShutdownFinishedSignal();
-    void ConfigurationSignal(QByteArray body,QString error);
-    void OwnershipSignal(QByteArray body,QString error,quint64 generation);
-    void ConfigureReadbacksSignal(QByteArray body,QString error,quint64 generation);
-    void PlanTransitionStateSignal(bool canSubmit,bool canInspect,QByteArray status,QByteArray identity,QString reason);
-    void PlanTransitionResultSignal(QByteArray receipt,QByteArray request,QString error);
-    void CoBoMaintenanceStateSignal(bool canSubmit,QByteArray status,QByteArray identity,QString reason);
-    void CoBoMaintenanceTargetsSignal(QByteArray body,QString error);
-    void CoBoMaintenanceResultSignal(QByteArray operation,QString error);
-    void ScanRuntimeIdentityBoundSignal(QByteArray journalBytes,QByteArray responseBytes,QString error);
-    void ScanEventCountBaselineBoundSignal(QByteArray journalBytes,QByteArray responseBytes,QString error);
-    void ScanPointRunStatusSignal(QString message,bool active);
-    void CatalogRecoveryStateSignal(bool canResume,QString failedOperationId,QString reason);
-    void PlanRetirementHoldSignal(bool held,QString snapshot);
-    void PlanCompletionStateSignal(bool canComplete,bool canObserve,QByteArray originalRequest,QByteArray originalStatus,QByteArray completionRequest,QString completionPhase,QString reason);
 private slots:
     void PollSlot();
     void EccReplySlot(int id, QString operation, int state, int transition, QString error);
@@ -140,7 +87,6 @@ private:
     int fMutant = -1;
     double fDuration = 0;
     QString fReplacementOperationId;
-    NativeRunControl *fNative = nullptr;
 
     QVector<int> Cobos() const;
     QVector<int> All() const;

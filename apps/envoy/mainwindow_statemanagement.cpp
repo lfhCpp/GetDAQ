@@ -1,10 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "eccsystemclient.h"
-#include "eccprotocol.h"
-#include "earlywarningrecovery.h"
-#include "hardwaresetupwindow.h"
-#include "localdeploymentservices.h"
 #include "applicationinstance.h"
 #include "diagnostics.h"
 #include <QDialog>
@@ -53,50 +48,18 @@ void MainWindow::OpenStatusManagement() {
     connect(clear,&QPushButton::clicked,&dialog,[this,render]{for(int i=fNotifications.size()-1;i>=0;--i)if(fNotifications[i].acknowledged)fNotifications.remove(i);render();});
     connect(clearView,&QPushButton::clicked,&dialog,[this]{ui->Log->clear();ShowLogEntry(tr("Displayed log cleared by operator; persistent logs and controller state retained."),Diagnostics::Information);});
     connect(close,&QPushButton::clicked,&dialog,&QDialog::reject);
-    EccSystemClient *client=nullptr;
-    if(fConfig.nativeEcc)try {client=new EccSystemClient(fConfig.nativeClient,{},&dialog);}catch(const std::exception &e){state->setText(QString::fromUtf8(e.what()));}
-    auto current=std::make_shared<GetDAQ::EccControlSystemStatus>();auto haveStatus=std::make_shared<bool>(false);
-    if(client) {
-    connect(client,&EccSystemClient::IdentitySignal,&dialog,[client,state](bool matched,QByteArray,QString error){if(matched)client->QueryStatus();else state->setText(tr("ECC connection/identity unavailable: %1").arg(error));});
-    connect(client,&EccSystemClient::StatusSignal,&dialog,[this,state,reset,recover,current,haveStatus,render](QByteArray body,QString error){
-        *haveStatus=false;reset->setEnabled(false);recover->setEnabled(false);
-        if(!error.isEmpty()){state->setText(error);return;}
-        try {
-            *current=GetDAQ::DecodeEccControlSystemStatus(body.toStdString());*haveStatus=true;const auto &s=*current;
-            const bool held=s.controlNeedsReconciliation || s.controller.outcomeUnknown || s.controller.needsReconciliation || s.dataNeedsReconciliation;
-            state->setText(tr("ECC: %1%2\nLast operation: %3\n%4").arg(StateName(s.controller.state),held?tr(" — result pending verification (UNKNOWN)"):QString(),QString::fromStdString(s.controller.operationId),QString::fromStdString(s.controller.message)));
-            reset->setEnabled(!held && !s.operationActive && s.controller.state>=1 && s.controller.state<=4 && fConnected && !fBusy && !fActive && !fRemoteRunning);
-            if(LocalDeploymentServices::IsLocalDeployment(fConfig) && !s.operationActive && !fBusy && !fActive && !fRemoteRunning)try {
-                ValidateEarlyDelayWarningEvidence(QFileInfo(fConfig.filePath).absolutePath(),body);recover->setEnabled(true);recover->setToolTip(tr("An empty Idle baseline or a specific early legacy readback warning was identified. Fresh stopped/power-off and data checks are required before restoring an Idle session."));
-            }catch(const std::exception &e){recover->setToolTip(QString::fromUtf8(e.what()));}
-            render();
-        }catch(const std::exception &e){state->setText(QString::fromUtf8(e.what()));}
-    });
-    }
-    connect(refresh,&QPushButton::clicked,&dialog,[this,client,state,haveStatus]{*haveStatus=false;if(fConfig.nativeEcc && client)client->QueryIdentity();else state->setText(tr("Legacy / simulation phase: %1").arg(ui->Phase->text()));});
-    connect(reset,&QPushButton::clicked,&dialog,[this,&dialog,current,haveStatus,state,reset]{
-        if(!*haveStatus || fBusy || fActive || !fConnected)return;
-        const auto &s=*current;if(s.operationActive || s.controlNeedsReconciliation || s.controller.outcomeUnknown || s.controller.needsReconciliation || s.dataNeedsReconciliation)return;
-        if(QMessageBox::question(&dialog,tr("Reset known stopped state to Idle"),tr("Release the configured connection if present, unprepare/power off as required, then return the known stopped ECC to Idle? This is an explicit reset sequence, not a log clear."),QMessageBox::Yes|QMessageBox::Cancel,QMessageBox::Cancel)!=QMessageBox::Yes)return;
-        auto *timer=new QTimer(&dialog);timer->setInterval(200);auto expected=std::make_shared<int>(0);auto clock=std::make_shared<QElapsedTimer>();clock->start();reset->setEnabled(false);
-        connect(timer,&QTimer::timeout,&dialog,[this,timer,expected,clock,state]{
-            if(!fConnected || fActive || clock->elapsed()>qMax(120000,3*fConfig.stepTimeoutMs)){timer->stop();state->setText(tr("Idle reset stopped or timed out; inspect the current operation."));return;}
-            if(fBusy)return;
-            if(*expected && fObservedEccState!=*expected){if(fObservedEccState<1){timer->stop();state->setText(tr("Idle reset stopped: fresh known state is unavailable."));}return;}
-            if(fObservedEccState==1){timer->stop();state->setText(tr("ECC is Idle. No automatic Prepare or acquisition was started."));ShowLogEntry(tr("Operator reset completed: ECC Idle"),Diagnostics::Information);return;}
-            if(fObservedEccState<2 || fObservedEccState>4){timer->stop();state->setText(tr("Idle reset requires a known stopped state. Recheck or recover first."));return;}
-            *expected=fObservedEccState-1;emit RegressSignal(-1);
+    recover->hide();
+    auto update=[this,state,reset]{state->setText(tr("ECC phase: %1").arg(ui->Phase->text()));reset->setEnabled(fConnected && !fBusy && !fActive && !fRemoteRunning && fObservedEccState>=2 && fObservedEccState<=4);};
+    connect(refresh,&QPushButton::clicked,&dialog,update);
+    connect(reset,&QPushButton::clicked,&dialog,[this,&dialog,state,reset]{
+        if(fBusy || fActive || fRemoteRunning || !fConnected)return;
+        if(QMessageBox::question(&dialog,tr("Return stopped ECC to Idle"),tr("Regress each confirmed stopped ECC to Idle? This sends the original ECC Undo / Breakup commands."),QMessageBox::Yes|QMessageBox::Cancel,QMessageBox::Cancel)!=QMessageBox::Yes)return;
+        auto *timer=new QTimer(&dialog);timer->setInterval(200);auto clock=std::make_shared<QElapsedTimer>();clock->start();reset->setEnabled(false);
+        connect(timer,&QTimer::timeout,&dialog,[this,timer,clock,state]{
+            if(!fConnected || fActive || fRemoteRunning || clock->elapsed()>3*fConfig.stepTimeoutMs){timer->stop();state->setText(tr("Reset stopped; inspect the current ECC state."));return;}
+            if(fBusy)return;if(fObservedEccState==1){timer->stop();state->setText(tr("ECC is Idle."));return;}
+            if(fObservedEccState<2 || fObservedEccState>4){timer->stop();return;}emit RegressSignal(-1);
         });timer->start();
     });
-    connect(recover,&QPushButton::clicked,&dialog,[this,&dialog]{
-        if(fBusy || fActive || fRemoteRunning)return;
-        HardwareSetupWindow workflow(fConfig,&dialog);QTimer::singleShot(0,&workflow,&HardwareSetupWindow::StartAcceptedWarningRecovery);
-        if(workflow.exec()!=QDialog::Accepted)return;
-        const auto next=workflow.Configuration();
-        QSettings().setValue(StartupConfigurationKey(),next.filePath);
-        if(!QProcess::startDetached(QCoreApplication::applicationFilePath(),{"--config",next.filePath})) {QMessageBox::warning(&dialog,tr("Idle session saved"),tr("New stopped session created at %1. Open its envoy.yml to continue.").arg(next.filePath));return;}
-        ShowLogEntry(tr("Accepted warning recovery created new Idle session: %1; original failure audits retained.").arg(next.filePath),Diagnostics::Information);
-        QCoreApplication::quit();
-    });
-    QTimer::singleShot(0,refresh,&QPushButton::click);dialog.exec();
+    update();dialog.exec();
 }

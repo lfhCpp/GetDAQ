@@ -1,0 +1,28 @@
+{
+  "baseline": "original-get-backends-v1",
+  "programs": [
+    "getdaq-inspect",
+    "getdaq-merge",
+    "getdaq-matrix",
+    "getdaq-config-repository",
+    "getdaq-config-service",
+    "GetDAQ",
+    "getdaq-sentry",
+    "getdaq-waveform-viewer",
+    "getdaq-cconfig-editor",
+    "getdaq-node-agent",
+    "getdaq-getcontroller",
+    "getEccSoapServer",
+    "DataExporter"
+  ],
+  "qt_test_passed": 14,
+  "python_test_passed": 20,
+  "original_ecc_and_exporter_payload_test": "passed",
+  "master_worker_integration_checks_passed": 7,
+  "main_ui_layout_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec",
+  "upstream_legacy_files_unchanged": 2809,
+  "upstream_dataexporter_files_unchanged": 641,
+  "physical_hardware_verified": false,
+  "remote_host_updated_in_this_cleanup": false,
+  "local_bin_updated": true
+}

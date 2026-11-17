@@ -58,7 +58,7 @@ void RunConsoleOverviewUsesConfiguredFreshCoBos()
 void RunConsoleReferenceLayoutAndLiveSimulation()
 {
     QTemporaryDir dir;QVERIFY(dir.isValid());auto config=GetDAQTestSupport::Config(dir.path());
-    config.nodes=RunConfig::Default().nodes;
+    config.nodes=RunConfig::Default().nodes;GetDAQTestSupport::AttachMockNodes(config);GetDAQTestSupport::MakeFiles(config);
     MainWindow window;window.SetConfig(config);window.show();
     auto *table=window.findChild<QTableWidget *>("StatusTable");
     auto *selector=window.findChild<QComboBox *>("NodeSelector");
@@ -100,9 +100,10 @@ void RunConsoleReferenceLayoutAndLiveSimulation()
         }
     }
     window.resize(1536,1024);QApplication::processEvents();
-    window.findChild<QPushButton *>("Connect")->click();QTRY_COMPARE(table->item(0,1)->text(),QString("Idle"));
+    const auto allAt=[table](const QString &state){for(int row=0;row<table->rowCount();++row)if(table->item(row,1)->text()!=state)return false;return true;};
+    window.findChild<QPushButton *>("Connect")->click();QTRY_VERIFY(allAt("Idle"));
     for(const auto state:{"Described","Prepared","Ready"}) {
-        window.findChild<QPushButton *>("Progress")->click();QTRY_COMPARE(table->item(0,1)->text(),QString(state));QTRY_VERIFY(start->isEnabled());
+        window.findChild<QPushButton *>("Progress")->click();QTRY_VERIFY(allAt(QString(state)));QTRY_VERIFY(start->isEnabled());
     }
     QTRY_COMPARE(window.findChild<QLabel *>("CoBoOverview")->text(),QString("11 CoBos ready"));
     QCOMPARE(table->item(0,table->columnCount()-1)->data(ConsolePresentation::LampRole).toInt(),int(ConsolePresentation::Healthy));
@@ -167,7 +168,7 @@ void RunStatusTableUsesOnlyConfiguredNodeHeight()
 void RunConsoleReflowsWhenConfiguredNodesShrink()
 {
     QTemporaryDir dir;QVERIFY(dir.isValid());
-    auto config=GetDAQTestSupport::Config(dir.path());config.nodes=RunConfig::Default().nodes;
+    auto config=GetDAQTestSupport::Config(dir.path());config.nodes=RunConfig::Default().nodes;GetDAQTestSupport::AttachMockNodes(config);GetDAQTestSupport::MakeFiles(config);
     MainWindow window;window.SetConfig(config);window.show();
     window.resize(1536,1024);QApplication::processEvents();
     auto *table=window.findChild<QTableWidget *>("StatusTable");

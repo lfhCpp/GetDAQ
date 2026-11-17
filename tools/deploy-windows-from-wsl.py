@@ -121,11 +121,10 @@ def main():
              'set "PATH=' + winbuild.windows(compiler / 'bin') + ';' + winbuild.windows(kit / 'bin') + ';%PATH%"',
              'pushd "' + winbuild.windows(destination) + '"', 'if errorlevel 1 exit /b 10']
     for name in suite.QT_CONTROL:
-        if name != 'getdaq-config-check':
-            # Qt 5.14.2 cannot reliably infer MinGW plugin debug mode from PE flags.
-            # Automatic mode accepts matching kit plugins; forcing --release can reject them all.
-            lines += ['"' + winbuild.windows(deploy) + '" --compiler-runtime --no-translations "' + name + '.exe"',
-                      'if errorlevel 1 goto failed']
+        # Qt 5.14.2 cannot reliably infer MinGW plugin debug mode from PE flags.
+        # Automatic mode accepts matching kit plugins; forcing --release can reject them all.
+        lines += ['"' + winbuild.windows(deploy) + '" --compiler-runtime --no-translations "' + name + '.exe"',
+                  'if errorlevel 1 goto failed']
     lines += ['popd', 'exit /b 0', ':failed', 'set "getdaq_status=%errorlevel%"', 'popd', 'exit /b %getdaq_status%']
     script = build / 'deploy-runtime.cmd'
     script.write_bytes(('\r\n'.join(lines) + '\r\n').encode('utf-8'))

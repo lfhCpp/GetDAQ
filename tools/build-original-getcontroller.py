@@ -18,13 +18,14 @@ def main():
     parser.add_argument('--svg-headers',type=Path,help='Optional existing Qt SVG header directory when the Qt SVG qmake module is unavailable')
     parser.add_argument('--configure-only',action='store_true')
     args=parser.parse_args()
-    if sys.platform!='linux':parser.error('This original GetController integration is currently validated on Linux only')
+    if sys.platform not in ('linux','darwin'):parser.error('Original GetController requires Linux or macOS')
+    if args.svg_headers and sys.platform!='linux':parser.error('--svg-headers is a Linux-only build fallback; use the Qt SVG module on macOS')
     if args.jobs<1:parser.error('--jobs must be positive')
     build=args.build_dir.resolve();build.mkdir(parents=True,exist_ok=True)
     ice=args.ice_build.resolve() if args.ice_build else build/'ice'
     if not (ice/'libcompat-GET.a').exists():
-        subprocess.run([args.cmake,'-S',str(ROOT/'third_party/ice-compat'),'-B',str(ice),'-DBUILD_TESTING=OFF','-DCMAKE_BUILD_TYPE=Release','-DGETDAQ_ICE_LIBRARIES_ONLY=ON'],check=True)
-        subprocess.run([args.cmake,'--build',str(ice),'--parallel',str(args.jobs),'--target','compat-GET'],check=True)
+        subprocess.run([args.cmake,'-S',str(ROOT/'third_party/ice-compat'),'-B',str(ice),'-DBUILD_TESTING=OFF','-DCMAKE_BUILD_TYPE=Release'],check=True)
+    subprocess.run([args.cmake,'--build',str(ice),'--parallel',str(args.jobs),'--target','compat-GET'],check=True)
     destination=args.destination.resolve();destination.mkdir(parents=True,exist_ok=True)
     command=[args.qmake,str(ROOT/'apps/getcontroller/getcontroller.pro'),'GETDAQ_ICE_BUILD='+str(ice),'GETDAQ_DESTDIR='+str(destination),'GETDAQ_PYTHON='+sys.executable]
     if args.svg_headers:command.append('GETDAQ_SVG_HEADERS='+str(args.svg_headers.resolve()))

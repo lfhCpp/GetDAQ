@@ -17,7 +17,7 @@ protected:
 private:
     RunConfig fBase,fConnectionBase,fSelected;
     ExistingEccResult fChecked;
-    QLineEdit *fName,*fAddress,*fProfile,*fReceiver,*fOutput;
+    QLineEdit *fName,*fAddress,*fReceiver,*fOutput;
     QSpinBox *fPort,*fDataPort;
     QLabel *fStatus;
     QPushButton *fCheck,*fUse,*fCancel;

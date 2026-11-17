@@ -1,6 +1,5 @@
 #include "runcontrol.h"
 #include "runrecorder.h"
-#include "nativeruncontrol.h"
 #include <QDateTime>
 #include "diagnostics.h"
 
@@ -13,43 +12,14 @@ RunControl::RunControl(QObject *parent) : QObject(parent) {
 
 void RunControl::ConnectSlot(RunConfig config)
 {
-    if (fNative) { emit LogSignal("Native controller already exists; disconnect before changing deployment."); return; }
+    
     if (fConnected || fBusy || fActive) return;
     QString error;
     if (!config.Validate(&error)) { emit LogSignal(error); return; }
     fLocalFinalizationFailed=false;
     fCatalogResultUncertain=false;
     fConfig=config;ConfigureAutoRunSlot(config.autoRun);
-    if (config.nativeEcc) {
-        fNative=new NativeRunControl(this);
-        connect(fNative,&NativeRunControl::StatusSignal,this,&RunControl::StatusSignal);
-        NativeRunControl *native=fNative;
-        connect(native,&NativeRunControl::ControlSignal,this,[this,native](const QString &phase,bool connected,bool busy,bool active) {
-            emit ControlSignal(phase,connected,busy,active);
-            if (!connected && !busy && !active && fNative==native) { fNative=nullptr; native->deleteLater(); }
-        });
-        connect(fNative,&NativeRunControl::LogSignal,this,[this,native](const QString &message){ReportLog(message,native->CurrentLogSeverity()<0 ? Diagnostics::Classify(message) : native->CurrentLogSeverity());});
-        connect(fNative,&NativeRunControl::FailureSignal,this,[this](const QString &error){CancelAutoRun(error);});
-        connect(fNative,&NativeRunControl::AutoRunObservationErrorSignal,this,[this](const QString &error){CancelAutoRun(error);ReportLog(error,Diagnostics::Error);});
-        connect(fNative,&NativeRunControl::ExternalOperationSignal,this,[this](int state){if(state!=5 && state!=6)CancelAutoRun("Automatic Run canceled: external/MCP manual control changed the acquisition state.");});
-        connect(fNative,&NativeRunControl::RunFinishedSignal,this,[this](int next){fConfig.runNumber=next;fAutoRun.Completed(fAutoClock.elapsed());emit RunFinishedSignal(next);});
-        connect(fNative,&NativeRunControl::ConfigurationSignal,this,&RunControl::ConfigurationSignal);
-        connect(fNative,&NativeRunControl::OwnershipSignal,this,&RunControl::OwnershipSignal);
-        connect(fNative,&NativeRunControl::ConfigureReadbacksSignal,this,&RunControl::ConfigureReadbacksSignal);
-        connect(fNative,&NativeRunControl::PlanTransitionStateSignal,this,&RunControl::PlanTransitionStateSignal);
-        connect(fNative,&NativeRunControl::PlanTransitionResultSignal,this,&RunControl::PlanTransitionResultSignal);
-        connect(fNative,&NativeRunControl::PlanRetirementHoldSignal,this,&RunControl::PlanRetirementHoldSignal);
-        connect(fNative,&NativeRunControl::PlanCompletionStateSignal,this,&RunControl::PlanCompletionStateSignal);
-        connect(fNative,&NativeRunControl::CoBoMaintenanceStateSignal,this,&RunControl::CoBoMaintenanceStateSignal);
-        connect(fNative,&NativeRunControl::CoBoMaintenanceTargetsSignal,this,&RunControl::CoBoMaintenanceTargetsSignal);
-        connect(fNative,&NativeRunControl::CoBoMaintenanceResultSignal,this,&RunControl::CoBoMaintenanceResultSignal);
-        connect(fNative,&NativeRunControl::ScanRuntimeIdentityBoundSignal,this,&RunControl::ScanRuntimeIdentityBoundSignal);
-        connect(fNative,&NativeRunControl::ScanEventCountBaselineBoundSignal,this,&RunControl::ScanEventCountBaselineBoundSignal);
-        connect(fNative,&NativeRunControl::ScanPointRunStatusSignal,this,&RunControl::ScanPointRunStatusSignal);
-        connect(fNative,&NativeRunControl::CatalogRecoveryStateSignal,this,&RunControl::CatalogRecoveryStateSignal);
-        connect(fNative,&NativeRunControl::ShutdownFinishedSignal,this,&RunControl::ShutdownFinishedSignal);
-        fNative->Connect(config); return;
-    }
+
     fConfig = config;
     fReplacementOperationId.clear();
     fMutant = -1;
@@ -79,16 +49,13 @@ void RunControl::ConnectSlot(RunConfig config)
     fConnected = true;
     fPhase = "Monitoring";
     fPoll->start(config.pollMs);
-    emit LogSignal(config.simulation ? "SIMULATION: no requests sent to hardware." : "Hardware control connected; querying actual node states.");
+    emit LogSignal("Hardware control connected; querying actual node states.");
     PollSlot();
 }
 
 void RunControl::UpdateRunMetadataSlot(RunConfig config)
 {
-    if (fNative) {
-        fNative->UpdateRunMetadata(config);
-        return;
-    }
+    
     if (!fConnected || fBusy || fActive) return;
     fConfig.runNumber = config.runNumber;
     fConfig.autoRun=config.autoRun;
@@ -107,7 +74,7 @@ void RunControl::ClearClients()
 void RunControl::DisconnectSlot()
 {
     CancelAutoRun("Automatic Run canceled: manual disconnect");
-    if (fNative) { fNative->Disconnect(); return; }
+    
     if (fBusy) { emit LogSignal("Wait for the current operation before disconnecting."); return; }
     if (fActive) {
         if ((!fLocalFinalizationFailed && !fCatalogResultUncertain) || !AllAt(All(),4)) {
@@ -130,7 +97,7 @@ void RunControl::DisconnectSlot()
 void RunControl::ShutdownSlot()
 {
     CancelAutoRun("Automatic Run canceled: application shutdown");
-    if (fNative) { fNative->Shutdown(); return; }
+    
     fShuttingDown = true;
     ++fSequence;
     if (fPoll) fPoll->stop();

@@ -2,7 +2,6 @@
 #include "protocol.h"
 #include <QJsonObject>
 #include <QJsonDocument>
-#include <QTimer>
 #include <QUrl>
 
 namespace {
@@ -14,66 +13,38 @@ QString SentryFailure(const QByteArray &body,const QString &failure) {
 }
 
 SentryClient::SentryClient(const NodeConfig &node, const RunConfig &config, QObject *parent)
-    : QObject(parent), fNode(node), fConfig(config), fHttp(config.simulation ? nullptr : new HttpClient(this)),
-      fStatusHttp(config.simulation ? nullptr : new HttpClient(this))
-{
-    fClock.start();
-    fSim.disk = "Simulated disk"; fSim.process = "dataRouter (simulation)";
-    fSim.dataPath = "simulation/buffer"; fSim.totalGB = 1000; fSim.availableGB = 800;
-}
+    : QObject(parent), fNode(node), fConfig(config), fHttp(new HttpClient(this)),
+      fStatusHttp(new HttpClient(this))
+{}
 
 bool SentryClient::Send(bool catalog)
 {
     bool &busy=catalog ? fBusy : fStatusBusy;
-    if (busy) return false;
+    if (busy || fConfig.simulation) return false;
     busy = true;
-    if (fConfig.simulation) {
-        const int generation = fGeneration;
-        QTimer::singleShot(40, this, [this, catalog, generation]() {
-            if (generation != fGeneration) return;
-            const qint64 now = fClock.elapsed();
-            if (catalog) { fSim.writtenGB = 0; fSim.files = 0; }
-            else if (fRunning) { fSim.writtenGB += (now - fLastTime) * (0.00002 + fNode.id * 0.000001); fSim.files = 1; }
-            fLastTime = now;
+    QUrl url;
+    url.setScheme("http"); url.setHost(fNode.sentryHost.isEmpty() ? fNode.host : fNode.sentryHost); url.setPort(fNode.sentryPort);
+    url.setPath(catalog ? "/catalog" : "/status");
+    QJsonObject params;
+    params["experiment"] = fConfig.experiment;
+    params["run_number"] = fConfig.runNumber;
+    (catalog ? fHttp : fStatusHttp)->Request(url, catalog ? QJsonDocument(params).toJson(QJsonDocument::Compact) : QByteArray(),
+        catalog ? QByteArray("application/json") : QByteArray(), catalog ? fConfig.catalogTimeoutMs : fConfig.timeoutMs,
+        [this, catalog](const QByteArray &body, const QString &failure) {
+            QString error = SentryFailure(body,failure);
+            NodeStatus status;
+            if (error.isEmpty()) Protocol::ParseSentry(body, &status, &error);
             (catalog ? fBusy : fStatusBusy) = false;
-            fSim.rawFileBytes=quint64(fSim.writtenGB*1e9);fSim.rawFileBytesKnown=true;
-            emit ReplySignal(fNode.id, catalog, fSim, QString());
+            if(catalog && error.isEmpty()){fStatusHttp->Cancel();fStatusBusy=false;}
+            emit ReplySignal(fNode.id, catalog, status, error);
         });
-    } else {
-        QUrl url;
-        url.setScheme("http"); url.setHost(fNode.sentryHost.isEmpty() ? fNode.host : fNode.sentryHost); url.setPort(fNode.sentryPort);
-        url.setPath(catalog ? "/catalog" : "/status");
-        QJsonObject params;
-        params["experiment"] = fConfig.experiment;
-        params["run_number"] = fConfig.runNumber;
-        (catalog ? fHttp : fStatusHttp)->Request(url, catalog ? QJsonDocument(params).toJson(QJsonDocument::Compact) : QByteArray(),
-            catalog ? QByteArray("application/json") : QByteArray(), catalog ? fConfig.catalogTimeoutMs : fConfig.timeoutMs,
-            [this, catalog](const QByteArray &body, const QString &failure) {
-                QString error = SentryFailure(body,failure);
-                NodeStatus status;
-                if (error.isEmpty()) Protocol::ParseSentry(body, &status, &error);
-                (catalog ? fBusy : fStatusBusy) = false;
-                if(catalog && error.isEmpty()){fStatusHttp->Cancel();fStatusBusy=false;}
-                emit ReplySignal(fNode.id, catalog, status, error);
-            });
-    }
     return true;
 }
 
 bool SentryClient::SendReplacementCatalog(const QString &operationId)
 {
     if (operationId.isEmpty() || fBusy) return false;
-    if (fConfig.simulation) {
-        fBusy = true;
-        const int generation = fGeneration;
-        QTimer::singleShot(40, this, [this, generation]() {
-            if (generation != fGeneration) return;
-            fSim.writtenGB = 0; fSim.files = 0; fBusy = false;
-            fSim.rawFileBytes=0;fSim.rawFileBytesKnown=true;
-            emit ReplySignal(fNode.id, true, fSim, QString());
-        });
-        return true;
-    }
+    if (fConfig.simulation) return false;
     fBusy = true;
     QUrl url;
     url.setScheme("http"); url.setHost(fNode.sentryHost.isEmpty() ? fNode.host : fNode.sentryHost); url.setPort(fNode.sentryPort);
@@ -98,16 +69,7 @@ bool SentryClient::SendReplacementCatalog(const QString &operationId)
 bool SentryClient::FinalizeReplacement(const QString &operationId)
 {
     if (operationId.isEmpty() || fBusy) return false;
-    if (fConfig.simulation) {
-        fBusy = true;
-        const int generation = fGeneration;
-        QTimer::singleShot(40, this, [this, generation]() {
-            if (generation != fGeneration) return;
-            fBusy = false;
-            emit ReplacementFinalizedSignal(fNode.id, QString());
-        });
-        return true;
-    }
+    if (fConfig.simulation) return false;
     fBusy = true;
     QUrl url;
     url.setScheme("http"); url.setHost(fNode.sentryHost.isEmpty() ? fNode.host : fNode.sentryHost); url.setPort(fNode.sentryPort);
@@ -130,4 +92,4 @@ bool SentryClient::FinalizeReplacement(const QString &operationId)
     return true;
 }
 
-void SentryClient::Cancel() { ++fGeneration; if (fHttp) fHttp->Cancel(); if(fStatusHttp)fStatusHttp->Cancel(); fBusy = fStatusBusy = false; }
+void SentryClient::Cancel() { if (fHttp) fHttp->Cancel(); if(fStatusHttp)fStatusHttp->Cancel(); fBusy = fStatusBusy = false; }

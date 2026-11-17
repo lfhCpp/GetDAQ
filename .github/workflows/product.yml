@@ -1,0 +1,26 @@
+name: Original GET backend product
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  ubuntu:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake python3 qtbase5-dev libqt5svg5-dev qttools5-dev-tools openssl
+      - name: Check supported product boundary
+        run: python3 tools/verify-product-boundary.py
+      - name: Build and stage original backend suite
+        run: python3 tools/build-suite.py --profile full --jobs 2 --build-root build-ci --stage dist
+      - name: Build current feature tests
+        run: mkdir -p build-tests && cd build-tests && qmake ../tests/tests.pro && make -j2
+      - name: Test GUI and SOAP lifecycle
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: build-tests/getdaq-tests
+      - name: Test original receiver bytes and SOAP service
+        run: python3 tests/original_backends_payload_smoke.py dist/bin
+      - name: Test master and worker process management
+        run: python3 tests/original_backends_integration.py dist/bin tests/original_backends_fixture.py --evidence build-ci/evidence

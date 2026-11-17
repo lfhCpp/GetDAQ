@@ -5,7 +5,7 @@
 #include <QMetaType>
 #include <QString>
 #include <QVector>
-#include "eccsystemclient.h"
+
 #include "autorun.h"
 
 struct NodeConfig
@@ -26,7 +26,6 @@ struct NodeConfig
     QString configureId;
     QString soapNamespace = "urn:http://localhost:8083/";
     bool soapInlineXml = false; // gSOAP 字符串参数默认转义；兼容旧 envoy 的内嵌 XML 可显式开启。
-    QString nativeSenderId, nativeAgentId; // 整系统模式下的接收源/数据节点标识。
     QString ConfigId(const QString &kind, const QString &experiment) const;
 };
 
@@ -39,11 +38,8 @@ struct RunConfig
     QString eccName; // Friendly connection name, independent of board IDs and fixed service identity.
     QMap<QString, QString> fields;
     QVector<NodeConfig> nodes;
-    bool simulation = true;
-    bool nativeEcc = false;
-    bool nativeCatalog = false;
-    EccSystemClientOptions nativeClient;
-    QString nativeRecordDir;
+    bool simulation = false; // Legacy-file marker only; true is rejected, never enables a fake backend.
+    bool nativeEcc = false; // Import guard only: true is rejected; no native runtime exists.
     QString configDir;
     QString outputDir;
     QString filePath;
@@ -85,17 +81,7 @@ struct NodeStatus
     bool sentryCatalogPending = false;
     qint64 eccTime = -1;
     qint64 sentryTime = -1;
-    QString nativeSessionId, nativeReceivedBytes, nativeFrames, nativeFiles, nativeCatalogDir;
-    int nativePid = 0;
-    bool nativeReaped = false, nativeSealVerified = false;
-    bool nativeSourceUnusedConfirmed = false, nativeSourceEndConfirmed = false;
-    QString nativeReceiverError;
-    bool nativeReceiverObserved = false, nativeReceiverFault = false;
-    bool nativeHardwareOutcomeUnknown=false;
-    QString nativeSourceState,nativeSourceError;
-    bool nativeSourceObserved=false,nativeSourceFault=false;
-    QString nativeReceiverFailurePhase,nativeReceiverFailureOperation,nativeReceiverFailureDetail;
-    bool nativeReceiverFailureObserved=false,nativeReceiverFailureHeld=false,nativeReceiverFailureAffected=false;
+
 };
 Q_DECLARE_METATYPE(NodeStatus)
 Q_DECLARE_METATYPE(QVector<NodeStatus>)

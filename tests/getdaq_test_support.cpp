@@ -1,4 +1,6 @@
 #include "getdaq_test_support_p.h"
+#include "mocknode_fixture_p.h"
+#include <QCoreApplication>
 
 #include <QtTest>
 #include <QDir>
@@ -20,7 +22,21 @@ RunConfig Config(const QString &directory)
     config.catalogTimeoutMs = 300;
     config.stepTimeoutMs = 1200;
     config.settleMs = 20;
+    AttachMockNodes(config);
+    MakeFiles(config);
     return config;
+}
+
+void AttachMockNodes(RunConfig &config)
+{
+    for(auto &node:config.nodes) {
+        auto *trace=new QStringList;
+        auto *mock=new GetDAQTestFixtures::MockNode(node.name,trace);
+        mock->setParent(QCoreApplication::instance());mock->generateData=true;
+        QObject::connect(mock,&QObject::destroyed,[trace]{delete trace;});
+        if(!mock->isListening())qFatal("Cannot start test-only loopback fixture");
+        node.host="127.0.0.1";node.eccPort=mock->serverPort();node.sentryPort=mock->serverPort();
+    }
 }
 
 bool At(const QSignalSpy &spy, int state)

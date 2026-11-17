@@ -42,14 +42,14 @@ workspace, and GetDAQ does not track a detached GetController acquisition.
 
 ## Build and dependencies
 
-Linux build:
+Linux or macOS native build:
 
 ```sh
 python3 tools/build-original-getcontroller.py \
   --build-dir /tmp/getdaq-original-controller --jobs 2
 ```
 
-The standard Linux control/full suite also includes this component. Build needs
+The standard Linux/macOS control/full suite also includes this component. Build needs
 Python 3, CMake, a C/C++ compiler and Qt 5 development modules (Widgets, Network,
 XML, PrintSupport, OpenGL, SVG). `--ice-build` can reuse the existing full native
 compatibility build; otherwise bundled Ice interfaces/runtime are built offline.
@@ -86,5 +86,5 @@ private loopback port using separate server/client communicators. That mock
 cannot execute hardware operations. No physical ECC/CoBo is contacted.
 
 These checks do not establish hardware acquisition, all test/calibration/scan
-results, or full new/old ECC protocol compatibility. Windows/macOS builds are
-not validated by this integration.
+results, or full new/old ECC protocol compatibility. macOS build adaptations and packaging are described in [MACOS_INSTALL.md](MACOS_INSTALL.md);
+Windows builds and native macOS results are not established by the Linux smoke checks.

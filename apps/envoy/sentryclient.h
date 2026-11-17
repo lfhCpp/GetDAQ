@@ -2,7 +2,6 @@
 #define SENTRYCLIENT_H
 #include "httpclient.h"
 #include "runconfig.h"
-#include <QElapsedTimer>
 class SentryClient : public QObject
 {
     Q_OBJECT
@@ -12,7 +11,6 @@ public:
     bool SendReplacementCatalog(const QString &operationId);
     bool FinalizeReplacement(const QString &operationId);
     void Cancel();
-    void SetRunning(bool running) { fRunning = running; }
     void SetRunMetadata(const RunConfig &config) {
         fConfig.experiment = config.experiment;
         fConfig.runNumber = config.runNumber;
@@ -29,10 +27,6 @@ private:
     HttpClient *fStatusHttp;
     bool fStatusBusy = false;
     bool fBusy = false;
-    bool fRunning = false;
-    int fGeneration = 0;
-    NodeStatus fSim;
-    QElapsedTimer fClock;
-    qint64 fLastTime = 0;
+
 };
 #endif

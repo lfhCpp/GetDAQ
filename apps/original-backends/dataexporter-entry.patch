@@ -1,0 +1,64 @@
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -37,6 +37,7 @@
+ #include "mdaq/utl/Server.h"
+ #include "mdaq/utl/ConsoleLoggingBackend.h"
+ #include "DataRouter.h"
++#include "Exporter.h"
+ #include "mfm/FrameDictionary.h"
+ #include "utl/Logging.h"
+ 
+@@ -46,6 +47,10 @@
+ #include <cstdlib>
+ #include <iostream>
+ #include <sstream>
++#include <csignal>
++#include <thread>
++#include <chrono>
++namespace { volatile std::sig_atomic_t stopRequested=0; void requestStop(int){stopRequested=1;} }
+ 
+ using ::get::daq::DataRouter;
+ using ::mdaq::utl::CmdLineArgs;
+@@ -62,6 +67,16 @@
+     try
+     {
+         CmdLineArgs args = CmdLineArgs::build(argc, argv);
++        uint16_t exportPort=46491;
++        // GetDAQ instance identity is orchestration metadata, never sent to Ice.
++        for (size_t i=3;i<args.size();) {
++            if (args[i]=="--export-port" || args[i]=="--instance") {
++                const bool port=args[i]=="--export-port";
++                if(i+1>=args.size()) throw std::string("Missing option value");
++                if(port){const unsigned long value=std::stoul(args[i+1]);if(value<1 || value>65535)throw std::string("Invalid export port");exportPort=static_cast<uint16_t>(value);}
++                args.erase(i);args.erase(i);
++            } else ++i;
++        }
+ 
+         if (args.size() > 1 and (args[1] == "-h" or args[1] == "--help"))
+             throw usage.str();
+@@ -90,7 +105,8 @@
+ 
+         // Setting data processor type
+         const std::string processorType = "Exporter";
+-        mfm::FrameDictionary::instance().addFormats("CoboFormats.xcfg"); // We'll also need to assemble/decode frames.
++        const char *formats=std::getenv("GETDAQ_COBO_FORMATS");
++        mfm::FrameDictionary::instance().addFormats(formats?formats:"CoboFormats.xcfg"); // We'll also need to assemble/decode frames.
+         // GWM The line below is from the NSCLDAQ code, but I have no idea where COBO_FORMAT_FILE comes from
+         // mfm::FrameDictionary::instance().addFormats(COBO_FORMAT_FILE); // We'll also need to assemble/decode frames.
+ 
+@@ -102,10 +118,13 @@
+         // Creating data router servant
+         Server &server = Server::create(ctrlEndpoint, args);
+         server.ic(); // Hack to ensure ICE communicator is initialized with desired arguments
+-        IceUtil::Handle<DataRouter> dataRouter(new DataRouter(flowEndpoint, flowType, processorType));
++        IceUtil::Handle<DataRouter> dataRouter(new DataRouter(flowEndpoint, flowType, std::auto_ptr<mdaq::daq::DataProcessorCore>(new Exporter(exportPort))));
+         server.addServant("DataExporter", dataRouter).start();
+         dataRouter->runStart();
+-        server.waitForStop();
++        std::signal(SIGINT,requestStop);std::signal(SIGTERM,requestStop);
++        while(!stopRequested && server.isStarted())std::this_thread::sleep_for(std::chrono::milliseconds(100));
++        dataRouter->runStop();
++        server.stop();
+         return EXIT_SUCCESS;
+     }
+     catch (const std::exception &e)

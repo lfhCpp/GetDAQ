@@ -53,6 +53,15 @@ MockNode::MockNode(QString r, QStringList *t) : role(r), trace(t)
                         }
                     }
                     response = R"({"disk":"test","process":"dataRouter","data_path":"/incoming","data_written_gb":0,"data_path_files":0,"disk_avail_gb":90,"disk_total_gb":100})";
+                    if(generateData) {
+                        if(header.startsWith("POST /catalog"))generatedBytes=0;
+                        else if(state==5)generatedBytes+=1000000;
+                        auto observation=QJsonDocument::fromJson(response).object();
+                        observation["data_written_bytes"]=QString::number(generatedBytes);
+                        observation["data_written_gb"]=double(generatedBytes)/1e9;
+                        observation["data_path_files"]=generatedBytes?1:0;
+                        response=QJsonDocument(observation).toJson(QJsonDocument::Compact);
+                    }
                 } else {
                     QString operation;
                     QXmlStreamReader xml(body);

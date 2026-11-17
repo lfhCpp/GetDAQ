@@ -1,5 +1,4 @@
 #include "runcontrol.h"
-#include "nativeruncontrol.h"
 #include "diagnostics.h"
 #include <QFileInfo>
 #include <QScopedValueRollback>
@@ -20,19 +19,17 @@ void RunControl::ConfigureAutoRunSlot(AutoRunSettings settings) {
         ReportLog("Automatic Run settings are locked until the Run or automatic sequence finishes. Use Run stop to cancel.",Diagnostics::Warning);return;
     }
     QString error;if(!settings.Validate(&error)){ReportLog(error,Diagnostics::Error);return;}
-    if(settings.enabled && settings.UsesSize() && fConfig.nativeEcc && !fConfig.nativeClient.receiverStatusEnabled) {
-        ReportLog("Native automatic file-size conditions require native_receiver_status observations.",Diagnostics::Error);return;
-    }
+
     fConfig.autoRun=settings;
     emit AutoRunEnabledSignal(settings.enabled);
-    if(fNative)fNative->SetAutomaticSettings(settings);
+    
     fAutoRun.Configure(settings,fAutoClock.elapsed(),AutoRunView());
     if(!fAutoTimer->isActive())fAutoTimer->start();
     ReportLog(settings.enabled ? "Automatic Run settings applied. Counters start with the next confirmed Run start; conditions stay locked until the sequence ends." : "Automatic Run disabled; pending automatic continuation canceled.",Diagnostics::Information);
     emit AutoRunStatusSignal(fAutoRun.Description(fAutoClock.elapsed()),fAutoRun.stage!=AutoRunPolicy::Idle);
 }
 AutoRunObservation RunControl::AutoRunView() const {
-    if(fNative)return fNative->AutomationObservation();
+    
     AutoRunObservation v;v.connected=fConnected;v.busy=fBusy;v.active=fActive;
     v.canControl=fConnected && !fBusy && !fShuttingDown;
     v.running=AllAt(All(),5);v.paused=AllAt(All(),6);v.ready=AllAt(All(),4);v.prepared=AllAt(All(),3);
@@ -56,7 +53,7 @@ void RunControl::AutomaticTick() {
     const auto before=fAutoRun.stage;
     const auto view=AutoRunView();
     const qint64 timeout=qint64(fConfig.stepTimeoutMs)*3+fConfig.catalogTimeoutMs+fConfig.settleMs+fConfig.timeoutMs;
-    const auto command=fAutoRun.Tick(fAutoClock.elapsed(),view,timeout,fConfig.nativeEcc ? fConfig.nativeClient.statusMaxAgeMs : fConfig.timeoutMs+2*fConfig.pollMs);
+    const auto command=fAutoRun.Tick(fAutoClock.elapsed(),view,timeout,fConfig.timeoutMs+2*fConfig.pollMs);
     if(before!=AutoRunPolicy::Idle && fAutoRun.stage==AutoRunPolicy::Idle && !fAutoRun.reason.isEmpty())
         ReportLog(fAutoRun.reason,Diagnostics::Error);
     const QScopedValueRollback<bool> dispatch(fAutomaticDispatch,true);
@@ -76,16 +73,14 @@ void RunControl::AutomaticTick() {
             if(!AutoRunView().active)CancelAutoRun("Automatic Run canceled: next Run start was rejected.");
         }
     }
-    if(fNative && fAutoRun.settings.enabled && fAutoRun.settings.UsesSize() && fAutoRun.stage!=AutoRunPolicy::Idle)
-        fNative->RequestAutomaticFileBytes();
     emit AutoRunStatusSignal(fAutoRun.Description(fAutoClock.elapsed()),fAutoRun.stage!=AutoRunPolicy::Idle);
 }
 
 void RunControl::SetAutoRunEnabledSlot(bool enabled) {
     auto settings=fAutoRun.settings;settings.enabled=enabled;
     QString error;const auto view=AutoRunView();
-    if(!settings.Validate(&error) || (enabled && settings.UsesSize() && fConfig.nativeEcc && !fConfig.nativeClient.receiverStatusEnabled)) {
-        ReportLog(error.isEmpty() ? "Native automatic file-size conditions require native_receiver_status observations." : error,Diagnostics::Error);
+    if(!settings.Validate(&error)) {
+        ReportLog(error,Diagnostics::Error);
         emit AutoRunEnabledSignal(fAutoRun.settings.enabled);return;
     }
     if(enabled && view.active && (!view.healthy || (!view.running && !view.paused))) {
@@ -94,7 +89,7 @@ void RunControl::SetAutoRunEnabledSlot(bool enabled) {
     }
     if(settings.enabled==fAutoRun.settings.enabled){emit AutoRunEnabledSignal(enabled);return;}
     fConfig.autoRun=settings;
-    if(fNative)fNative->SetAutomaticSettings(settings);
+    
     if(enabled) {
         fAutoRun.Configure(settings,fAutoClock.elapsed(),view);
         ReportLog(view.active ? "Automatic Run enabled with the saved conditions; counting window restarted. Current acquisition continues." : "Automatic Run enabled with the saved conditions; starts with the next Run start.",Diagnostics::Information);

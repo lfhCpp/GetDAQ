@@ -1,6 +1,5 @@
 #include "runcontrol.h"
 #include "runrecorder.h"
-#include "nativeruncontrol.h"
 #include "diagnostics.h"
 #include <QDir>
 #include <QFileInfo>
@@ -10,7 +9,7 @@
 void RunControl::ProgressSlot(int id)
 {
     if(!fAutomaticDispatch)CancelAutoRun("Automatic Run canceled: manual Progress");
-    if (fNative) { fNative->Progress(id); return; }
+    
     if (!Available() || fActive) return;
     QVector<Step> plan;
     if (id < 0) {
@@ -30,7 +29,7 @@ void RunControl::ProgressSlot(int id)
 void RunControl::RegressSlot(int id)
 {
     CancelAutoRun("Automatic Run canceled: manual Regress");
-    if (fNative) { fNative->Regress(id); return; }
+    
     if (!Available() || fActive) return;
     const QVector<int> ids = id < 0 ? All() : QVector<int>{id};
     if (ids.isEmpty() || !fEcc.contains(ids.first())) return;
@@ -49,11 +48,7 @@ void RunControl::StartRunSlot(bool replaceCompletedRun)
     const auto view=AutoRunView();
     if(!fAutomaticDispatch && view.connected && !view.busy && !view.active && view.ready && view.canControl)
         fAutoRun.ManualStart(fAutoClock.elapsed(),view);
-    if (fNative) {
-        fNative->StartRun(replaceCompletedRun);
-        if(!fNative->AutomationObservation().active && fAutoRun.stage==AutoRunPolicy::AwaitRunning)CancelAutoRun("Automatic Run canceled: Run start was rejected.");
-        return;
-    }
+    
     if (!Available() || fActive) return;
     if (!AllAt(All(), 4)) { emit LogSignal("Start requires every ECC in Ready with fresh status."); return; }
     QJsonArray retainedIncoming;
@@ -99,7 +94,7 @@ void RunControl::StartRunSlot(bool replaceCompletedRun)
 void RunControl::StopRunSlot()
 {
     if(!fAutomaticDispatch)CancelAutoRun("Automatic Run canceled: manual Run stop");
-    if (fNative) { fNative->StopRun(); return; }
+    
     if (!Available()) return;
     bool running = false;
     for (int id : All()) if (fStatus[id].state == 5 || fStatus[id].state == 6) running = true;
@@ -113,7 +108,7 @@ void RunControl::StopRunSlot()
 void RunControl::RecoverSlot()
 {
     CancelAutoRun("Automatic Run canceled: manual journal recovery");
-    if (fNative) { fNative->Recover(); return; }
+    
     if (!Available() || fActive) return;
     QString error;
     RunConfig saved;

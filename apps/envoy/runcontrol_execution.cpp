@@ -47,7 +47,6 @@ void RunControl::EccReplySlot(int id, QString operation, int state, int transiti
     if (operation == "GetState") {
         s.eccOnline = error.isEmpty(); s.error = error;
         if (error.isEmpty()) { s.state = state; s.transition = transition; s.eccTime = fClock.elapsed(); }
-        if (fSentry.contains(id)) fSentry[id]->SetRunning(s.eccOnline && state == 5);
         if (fBusy && fStep >= 0 && fStep < fPlan.size() && !fAwaitAck.contains(id) && fAwaitState.contains(id)
                 && error.isEmpty() && transition == 0 && state == fPlan[fStep].target) {
             fAwaitState.remove(id);

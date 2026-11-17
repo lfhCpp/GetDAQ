@@ -175,7 +175,7 @@ void RunAutomaticRunCollisionAndFinalizationFailure()
 }
 void RunAutomaticRunUiPlacementAndScreenshot()
 {
-    QTemporaryDir dir;auto config=GetDAQTestSupport::Config(dir.path());GetDAQTestSupport::MakeFiles(config);config.nodes=RunConfig::Default().nodes;MainWindow window;window.SetConfig(config);window.show();
+    QTemporaryDir dir;auto config=GetDAQTestSupport::Config(dir.path());GetDAQTestSupport::MakeFiles(config);config.nodes=RunConfig::Default().nodes;GetDAQTestSupport::AttachMockNodes(config);GetDAQTestSupport::MakeFiles(config);MainWindow window;window.SetConfig(config);window.show();
     auto *automatic=window.findChild<AutoRunWidget *>();QVERIFY(automatic);
     auto settings=config.autoRun;settings.enabled=true;settings.action=AutoRunSettings::NextRun;settings.durationMs=60000;settings.condition=AutoRunSettings::Either;settings.maximumRuns=3;automatic->SetSettings(settings);
     QVERIFY(automatic->findChild<QCheckBox *>("AutoRunTimeEnabled")->isChecked());

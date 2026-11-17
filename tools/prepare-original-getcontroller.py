@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import platform
 from pathlib import Path
 import re
 import shutil
@@ -13,7 +14,9 @@ ROOT = Path(__file__).resolve().parents[1]
 VENDOR = ROOT / 'third_party/legacy-get'
 
 
-def prepare(destination, ice_build):
+def prepare(destination, ice_build, target_system=None):
+    target_system=target_system or platform.system()
+    if target_system not in ("Linux", "Darwin"):raise ValueError("Unsupported original GetController platform")
     module = importlib.util.spec_from_file_location('original_cconfig', ROOT / 'tools/prepare-original-cconfig.py')
     cconfig = importlib.util.module_from_spec(module);module.loader.exec_module(cconfig)
     cconfig.prepare(destination)
@@ -80,6 +83,10 @@ def prepare(destination, ice_build):
     sources += [get/'get/rc/CoBoConfigParser.cpp',get/'get/rc/MutantConfigParser.cpp']
     sources += [p for p in (boost/'libs/filesystem/src').glob('*.cpp') if p.name!='windows_file_codecvt.cpp']
     sources += list((boost/'libs/system/src').glob('*.cpp'))
+    if target_system=='Darwin':
+        # Same exclusions as the original upstream Apple build, which lacks POSIX timer_create.
+        excluded={'mdaq/mt/Timer.cpp','mdaq/mt/SigAction.cpp','mdaq/daq/NetPerfProcessor.cpp','get/daq/FrameCounter.cpp'}
+        sources=[p for p in sources if not any(p.as_posix().endswith('/'+name) for name in excluded)]
     assert len(sources)==len(set(sources)) and all(p.is_file() for p in sources)
     def q(p):return '"'+str(p).replace('\\','/')+'"'
     # Unique wrappers avoid collisions between multiple Exception.cpp/SocketAddress.cpp/etc.
@@ -104,7 +111,7 @@ def prepare(destination, ice_build):
         lines += ['HEADERS += '+q(p) for p in headers]
         lines += ['FORMS += '+q(p) for p in directory.rglob('*.ui')]
     lines += ['RESOURCES += '+q(destination/'widgets/src/ConfigWidgets.qrc'), 'RESOURCES += '+q(destination/'controller/src/GetController.qrc')]
-    lines.append('LIBS += '+' '.join(q(ice_build/('libcompat-'+p+'.a')) for p in ['GET','Ice','IceUtil','bzip'])+' -ldl -lpthread -lrt')
+    lines.append('LIBS += '+' '.join(q(ice_build/('libcompat-'+p+'.a')) for p in ['GET','Ice','IceUtil','bzip'])+(' -lpthread' if target_system=='Darwin' else ' -ldl -lpthread -lrt'))
     (destination/'getcontroller.pri').write_text('\n'.join(lines)+'\n')
     (destination/'original-inputs.json').write_text(json.dumps(inputs,indent=2)+'\n')
 

@@ -39,7 +39,6 @@ void RunEachConnectionGetsAnIndependentPersistentOperationLog()
         QTemporaryDir runDirectory;
         QVERIFY(runDirectory.isValid());
         RunConfig config=GetDAQTestSupport::Config(runDirectory.path());
-        config.simulation=true;
         window.SetConfig(config);
         auto *connectButton=window.findChild<QPushButton *>("Connect");
         auto *disconnectButton=window.findChild<QPushButton *>("Disconnect");

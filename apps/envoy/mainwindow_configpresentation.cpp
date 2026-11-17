@@ -1,10 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "autorunwidget.h"
-#include "cobomaintenancewindow.h"
-#include "configurationreadbackwindow.h"
 #include "consolepresentation.h"
-#include "plantransitionwindow.h"
 #include "widgetplot2d.h"
 #include <QAction>
 #include <QComboBox>
@@ -19,53 +16,29 @@
 void MainWindow::SetConfig(const RunConfig &config)
 {
     fAutoRunWidget->SetSettings(config.autoRun);
-    fCatalogRecoveryAvailable=false;fCatalogRecoveryFailedOperationId.clear();
-    ui->ResumeCatalogReplacement->setVisible(false);ui->ResumeCatalogReplacement->setEnabled(false);
-    ui->CatalogRecoveryReason->setVisible(false);
-    ui->CatalogRecoveryReason->setText(tr("Connect to the original Native ECC session to inspect catalog recovery."));
-    fPlanCanComplete=fPlanCanObserveCompletion=false;fPlanOriginalRequest.clear();fPlanOriginalStatus.clear();fPlanCompletionRequest.clear();fPlanCompletionPhase.clear();fPlanCompletionReason.clear();
-    if(fPlanTransition)fPlanTransition->SetCompletionState(false,false,{},{},{},{},"Connect to the original native ECC");
-    fPlanCanSubmit=fPlanCanInspect=fPlanRetired=false;fPlanStatus.clear();fPlanIdentity.clear();fPlanReceipt.clear();fPlanRequest.clear();fPlanReason="Connect to the configured native ECC";
-    if(fPlanTransition)fPlanTransition->SetControlState(false,false,{},{},fPlanReason);
-    fCoBoCanSubmit=false;fCoBoStatus.clear();fCoBoIdentity.clear();fCoBoTargets.clear();fCoBoReason="Connect to the configured native ECC";
-    fSingleCoBoLifecycleTarget.clear();
-    if(fCoBoMaintenance)fCoBoMaintenance->SetControlState(false,{},{},fCoBoReason);
-    fHardwareOutcomeUnknown=false;fNativeReady=false;
-    fConfig = config;
-    statusBar()->hide();
-    ++fOwnershipGeneration;fOwnershipBody.clear();fOwnershipObservedAt=-1;fOwnershipError.clear();RenderOwnership();
+    ui->ResumeCatalogReplacement->hide();ui->CatalogRecoveryReason->hide();
+    fConfig=config;statusBar()->hide();
     fPlot->setVisible(true);
     ui->PlotPanel->setVisible(true);
     ui->BottomPanels->setSizes({1000,1000});
     ui->StatusTable->setColumnCount(13);
     ui->StatusTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     for (auto *action:{fPause,fResume}) action->setVisible(true);
-    for (auto *action:{fProductionStop,fReceiverAbort}) action->setVisible(config.nativeEcc);
-    fConfigurationInfo->setVisible(config.nativeEcc);fConfigurationSummary->setVisible(config.nativeEcc);
-    fOwnershipInfo->setVisible(config.nativeEcc);
-    if(auto *maintenance=findChild<QAction *>("NativeCoBoMaintenance")) {
-        maintenance->setVisible(config.nativeEcc);
-        maintenance->setEnabled(config.nativeEcc && fConnected && !fBusy && !fActive);
-    }
-    fOwnershipInfo->setEnabled(config.nativeEcc && fOwnershipConnected);
-    fReadbacksInfo->setVisible(config.nativeEcc);fReadbacksInfo->setEnabled(config.nativeEcc && fOwnershipConnected);
-    if(fReadbacksView)fReadbacksView->Bind(config.nativeClient.snapshotSha256,fOwnershipGeneration,config.nativeEcc && fOwnershipConnected);
-    ui->OrderNote->setText(config.nativeEcc ? tr("Native ECC lifecycle is system-wide · selected-CoBo maintenance is a separate Prepared-only action · raw data stays on receiver hosts")
-        : tr("Prepare: MuTaNT first  ·  Configure / Start: CoBos first  ·  Stop: MuTaNT first"));
+    ui->OrderNote->setText(tr("Prepare: MuTaNT first  ·  Configure / Start: CoBos first  ·  Stop: MuTaNT first"));
     ui->NodeProgress->setText(tr("Progress selected node"));
     ui->NodeRegress->setText(tr("Regress selected node"));
     ui->NodeRegress->setVisible(true);
     for(auto *button:{ui->NodeProgress,ui->NodeRegress}) {
-        button->setProperty("scope",config.nativeEcc ? "single-system" : "legacy-node");
-        button->setToolTip(config.nativeEcc ? tr("For a single-CoBo ECC, operates that system. For a multi-board ECC use Progress all / Regress all.") : QString());
+        button->setProperty("scope","legacy-node");
+        button->setToolTip(QString());
     }
     ui->StatusTable->setHorizontalHeaderLabels({"Node", "ECC", "Transition", "Sentry", "Process", "Files", "Data GB", "MB/s", "Disk %", "Free GB", "Data path", "Error", ""});
     const QList<int> widths{100,78,90,82,140,58,78,78,78,80,210,150};
     const QStringList tips={tr("Configured node."),
-        config.nativeEcc ? tr("CoBo lifecycle from the ECC journal; not a live board readback.") : tr("Node lifecycle state."),
-        config.nativeEcc ? tr("Transition of the whole ECC system.") : tr("Transition number."),
-        tr("Legacy SOAP mode: Sentry observation. Native ECC mode: managed receiver status is shown instead; legacy Sentry does not control native receivers."),tr("Receiver process observation."),
-        tr("Receiver file count."),config.nativeEcc ? tr("Received bytes in decimal gigabytes; does not establish bytes written to disk.") : tr("Written data in decimal gigabytes."),
+        tr("Node lifecycle state."),
+        tr("Transition number."),
+        tr("Sentry file and receiver process observation."),tr("Receiver process observation."),
+        tr("Receiver file count."),tr("Written data in decimal gigabytes."),
         tr("Recent write rate in megabytes per second; unavailable without a rate observation."),tr("Data-volume usage percent."),
         tr("Available disk space in gigabytes."),tr("Data directory."),tr("Latest diagnostic; hover for receiver and source details.")};
     for(int column=0;column<widths.size();++column) {
@@ -73,7 +46,7 @@ void MainWindow::SetConfig(const RunConfig &config)
         ui->StatusTable->horizontalHeaderItem(column)->setToolTip(tips[column]);
     }
     ui->Experiment->setText(config.experiment); {const QSignalBlocker blocked(ui->RunNumber);ui->RunNumber->setValue(config.runNumber);}
-    ui->Description->setText(config.description); ui->Simulation->setChecked(config.simulation);
+    ui->Description->setText(config.description);
     ui->ConfigPath->clear();
     ui->ConfigPath->hide();
     ui->Fields->setRowCount(config.fields.size());
@@ -113,7 +86,7 @@ void MainWindow::SetConfig(const RunConfig &config)
     UpdateStatusPresentation({});
     ResizeStatusTableToContents();
     fPlot->SetNodes(config.nodes);
-    fPlot->setToolTip(config.nativeEcc ? tr("The ECC connection supplies receiver metadata, not live throughput samples. Use Tools / Waveform viewer to open recorded event waveforms.") : QString());
+    fPlot->setToolTip(QString());
     ArrangeConsole();
     QTimer::singleShot(0,this,[this]{ArrangeConsole();ui->StatusTable->horizontalScrollBar()->setValue(0);});
     ShowControlSlot(ui->Phase->text(),fConnected,fBusy,fActive);

@@ -16,7 +16,5 @@ private:
     RunConfig fConfig;
     HttpClient *fHttp;
     bool fBusy = false;
-    int fSimState = 1;
-    int fGeneration = 0;
 };
 #endif

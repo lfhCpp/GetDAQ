@@ -19,20 +19,9 @@ bool SameRunIdentity(const RunConfig &saved, const RunConfig &current)
 {
     if (saved.experiment != current.experiment || saved.runNumber != current.runNumber ||
         saved.simulation != current.simulation || saved.nativeEcc != current.nativeEcc ||
-        saved.nativeCatalog != current.nativeCatalog || Absolute(saved.configDir) != Absolute(current.configDir) ||
+        Absolute(saved.configDir) != Absolute(current.configDir) ||
         Absolute(saved.outputDir) != Absolute(current.outputDir) ||
-        Absolute(saved.nativeRecordDir) != Absolute(current.nativeRecordDir) ||
         saved.nodes.size() != current.nodes.size()) return false;
-
-    const EccSystemClientOptions &a = saved.nativeClient;
-    const EccSystemClientOptions &b = current.nativeClient;
-    if (a.address != b.address || a.port != b.port || a.timeoutMs != b.timeoutMs || a.statusMaxAgeMs != b.statusMaxAgeMs ||
-        Absolute(a.credentialFile) != Absolute(b.credentialFile) ||
-        a.serviceId != b.serviceId || a.clientId != b.clientId || a.clientEpoch != b.clientEpoch ||
-        a.snapshotSha256 != b.snapshotSha256 || a.inputBindingSha256 != b.inputBindingSha256 ||
-        a.configurationStatusEnabled != b.configurationStatusEnabled || a.receiverStatusEnabled != b.receiverStatusEnabled ||
-        a.sourceStatusEnabled != b.sourceStatusEnabled || a.receiverFailureStatusEnabled != b.receiverFailureStatusEnabled ||
-        a.alarmStatusEnabled != b.alarmStatusEnabled) return false;
 
     for (int i = 0; i < saved.nodes.size(); ++i) {
         const NodeConfig &x = saved.nodes[i], &y = current.nodes[i];
@@ -40,8 +29,7 @@ bool SameRunIdentity(const RunConfig &saved, const RunConfig &current)
             x.sentryPort != y.sentryPort || x.routerPort != y.routerPort || x.exporterPort != y.exporterPort ||
             x.routerHost != y.routerHost || x.exporterHost != y.exporterHost || x.sentryHost != y.sentryHost ||
             x.describeId != y.describeId || x.prepareId != y.prepareId || x.configureId != y.configureId ||
-            x.soapInlineXml != y.soapInlineXml || x.nativeSenderId != y.nativeSenderId ||
-            x.nativeAgentId != y.nativeAgentId) return false;
+            x.soapInlineXml != y.soapInlineXml) return false;
     }
     return true;
 }

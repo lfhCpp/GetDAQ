@@ -1,5 +1,4 @@
 #include "runcontrol.h"
-#include "nativeruncontrol.h"
 #include "runrecorder.h"
 #include "sentryclient.h"
 #include "diagnostics.h"
@@ -83,7 +82,7 @@ void RunControl::FileFinishedSlot()
         fJournal["configuration_backup_warning"]=warning["message"];
         ReportLog("Run stopped; configuration backup warning: "+warning["message"].toString()+" Run will complete without a configuration backup.",Diagnostics::Warning);
     } else {
-        fJournal["configuration_backup_status"]=fConfig.simulation ? "not_required" : "complete";
+        fJournal["configuration_backup_status"]="complete";
         fJournal.remove("configuration_backup_warning");
     }
     const bool retainPrevious=fJournal.value("replacement_backup_policy").toString()=="retain";
@@ -163,7 +162,7 @@ void RunControl::CompleteRun()
 
 void RunControl::FinalizeSlot()
 {
-    if (fNative) { fNative->Finalize(); return; }
+    
     if (!Available() || !fActive) return;
     if (!AllAt(All(), 4)) { emit LogSignal("Stop every node before finalizing."); return; }
     StartCatalog();

@@ -16,24 +16,9 @@ QColor HealthColor(Health health) {
     }
 }
 namespace {
-bool HasError(const NodeStatus &s) {
-    return !s.error.isEmpty() || !s.sentryError.isEmpty() || !s.nativeReceiverError.isEmpty() ||
-        !s.nativeSourceError.isEmpty() || s.nativeHardwareOutcomeUnknown || s.nativeReceiverFault ||
-        s.nativeSourceFault || s.nativeReceiverFailureHeld || (s.eccOnline && (s.state<0 || s.state>6 || s.transition<0 || s.transition>9));
-}
-bool Observed(const NodeStatus &s,bool mutant,const RunConfig &config) {
-    if(!s.eccOnline)return false;
-    if(mutant) {
-        bool dataSource=false;
-        if(config.nativeEcc)for(const auto &node:config.nodes)
-            if(node.id==s.id && !node.nativeSenderId.isEmpty())dataSource=true;
-        if(!dataSource)return true;
-    }
-    if(!config.nativeEcc)return s.sentryOnline;
-    return (!config.nativeClient.receiverStatusEnabled || s.nativeReceiverObserved) &&
-        (!config.nativeClient.sourceStatusEnabled || s.nativeSourceObserved) &&
-        (!config.nativeClient.receiverFailureStatusEnabled || s.nativeReceiverFailureObserved);
-}
+bool HasError(const NodeStatus &s){return !s.error.isEmpty() || !s.sentryError.isEmpty() || (s.eccOnline && (s.state<0 || s.state>6 || s.transition<0 || s.transition>9));}
+bool Observed(const NodeStatus &s,bool mutant,const RunConfig &){return s.eccOnline && (mutant || s.sentryOnline);}
+
 }
 Health NodeHealth(const NodeStatus *s,bool mutant,const RunConfig &config) {
     if(!s)return Unknown;
@@ -46,7 +31,7 @@ Health NodeHealth(const NodeStatus *s,bool mutant,const RunConfig &config) {
 Overview Summarize(const RunConfig &config,const QVector<NodeStatus> &status) {
     Overview out;QMap<int,NodeStatus> byId;
     for(const auto &s:status)byId.insert(s.id,s);
-    out.errorsKnown=!config.nodes.isEmpty();out.rateKnown=out.diskKnown=!config.nativeEcc;
+    out.errorsKnown=!config.nodes.isEmpty();out.rateKnown=out.diskKnown=true;
     for(const auto &n:config.nodes) {
         const auto found=byId.constFind(n.id);const bool present=found!=byId.constEnd();
         if(present && HasError(found.value()))++out.errors;
@@ -55,7 +40,7 @@ Overview Summarize(const RunConfig &config,const QVector<NodeStatus> &status) {
         ++out.total;
         if(!present) {out.rateKnown=out.diskKnown=false;continue;}
         const auto &s=found.value();
-        if(s.eccOnline && s.state==4 && s.transition==0 && !s.nativeHardwareOutcomeUnknown)++out.ready;
+        if(s.eccOnline && s.state==4 && s.transition==0)++out.ready;
         if(!s.sentryOnline || !std::isfinite(s.rateMB) || s.rateMB<0)out.rateKnown=false;
         else out.rateMB+=s.rateMB;
         if(!s.sentryOnline || !std::isfinite(s.totalGB) || !std::isfinite(s.availableGB) ||

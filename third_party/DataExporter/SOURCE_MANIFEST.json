@@ -1,0 +1,2568 @@
+{
+  "files": {
+    ".gitmodules": {
+      "upstream_sha256": "94df1e847a291a8615a0cd743abc562ba6c047f0814893071455e2e260d25415",
+      "bundled_sha256": "94df1e847a291a8615a0cd743abc562ba6c047f0814893071455e2e260d25415"
+    },
+    "README.md": {
+      "upstream_sha256": "cb2fca2f9e9a3a6ec1c6389599a1d3e7626fa2f8313ee5d9364d21048c4826ea",
+      "bundled_sha256": "cb2fca2f9e9a3a6ec1c6389599a1d3e7626fa2f8313ee5d9364d21048c4826ea"
+    },
+    "CMakeLists.txt": {
+      "upstream_sha256": "768ec092e3f64010c4a0ca86e6636eabbb5494893f40a0814d7eb73fb42245d7",
+      "bundled_sha256": "768ec092e3f64010c4a0ca86e6636eabbb5494893f40a0814d7eb73fb42245d7"
+    },
+    ".gitignore": {
+      "upstream_sha256": "824c0361eaaaa3685ec3de653ff4b9cde68b3e0d7e47fa1dd83b9de5bfe547b2",
+      "bundled_sha256": "824c0361eaaaa3685ec3de653ff4b9cde68b3e0d7e47fa1dd83b9de5bfe547b2"
+    },
+    ".clang-format": {
+      "upstream_sha256": "be49e00d546f4758292c5c642b4734c9cf05e868fa19c8ba95dc7fcd959337ec",
+      "bundled_sha256": "be49e00d546f4758292c5c642b4734c9cf05e868fa19c8ba95dc7fcd959337ec"
+    },
+    "bin/mmStartDataExporter.sh": {
+      "upstream_sha256": "70b9ef171d325afb80a49fdfc10b53002d51caa635d451acf0b913404845dd26",
+      "bundled_sha256": "70b9ef171d325afb80a49fdfc10b53002d51caa635d451acf0b913404845dd26"
+    },
+    "bin/attpc.DataExporter.plist": {
+      "upstream_sha256": "ff1c0b6c8838b0cb9e29f38b1abeb8c4c8349ca61e1c219a934ebbe9ee75b610",
+      "bundled_sha256": "ff1c0b6c8838b0cb9e29f38b1abeb8c4c8349ca61e1c219a934ebbe9ee75b610"
+    },
+    "src/Exporter.h": {
+      "upstream_sha256": "2c1a50c272b3137d2b7e52e930888ed5457b7428073d1492a9e6ce27efd9ea07",
+      "bundled_sha256": "2c1a50c272b3137d2b7e52e930888ed5457b7428073d1492a9e6ce27efd9ea07"
+    },
+    "src/DataRouter.cpp": {
+      "upstream_sha256": "31669790f508d09bb65bdae58764edef65e9f0736a0709abb4ebebe9f184d898",
+      "bundled_sha256": "31669790f508d09bb65bdae58764edef65e9f0736a0709abb4ebebe9f184d898"
+    },
+    "src/main.cpp": {
+      "upstream_sha256": "a17184cd522f3f27a857b29acd2abaf4e18d47fb613addb5ede8f6a464fa9ea7",
+      "bundled_sha256": "a17184cd522f3f27a857b29acd2abaf4e18d47fb613addb5ede8f6a464fa9ea7"
+    },
+    "src/Exporter.cpp": {
+      "upstream_sha256": "227b5bc29ebc25901049e6e7526cc06d29725883ca35165c8754d13260a8f18c",
+      "bundled_sha256": "227b5bc29ebc25901049e6e7526cc06d29725883ca35165c8754d13260a8f18c"
+    },
+    "src/CMakeLists.txt": {
+      "upstream_sha256": "bb63f94814da1f16f3a47914b3339326317886f110777112d2097a294bd36579",
+      "bundled_sha256": "bb63f94814da1f16f3a47914b3339326317886f110777112d2097a294bd36579"
+    },
+    "src/DataRouter.h": {
+      "upstream_sha256": "77990cdf2e22e74332630ac27805e25003f4f78930eedcb08d216a22ab5ff850",
+      "bundled_sha256": "77990cdf2e22e74332630ac27805e25003f4f78930eedcb08d216a22ab5ff850"
+    },
+    "src/BadMacros.h": {
+      "upstream_sha256": "e71faee8c92a5866d8b4ce0436b74e7b67ccdec65bff9f2e9ed1db12996887e2",
+      "bundled_sha256": "e71faee8c92a5866d8b4ce0436b74e7b67ccdec65bff9f2e9ed1db12996887e2"
+    },
+    "src/server/TCPServer.h": {
+      "upstream_sha256": "ac1e6322c07fc0b4a16a6d70af0ad2e7627d03a19c676ba023b9351b217b415a",
+      "bundled_sha256": "ac1e6322c07fc0b4a16a6d70af0ad2e7627d03a19c676ba023b9351b217b415a"
+    },
+    "src/server/TCPServer.cpp": {
+      "upstream_sha256": "b64b3257bf5d68b825406b1e5002a82a48aa1b394ed1e23e4afba29419e40ab9",
+      "bundled_sha256": "b64b3257bf5d68b825406b1e5002a82a48aa1b394ed1e23e4afba29419e40ab9"
+    },
+    "src/server/ThreadSafeQueue.h": {
+      "upstream_sha256": "7f618966fb4371c413d7a2f21ac77456ade39af109387d4ec767581b39700aaa",
+      "bundled_sha256": "7f618966fb4371c413d7a2f21ac77456ade39af109387d4ec767581b39700aaa"
+    },
+    "src/server/ServerMessage.h": {
+      "upstream_sha256": "41bdd3ff8ecb5f25ed4dc0df4866ea1ae1e31954e600ea9fab16803245f8107a",
+      "bundled_sha256": "41bdd3ff8ecb5f25ed4dc0df4866ea1ae1e31954e600ea9fab16803245f8107a"
+    },
+    "src/vendor/asio/asio/include/.gitignore": {
+      "upstream_sha256": "b63b38b69fb7d4fc00a0ff359dc7f951a0e9b41d456d4f3171fa98685da2d0f2",
+      "bundled_sha256": "b63b38b69fb7d4fc00a0ff359dc7f951a0e9b41d456d4f3171fa98685da2d0f2"
+    },
+    "src/vendor/asio/asio/include/Makefile.am": {
+      "upstream_sha256": "1353af929dd55f52c6380035053381bde2cf1e72b097449eb0dabd267b0e0a00",
+      "bundled_sha256": "1353af929dd55f52c6380035053381bde2cf1e72b097449eb0dabd267b0e0a00"
+    },
+    "src/vendor/asio/asio/include/asio.hpp": {
+      "upstream_sha256": "113f2ae218f374417eb70b82a90a44961de31a20738c645006397e90246d0082",
+      "bundled_sha256": "113f2ae218f374417eb70b82a90a44961de31a20738c645006397e90246d0082"
+    },
+    "src/vendor/asio/asio/include/asio/read.hpp": {
+      "upstream_sha256": "6dfe0b03b5f1b0de1ece3d1d1dd4cc65b6386076ae2860f29f916e503250dcba",
+      "bundled_sha256": "6dfe0b03b5f1b0de1ece3d1d1dd4cc65b6386076ae2860f29f916e503250dcba"
+    },
+    "src/vendor/asio/asio/include/asio/strand.hpp": {
+      "upstream_sha256": "d80a9c347ba1b9c750904e93f6fda64b0cde77dc63c7f0a9797e77849f49ec9b",
+      "bundled_sha256": "d80a9c347ba1b9c750904e93f6fda64b0cde77dc63c7f0a9797e77849f49ec9b"
+    },
+    "src/vendor/asio/asio/include/asio/coroutine.hpp": {
+      "upstream_sha256": "77146ca0e32f827de19626e33ee0c99ba82ff307b606213515eb3f12d137c20e",
+      "bundled_sha256": "77146ca0e32f827de19626e33ee0c99ba82ff307b606213515eb3f12d137c20e"
+    },
+    "src/vendor/asio/asio/include/asio/as_tuple.hpp": {
+      "upstream_sha256": "b1e94fb2065d59115be2f7153ec54b531572003f143ee403190bb999c8d5b802",
+      "bundled_sha256": "b1e94fb2065d59115be2f7153ec54b531572003f143ee403190bb999c8d5b802"
+    },
+    "src/vendor/asio/asio/include/asio/use_future.hpp": {
+      "upstream_sha256": "164af296a6d441a188c9c1fb23d0846853e3c2908c5612c10e721fe3b748b046",
+      "bundled_sha256": "164af296a6d441a188c9c1fb23d0846853e3c2908c5612c10e721fe3b748b046"
+    },
+    "src/vendor/asio/asio/include/asio/writable_pipe.hpp": {
+      "upstream_sha256": "4189c8b01ed0a07bd70e9890ee4c47bb3fd56304a878cc432d6c6765ed3396d0",
+      "bundled_sha256": "4189c8b01ed0a07bd70e9890ee4c47bb3fd56304a878cc432d6c6765ed3396d0"
+    },
+    "src/vendor/asio/asio/include/asio/execution_context.hpp": {
+      "upstream_sha256": "ec01e2e2310174b183e95b12cb630a747b1f1466d896bb1decbb184df33c4086",
+      "bundled_sha256": "ec01e2e2310174b183e95b12cb630a747b1f1466d896bb1decbb184df33c4086"
+    },
+    "src/vendor/asio/asio/include/asio/basic_socket.hpp": {
+      "upstream_sha256": "c0fe123bf6460d53ec3f5fc9967a47c79bae03c664d58347816a1d6a39f85167",
+      "bundled_sha256": "c0fe123bf6460d53ec3f5fc9967a47c79bae03c664d58347816a1d6a39f85167"
+    },
+    "src/vendor/asio/asio/include/asio/ssl.hpp": {
+      "upstream_sha256": "662fe4697fac4fd243c4ad6b678ce3170a0b06ac6c88c3815e5e2c46e7ec8493",
+      "bundled_sha256": "662fe4697fac4fd243c4ad6b678ce3170a0b06ac6c88c3815e5e2c46e7ec8493"
+    },
+    "src/vendor/asio/asio/include/asio/any_completion_handler.hpp": {
+      "upstream_sha256": "8a4d858e5c860ec8e1dd08ad6947905a5741703c380eae9e375227673f433660",
+      "bundled_sha256": "8a4d858e5c860ec8e1dd08ad6947905a5741703c380eae9e375227673f433660"
+    },
+    "src/vendor/asio/asio/include/asio/basic_random_access_file.hpp": {
+      "upstream_sha256": "fbc6e46d7d1b9ba38e1c58f0f910a48ed0d5fda121457f640fa79c3b42835cb5",
+      "bundled_sha256": "fbc6e46d7d1b9ba38e1c58f0f910a48ed0d5fda121457f640fa79c3b42835cb5"
+    },
+    "src/vendor/asio/asio/include/asio/cancellation_state.hpp": {
+      "upstream_sha256": "ae7beaf5faac72c00dd0c9d655a6bdfea973bab328837eeaf444098f6bd18a44",
+      "bundled_sha256": "ae7beaf5faac72c00dd0c9d655a6bdfea973bab328837eeaf444098f6bd18a44"
+    },
+    "src/vendor/asio/asio/include/asio/deferred.hpp": {
+      "upstream_sha256": "ab29f99c225a7c4ef8fc1d80f3c56dd8aaba41617da0a377bc073b390b903580",
+      "bundled_sha256": "ab29f99c225a7c4ef8fc1d80f3c56dd8aaba41617da0a377bc073b390b903580"
+    },
+    "src/vendor/asio/asio/include/asio/unyield.hpp": {
+      "upstream_sha256": "c7d363874ed861eb0fd82daa710b5b1e8ac52965ffa463e4dec6a0ac113a72b1",
+      "bundled_sha256": "c7d363874ed861eb0fd82daa710b5b1e8ac52965ffa463e4dec6a0ac113a72b1"
+    },
+    "src/vendor/asio/asio/include/asio/bind_executor.hpp": {
+      "upstream_sha256": "50038251fa3ad14c66a611938f0eda3052352b7a88dbd77a219de2b3607b2194",
+      "bundled_sha256": "50038251fa3ad14c66a611938f0eda3052352b7a88dbd77a219de2b3607b2194"
+    },
+    "src/vendor/asio/asio/include/asio/completion_condition.hpp": {
+      "upstream_sha256": "b29b02545bec5f57dc1136abb313224eb9498f382f18bf8a0f7bb33fc611cb12",
+      "bundled_sha256": "b29b02545bec5f57dc1136abb313224eb9498f382f18bf8a0f7bb33fc611cb12"
+    },
+    "src/vendor/asio/asio/include/asio/post.hpp": {
+      "upstream_sha256": "cec191d7db249272df356adb4f73f4f40942384d34aaadb0d4e81363800b42b2",
+      "bundled_sha256": "cec191d7db249272df356adb4f73f4f40942384d34aaadb0d4e81363800b42b2"
+    },
+    "src/vendor/asio/asio/include/asio/streambuf.hpp": {
+      "upstream_sha256": "e8893c501bf10c46cc4278ce79896873736b7532c4898cb2ebd696079a5923a2",
+      "bundled_sha256": "e8893c501bf10c46cc4278ce79896873736b7532c4898cb2ebd696079a5923a2"
+    },
+    "src/vendor/asio/asio/include/asio/cancellation_type.hpp": {
+      "upstream_sha256": "e4fb6eb9ecc8c36fa293f126e7b6790c31c1331d1b50716733a85db878739f75",
+      "bundled_sha256": "e4fb6eb9ecc8c36fa293f126e7b6790c31c1331d1b50716733a85db878739f75"
+    },
+    "src/vendor/asio/asio/include/asio/bind_immediate_executor.hpp": {
+      "upstream_sha256": "40ee738f79de0d9d03cba3f6a66459e1577303a10222c7bf248d093a34b61293",
+      "bundled_sha256": "40ee738f79de0d9d03cba3f6a66459e1577303a10222c7bf248d093a34b61293"
+    },
+    "src/vendor/asio/asio/include/asio/basic_datagram_socket.hpp": {
+      "upstream_sha256": "d3919ee1537aee186b7904cb4ae95c0e8828f9ef95f56f47186ff764b99abae2",
+      "bundled_sha256": "d3919ee1537aee186b7904cb4ae95c0e8828f9ef95f56f47186ff764b99abae2"
+    },
+    "src/vendor/asio/asio/include/asio/is_contiguous_iterator.hpp": {
+      "upstream_sha256": "13925f671f8c89dcbe75f770e02b077e70015ddaa687ff6dff9b2ffaeb9f4912",
+      "bundled_sha256": "13925f671f8c89dcbe75f770e02b077e70015ddaa687ff6dff9b2ffaeb9f4912"
+    },
+    "src/vendor/asio/asio/include/asio/is_executor.hpp": {
+      "upstream_sha256": "e54fed98fe8182db69bcc47c0f18f33736ba7060919f42399c830d1f71d173f4",
+      "bundled_sha256": "e54fed98fe8182db69bcc47c0f18f33736ba7060919f42399c830d1f71d173f4"
+    },
+    "src/vendor/asio/asio/include/asio/recycling_allocator.hpp": {
+      "upstream_sha256": "b878fccaea537f692b86d404c93a203b4441ac899e9ee1365ea187145cd33252",
+      "bundled_sha256": "b878fccaea537f692b86d404c93a203b4441ac899e9ee1365ea187145cd33252"
+    },
+    "src/vendor/asio/asio/include/asio/error_code.hpp": {
+      "upstream_sha256": "be9883b0dc757cd4210f282d50a66b7b2e6c3ea435acaf7c05d5aadf14bc24ef",
+      "bundled_sha256": "be9883b0dc757cd4210f282d50a66b7b2e6c3ea435acaf7c05d5aadf14bc24ef"
+    },
+    "src/vendor/asio/asio/include/asio/packaged_task.hpp": {
+      "upstream_sha256": "3a8fde9cc5d4cdd38c938f8130b54f4edcae24d735665771220390cc3e985ed4",
+      "bundled_sha256": "3a8fde9cc5d4cdd38c938f8130b54f4edcae24d735665771220390cc3e985ed4"
+    },
+    "src/vendor/asio/asio/include/asio/buffered_read_stream.hpp": {
+      "upstream_sha256": "b10f8b8144b8cb5740f37f95fcafebdfbb8f10e9f5cfa8ffdea5527d3dbd5785",
+      "bundled_sha256": "b10f8b8144b8cb5740f37f95fcafebdfbb8f10e9f5cfa8ffdea5527d3dbd5785"
+    },
+    "src/vendor/asio/asio/include/asio/basic_stream_file.hpp": {
+      "upstream_sha256": "e9deb93bd681a25e3be17e07f0fa07437ceab95da75d679052c2492269a87089",
+      "bundled_sha256": "e9deb93bd681a25e3be17e07f0fa07437ceab95da75d679052c2492269a87089"
+    },
+    "src/vendor/asio/asio/include/asio/buffered_write_stream.hpp": {
+      "upstream_sha256": "40812e2f374127355b2cf4855f20760f8b3b9da1a0db485ab4797a57c0a5ed8c",
+      "bundled_sha256": "40812e2f374127355b2cf4855f20760f8b3b9da1a0db485ab4797a57c0a5ed8c"
+    },
+    "src/vendor/asio/asio/include/asio/wait_traits.hpp": {
+      "upstream_sha256": "66e374ee8900c8eb216b61e2c6b0bdc438ac124a960ea5e3eee230a61aa86471",
+      "bundled_sha256": "66e374ee8900c8eb216b61e2c6b0bdc438ac124a960ea5e3eee230a61aa86471"
+    },
+    "src/vendor/asio/asio/include/asio/associated_cancellation_slot.hpp": {
+      "upstream_sha256": "9446d3cdbb67f8d9d952d5ec99c725e4a7a331592f96d67ed72c590512556c33",
+      "bundled_sha256": "9446d3cdbb67f8d9d952d5ec99c725e4a7a331592f96d67ed72c590512556c33"
+    },
+    "src/vendor/asio/asio/include/asio/basic_streambuf_fwd.hpp": {
+      "upstream_sha256": "d59cd334b26e5b1d5c360ef21de5f91e1cd41738a6b20d66f151bc2ec2df753f",
+      "bundled_sha256": "d59cd334b26e5b1d5c360ef21de5f91e1cd41738a6b20d66f151bc2ec2df753f"
+    },
+    "src/vendor/asio/asio/include/asio/random_access_file.hpp": {
+      "upstream_sha256": "e42d66da25569fec2a41f137bf16e6f954834967f98cbbea77ec96be4cf7993d",
+      "bundled_sha256": "e42d66da25569fec2a41f137bf16e6f954834967f98cbbea77ec96be4cf7993d"
+    },
+    "src/vendor/asio/asio/include/asio/basic_serial_port.hpp": {
+      "upstream_sha256": "c96a382a3b5dd92886e623a7526f402b16eb95f0a0d489a32169ac9a1e4b55a6",
+      "bundled_sha256": "c96a382a3b5dd92886e623a7526f402b16eb95f0a0d489a32169ac9a1e4b55a6"
+    },
+    "src/vendor/asio/asio/include/asio/signal_set_base.hpp": {
+      "upstream_sha256": "cd35c0b4b7d26af81cfa3b48548b8ae78abe3750be4c0deabd6d87c378bb0504",
+      "bundled_sha256": "cd35c0b4b7d26af81cfa3b48548b8ae78abe3750be4c0deabd6d87c378bb0504"
+    },
+    "src/vendor/asio/asio/include/asio/co_spawn.hpp": {
+      "upstream_sha256": "350be1e8e4e14a57fe3c2ef4e7e2d07154d9edaec3dbbaa6aa2ec3bff239ec87",
+      "bundled_sha256": "350be1e8e4e14a57fe3c2ef4e7e2d07154d9edaec3dbbaa6aa2ec3bff239ec87"
+    },
+    "src/vendor/asio/asio/include/asio/executor_work_guard.hpp": {
+      "upstream_sha256": "6d988a8f9503aecba664c55ab772096e968effc4915622fc9a6b3bd167ca6f35",
+      "bundled_sha256": "6d988a8f9503aecba664c55ab772096e968effc4915622fc9a6b3bd167ca6f35"
+    },
+    "src/vendor/asio/asio/include/asio/execution.hpp": {
+      "upstream_sha256": "3f814ed21992d42ef68b7ee43f847a71059f05b1bcd489a3dcd5699ceaea2575",
+      "bundled_sha256": "3f814ed21992d42ef68b7ee43f847a71059f05b1bcd489a3dcd5699ceaea2575"
+    },
+    "src/vendor/asio/asio/include/asio/buffered_stream_fwd.hpp": {
+      "upstream_sha256": "d4b5cce8fa3d8de353070ad86c5240a706236accdcd7ee48673fda8d6c87d9e6",
+      "bundled_sha256": "d4b5cce8fa3d8de353070ad86c5240a706236accdcd7ee48673fda8d6c87d9e6"
+    },
+    "src/vendor/asio/asio/include/asio/basic_signal_set.hpp": {
+      "upstream_sha256": "2013a97cb645f3a49f1491e86b5e37e8b88d1f1dfeaa6250120487cc585a745b",
+      "bundled_sha256": "2013a97cb645f3a49f1491e86b5e37e8b88d1f1dfeaa6250120487cc585a745b"
+    },
+    "src/vendor/asio/asio/include/asio/append.hpp": {
+      "upstream_sha256": "b855aa9c260a1b8084b61ab9da6c1255fc531d28f171c5ef01b7e14565cbba36",
+      "bundled_sha256": "b855aa9c260a1b8084b61ab9da6c1255fc531d28f171c5ef01b7e14565cbba36"
+    },
+    "src/vendor/asio/asio/include/asio/yield.hpp": {
+      "upstream_sha256": "501b82d007133d18b9b597b9205fa57f3df241e747247ded269617e2b831cfff",
+      "bundled_sha256": "501b82d007133d18b9b597b9205fa57f3df241e747247ded269617e2b831cfff"
+    },
+    "src/vendor/asio/asio/include/asio/steady_timer.hpp": {
+      "upstream_sha256": "7c9300d4c28977689457078f33b458365d13f3b5381d0eefa8650e78ca518a0b",
+      "bundled_sha256": "7c9300d4c28977689457078f33b458365d13f3b5381d0eefa8650e78ca518a0b"
+    },
+    "src/vendor/asio/asio/include/asio/io_context.hpp": {
+      "upstream_sha256": "9eec46e5b9d1184f675c0e3b586879aa63554e8fb30cc13a40d4c34b29b87a72",
+      "bundled_sha256": "9eec46e5b9d1184f675c0e3b586879aa63554e8fb30cc13a40d4c34b29b87a72"
+    },
+    "src/vendor/asio/asio/include/asio/is_write_buffered.hpp": {
+      "upstream_sha256": "5ff4367bd25a05e2169c8954155cbeca59206fdc628b711994ea11a8735f2e28",
+      "bundled_sha256": "5ff4367bd25a05e2169c8954155cbeca59206fdc628b711994ea11a8735f2e28"
+    },
+    "src/vendor/asio/asio/include/asio/basic_seq_packet_socket.hpp": {
+      "upstream_sha256": "adcf0b34aa7f573eec9acd82cf9fd8afec6875110445d5116fce4756c8b8654d",
+      "bundled_sha256": "adcf0b34aa7f573eec9acd82cf9fd8afec6875110445d5116fce4756c8b8654d"
+    },
+    "src/vendor/asio/asio/include/asio/basic_waitable_timer.hpp": {
+      "upstream_sha256": "689ab244ee40cf8891bb980b97d3e5e4bdb8c424d3a933f5111c515022be44af",
+      "bundled_sha256": "689ab244ee40cf8891bb980b97d3e5e4bdb8c424d3a933f5111c515022be44af"
+    },
+    "src/vendor/asio/asio/include/asio/high_resolution_timer.hpp": {
+      "upstream_sha256": "1d3102d620f810178e0a43a03690f99892902831306aa8a46545d43ed456d206",
+      "bundled_sha256": "1d3102d620f810178e0a43a03690f99892902831306aa8a46545d43ed456d206"
+    },
+    "src/vendor/asio/asio/include/asio/detached.hpp": {
+      "upstream_sha256": "0bebf03a8e037e6a4ed437c63aa922433aa394757f77101b3256d61006dc559d",
+      "bundled_sha256": "0bebf03a8e037e6a4ed437c63aa922433aa394757f77101b3256d61006dc559d"
+    },
+    "src/vendor/asio/asio/include/asio/redirect_error.hpp": {
+      "upstream_sha256": "c216c35f9545cfaafcd18eebd7b5d8543703869e2e83bf1b762a5323b9575be5",
+      "bundled_sha256": "c216c35f9545cfaafcd18eebd7b5d8543703869e2e83bf1b762a5323b9575be5"
+    },
+    "src/vendor/asio/asio/include/asio/dispatch.hpp": {
+      "upstream_sha256": "a4c8bacb24dc6792d6e1f3208ce41a6265ba4cfa23378667ba82f868ddd3e7ca",
+      "bundled_sha256": "a4c8bacb24dc6792d6e1f3208ce41a6265ba4cfa23378667ba82f868ddd3e7ca"
+    },
+    "src/vendor/asio/asio/include/asio/handler_continuation_hook.hpp": {
+      "upstream_sha256": "99748ce896bb9376fbed44ab41a278d4e616aa5d0a083be809d9a696d746e06a",
+      "bundled_sha256": "99748ce896bb9376fbed44ab41a278d4e616aa5d0a083be809d9a696d746e06a"
+    },
+    "src/vendor/asio/asio/include/asio/write.hpp": {
+      "upstream_sha256": "27318d97cf998527cf940442ee94ff4b82bd9279d9a2e2a5513620a61b2184bf",
+      "bundled_sha256": "27318d97cf998527cf940442ee94ff4b82bd9279d9a2e2a5513620a61b2184bf"
+    },
+    "src/vendor/asio/asio/include/asio/system_executor.hpp": {
+      "upstream_sha256": "14174ffca02366640717b1e0dd7a8a04193c998521facba83f1bc43c7ab140bf",
+      "bundled_sha256": "14174ffca02366640717b1e0dd7a8a04193c998521facba83f1bc43c7ab140bf"
+    },
+    "src/vendor/asio/asio/include/asio/error.hpp": {
+      "upstream_sha256": "c4419e4f58ef2b773410b43397b623754b46d66d26aebbdf5f63c8e595c9c967",
+      "bundled_sha256": "c4419e4f58ef2b773410b43397b623754b46d66d26aebbdf5f63c8e595c9c967"
+    },
+    "src/vendor/asio/asio/include/asio/system_error.hpp": {
+      "upstream_sha256": "0de4a8a072acf459629f299728a6d6969e3b535caebbaffad05eb1b2db4e2c5c",
+      "bundled_sha256": "0de4a8a072acf459629f299728a6d6969e3b535caebbaffad05eb1b2db4e2c5c"
+    },
+    "src/vendor/asio/asio/include/asio/thread_pool.hpp": {
+      "upstream_sha256": "e825fad03caa80d2d571615cd016ad67e7c36a750ad35d08d1fa83617b50028c",
+      "bundled_sha256": "e825fad03caa80d2d571615cd016ad67e7c36a750ad35d08d1fa83617b50028c"
+    },
+    "src/vendor/asio/asio/include/asio/buffered_read_stream_fwd.hpp": {
+      "upstream_sha256": "9dbf866a7c52d8dce2566f85f0985b0754417d404d98abcdc2559843e3fe31f7",
+      "bundled_sha256": "9dbf866a7c52d8dce2566f85f0985b0754417d404d98abcdc2559843e3fe31f7"
+    },
+    "src/vendor/asio/asio/include/asio/serial_port.hpp": {
+      "upstream_sha256": "37d46b9ad778044bbc02994d43d3fdb8c7a9de6e555207144a806712df563462",
+      "bundled_sha256": "37d46b9ad778044bbc02994d43d3fdb8c7a9de6e555207144a806712df563462"
+    },
+    "src/vendor/asio/asio/include/asio/this_coro.hpp": {
+      "upstream_sha256": "33ed9ce53e260b34dabc45d647de88f78d352a1019c9b50d22cd18a0bc67658c",
+      "bundled_sha256": "33ed9ce53e260b34dabc45d647de88f78d352a1019c9b50d22cd18a0bc67658c"
+    },
+    "src/vendor/asio/asio/include/asio/readable_pipe.hpp": {
+      "upstream_sha256": "a811559176bfeda569ea2a360c3e6672a182cb4dd1e3daa54931c2c206a1d04c",
+      "bundled_sha256": "a811559176bfeda569ea2a360c3e6672a182cb4dd1e3daa54931c2c206a1d04c"
+    },
+    "src/vendor/asio/asio/include/asio/placeholders.hpp": {
+      "upstream_sha256": "ebc3bfc4ad27861879d226cb5f021416de00e725608410da7ef8b12547bf27e5",
+      "bundled_sha256": "ebc3bfc4ad27861879d226cb5f021416de00e725608410da7ef8b12547bf27e5"
+    },
+    "src/vendor/asio/asio/include/asio/read_until.hpp": {
+      "upstream_sha256": "36d48113b0ed4271eb95f22eeac65e35be18a6a5f9ac796e087c8f1220136398",
+      "bundled_sha256": "36d48113b0ed4271eb95f22eeac65e35be18a6a5f9ac796e087c8f1220136398"
+    },
+    "src/vendor/asio/asio/include/asio/thread.hpp": {
+      "upstream_sha256": "8b793f5603f61c2aad389f77a8077e667905784454e767524208b053cf5a5d46",
+      "bundled_sha256": "8b793f5603f61c2aad389f77a8077e667905784454e767524208b053cf5a5d46"
+    },
+    "src/vendor/asio/asio/include/asio/signal_set.hpp": {
+      "upstream_sha256": "6780dd1172841a2b2051a5f8881da98a0242485ce04d971e5ded7fc737c76007",
+      "bundled_sha256": "6780dd1172841a2b2051a5f8881da98a0242485ce04d971e5ded7fc737c76007"
+    },
+    "src/vendor/asio/asio/include/asio/registered_buffer.hpp": {
+      "upstream_sha256": "a2c8b94c97c6ea99a35bca2106fe04e6480068f68d30cf266eaa4a93bec4fb74",
+      "bundled_sha256": "a2c8b94c97c6ea99a35bca2106fe04e6480068f68d30cf266eaa4a93bec4fb74"
+    },
+    "src/vendor/asio/asio/include/asio/require.hpp": {
+      "upstream_sha256": "5911e5fc6b6ee93659c8c2ec4def3f176935b8c968c66864101fc514dbbdbeba",
+      "bundled_sha256": "5911e5fc6b6ee93659c8c2ec4def3f176935b8c968c66864101fc514dbbdbeba"
+    },
+    "src/vendor/asio/asio/include/asio/connect_pipe.hpp": {
+      "upstream_sha256": "32779e86d4f94bd7449ac655b21e2c4f41df861d2ce5e97790a867ad4357483a",
+      "bundled_sha256": "32779e86d4f94bd7449ac655b21e2c4f41df861d2ce5e97790a867ad4357483a"
+    },
+    "src/vendor/asio/asio/include/asio/uses_executor.hpp": {
+      "upstream_sha256": "5fc01575798dc7555ad4bc759ae784bf92ead7bd5e6d4e86a452d52ee947456f",
+      "bundled_sha256": "5fc01575798dc7555ad4bc759ae784bf92ead7bd5e6d4e86a452d52ee947456f"
+    },
+    "src/vendor/asio/asio/include/asio/deadline_timer.hpp": {
+      "upstream_sha256": "e49dbe1d2f983edf9ccd1d57c2bd1b93c1d5253ebb40a9258eeee4bcb0818ea4",
+      "bundled_sha256": "e49dbe1d2f983edf9ccd1d57c2bd1b93c1d5253ebb40a9258eeee4bcb0818ea4"
+    },
+    "src/vendor/asio/asio/include/asio/compose.hpp": {
+      "upstream_sha256": "91877e744c88b1dc06857785263cb2e19ce03f05c7bda3c88a92cc9ce27648f6",
+      "bundled_sha256": "91877e744c88b1dc06857785263cb2e19ce03f05c7bda3c88a92cc9ce27648f6"
+    },
+    "src/vendor/asio/asio/include/asio/io_service_strand.hpp": {
+      "upstream_sha256": "e5c5f8566559033deaa6d526b4ecd5bfb3aeda7ed5944a6d155c60536be8e1b6",
+      "bundled_sha256": "e5c5f8566559033deaa6d526b4ecd5bfb3aeda7ed5944a6d155c60536be8e1b6"
+    },
+    "src/vendor/asio/asio/include/asio/basic_stream_socket.hpp": {
+      "upstream_sha256": "4672594ab511e15e3f3db66cced9a73b84d058ec4500e0883dc1a7e2be40df4f",
+      "bundled_sha256": "4672594ab511e15e3f3db66cced9a73b84d058ec4500e0883dc1a7e2be40df4f"
+    },
+    "src/vendor/asio/asio/include/asio/any_completion_executor.hpp": {
+      "upstream_sha256": "8e308605d4b54ffd06eda18ebc359021e95cc6ca245d1e3011d49a7dafbbf93e",
+      "bundled_sha256": "8e308605d4b54ffd06eda18ebc359021e95cc6ca245d1e3011d49a7dafbbf93e"
+    },
+    "src/vendor/asio/asio/include/asio/associator.hpp": {
+      "upstream_sha256": "ac191907dd4e62c453614051923b6512f944a22eaded5398955aa92357e11a95",
+      "bundled_sha256": "ac191907dd4e62c453614051923b6512f944a22eaded5398955aa92357e11a95"
+    },
+    "src/vendor/asio/asio/include/asio/associated_executor.hpp": {
+      "upstream_sha256": "51a385a1ef634172b4f6662a5f5a220b781e435f77721df48f4f1c41053f94c2",
+      "bundled_sha256": "51a385a1ef634172b4f6662a5f5a220b781e435f77721df48f4f1c41053f94c2"
+    },
+    "src/vendor/asio/asio/include/asio/prepend.hpp": {
+      "upstream_sha256": "713240b218b62bb5ffb8c6fd34dfee38cd139868ccbc456d61dbce231eb2744a",
+      "bundled_sha256": "713240b218b62bb5ffb8c6fd34dfee38cd139868ccbc456d61dbce231eb2744a"
+    },
+    "src/vendor/asio/asio/include/asio/static_thread_pool.hpp": {
+      "upstream_sha256": "cb00be497d4273fdfeb6bc68eb86f865df55257ab59484a72ab4cfffb0b0b1e1",
+      "bundled_sha256": "cb00be497d4273fdfeb6bc68eb86f865df55257ab59484a72ab4cfffb0b0b1e1"
+    },
+    "src/vendor/asio/asio/include/asio/defer.hpp": {
+      "upstream_sha256": "727a4649d899835f5138b2dac3956486ab52e24dad2b8f418ff6af14549381a3",
+      "bundled_sha256": "727a4649d899835f5138b2dac3956486ab52e24dad2b8f418ff6af14549381a3"
+    },
+    "src/vendor/asio/asio/include/asio/basic_streambuf.hpp": {
+      "upstream_sha256": "02327bdf043eb6f54ee08fff5c4520845cd6ba4514125e3b48b7bedd54c1a081",
+      "bundled_sha256": "02327bdf043eb6f54ee08fff5c4520845cd6ba4514125e3b48b7bedd54c1a081"
+    },
+    "src/vendor/asio/asio/include/asio/multiple_exceptions.hpp": {
+      "upstream_sha256": "249fa5bd3e887a708d535381693715f3cb243ed07c390c69010ab6043a2acaf4",
+      "bundled_sha256": "249fa5bd3e887a708d535381693715f3cb243ed07c390c69010ab6043a2acaf4"
+    },
+    "src/vendor/asio/asio/include/asio/use_awaitable.hpp": {
+      "upstream_sha256": "28511689e5b12b85cab780863f45e07b77357734b22c466d1b9a1a2945849fc7",
+      "bundled_sha256": "28511689e5b12b85cab780863f45e07b77357734b22c466d1b9a1a2945849fc7"
+    },
+    "src/vendor/asio/asio/include/asio/buffered_write_stream_fwd.hpp": {
+      "upstream_sha256": "4931cbec28c4691df84823d8ecab55a1fab18beba79980e57b3a3e3572649c3f",
+      "bundled_sha256": "4931cbec28c4691df84823d8ecab55a1fab18beba79980e57b3a3e3572649c3f"
+    },
+    "src/vendor/asio/asio/include/asio/associated_allocator.hpp": {
+      "upstream_sha256": "f7e41f7e2b5161392c8d804af4263ff1d33a01603511962c89e20e40b1280a42",
+      "bundled_sha256": "f7e41f7e2b5161392c8d804af4263ff1d33a01603511962c89e20e40b1280a42"
+    },
+    "src/vendor/asio/asio/include/asio/stream_file.hpp": {
+      "upstream_sha256": "0f93d7bc42c846054503114bd1d2417ea64844852b38fc1343d514413e621c4e",
+      "bundled_sha256": "0f93d7bc42c846054503114bd1d2417ea64844852b38fc1343d514413e621c4e"
+    },
+    "src/vendor/asio/asio/include/asio/system_context.hpp": {
+      "upstream_sha256": "5d6c0707f212730f8fa8f3d4af703c550357677746c4c184f067c67c28dff334",
+      "bundled_sha256": "5d6c0707f212730f8fa8f3d4af703c550357677746c4c184f067c67c28dff334"
+    },
+    "src/vendor/asio/asio/include/asio/consign.hpp": {
+      "upstream_sha256": "7ae9638e5e714aefb05dfba43d1cb9e5923f3a5cdef93008d7ba9b612d79b03b",
+      "bundled_sha256": "7ae9638e5e714aefb05dfba43d1cb9e5923f3a5cdef93008d7ba9b612d79b03b"
+    },
+    "src/vendor/asio/asio/include/asio/basic_readable_pipe.hpp": {
+      "upstream_sha256": "001d128cd639e636899ab56892710ddef7fdb2d0c85e841b699fdff71eeff2ce",
+      "bundled_sha256": "001d128cd639e636899ab56892710ddef7fdb2d0c85e841b699fdff71eeff2ce"
+    },
+    "src/vendor/asio/asio/include/asio/prefer.hpp": {
+      "upstream_sha256": "306e3a7806978e72492f5d8186401bd26495d0c34bf2b37e497c98ddc1590a4f",
+      "bundled_sha256": "306e3a7806978e72492f5d8186401bd26495d0c34bf2b37e497c98ddc1590a4f"
+    },
+    "src/vendor/asio/asio/include/asio/io_context_strand.hpp": {
+      "upstream_sha256": "15449c1379cde00292a0e4cdbc05d44157917738a03781b3bc119f33b662cef8",
+      "bundled_sha256": "15449c1379cde00292a0e4cdbc05d44157917738a03781b3bc119f33b662cef8"
+    },
+    "src/vendor/asio/asio/include/asio/time_traits.hpp": {
+      "upstream_sha256": "44529149b42e161021f24676355958e38e4dd04e3b6b72cfb5f80dad4d763aeb",
+      "bundled_sha256": "44529149b42e161021f24676355958e38e4dd04e3b6b72cfb5f80dad4d763aeb"
+    },
+    "src/vendor/asio/asio/include/asio/buffer.hpp": {
+      "upstream_sha256": "8994c53e347391312fd2260aa5761258beae55984722b80dbdb187b1153aaeda",
+      "bundled_sha256": "8994c53e347391312fd2260aa5761258beae55984722b80dbdb187b1153aaeda"
+    },
+    "src/vendor/asio/asio/include/asio/executor.hpp": {
+      "upstream_sha256": "f044768d60960b69283d90006748954098d6db5db23a774ba8bcac947ca89aba",
+      "bundled_sha256": "f044768d60960b69283d90006748954098d6db5db23a774ba8bcac947ca89aba"
+    },
+    "src/vendor/asio/asio/include/asio/basic_raw_socket.hpp": {
+      "upstream_sha256": "01e00530c5636fd7f651d94e8e928189122d2fba824b777aaed17734c6fc7d5d",
+      "bundled_sha256": "01e00530c5636fd7f651d94e8e928189122d2fba824b777aaed17734c6fc7d5d"
+    },
+    "src/vendor/asio/asio/include/asio/basic_io_object.hpp": {
+      "upstream_sha256": "4418c9bb88370490fc643b26b483261f5675c7811d2e721d43f8d0ca83d570d0",
+      "bundled_sha256": "4418c9bb88370490fc643b26b483261f5675c7811d2e721d43f8d0ca83d570d0"
+    },
+    "src/vendor/asio/asio/include/asio/basic_socket_iostream.hpp": {
+      "upstream_sha256": "ce145b2f40e84fde57fd22caf6c9f478e9e95680b0605abf28b69889b63668c7",
+      "bundled_sha256": "ce145b2f40e84fde57fd22caf6c9f478e9e95680b0605abf28b69889b63668c7"
+    },
+    "src/vendor/asio/asio/include/asio/associated_immediate_executor.hpp": {
+      "upstream_sha256": "3fc552ae238f49586bfa206214f35c0063da72110d4e73cd0b9fcefa1cda4c9e",
+      "bundled_sha256": "3fc552ae238f49586bfa206214f35c0063da72110d4e73cd0b9fcefa1cda4c9e"
+    },
+    "src/vendor/asio/asio/include/asio/read_at.hpp": {
+      "upstream_sha256": "ec4f21458cc82ba134fc084e29b3bc7ff12e1ef66dd43e3b7059f68e7fb20a28",
+      "bundled_sha256": "ec4f21458cc82ba134fc084e29b3bc7ff12e1ef66dd43e3b7059f68e7fb20a28"
+    },
+    "src/vendor/asio/asio/include/asio/bind_cancellation_slot.hpp": {
+      "upstream_sha256": "2989861ea0ee118578c23318c98f145c0ae53fb38589519d2af1a8705054845e",
+      "bundled_sha256": "2989861ea0ee118578c23318c98f145c0ae53fb38589519d2af1a8705054845e"
+    },
+    "src/vendor/asio/asio/include/asio/any_io_executor.hpp": {
+      "upstream_sha256": "d537c6b16f08eb99a154eb7c5105b897caaaed34d12f6b1e203f16c96585ff8d",
+      "bundled_sha256": "d537c6b16f08eb99a154eb7c5105b897caaaed34d12f6b1e203f16c96585ff8d"
+    },
+    "src/vendor/asio/asio/include/asio/buffers_iterator.hpp": {
+      "upstream_sha256": "ef6b2e5318b4902466fefeb625b9bedd97e4635603bcc7e8f1d1252be82f3e5c",
+      "bundled_sha256": "ef6b2e5318b4902466fefeb625b9bedd97e4635603bcc7e8f1d1252be82f3e5c"
+    },
+    "src/vendor/asio/asio/include/asio/spawn.hpp": {
+      "upstream_sha256": "b779b6d3423ae7e3123fdb021c13e0fb9c8207e45655a74af178f95c4479dcfe",
+      "bundled_sha256": "b779b6d3423ae7e3123fdb021c13e0fb9c8207e45655a74af178f95c4479dcfe"
+    },
+    "src/vendor/asio/asio/include/asio/is_read_buffered.hpp": {
+      "upstream_sha256": "6574e313bdd8ea4921986a7a760756e4eed3bb1e96ee5dfc9c3dcfeff79119ad",
+      "bundled_sha256": "6574e313bdd8ea4921986a7a760756e4eed3bb1e96ee5dfc9c3dcfeff79119ad"
+    },
+    "src/vendor/asio/asio/include/asio/bind_allocator.hpp": {
+      "upstream_sha256": "a51ae3d9d21ba9fdf1bfe2cc498a84192746961c43a9dfb0adb38c86fe7b7c61",
+      "bundled_sha256": "a51ae3d9d21ba9fdf1bfe2cc498a84192746961c43a9dfb0adb38c86fe7b7c61"
+    },
+    "src/vendor/asio/asio/include/asio/version.hpp": {
+      "upstream_sha256": "61e7748275f42eac44017c8679e2eda7da4542ae05247ac8429e5894e3772ff0",
+      "bundled_sha256": "61e7748275f42eac44017c8679e2eda7da4542ae05247ac8429e5894e3772ff0"
+    },
+    "src/vendor/asio/asio/include/asio/buffer_registration.hpp": {
+      "upstream_sha256": "260bcf6184a86c105564e11a5eaf7ab73f73f2b1b6e2e615d4f108456bc0adc0",
+      "bundled_sha256": "260bcf6184a86c105564e11a5eaf7ab73f73f2b1b6e2e615d4f108456bc0adc0"
+    },
+    "src/vendor/asio/asio/include/asio/is_applicable_property.hpp": {
+      "upstream_sha256": "9050939999a7157378e8d5be5b6b65b677b37bcb673f52249199bc780c4ac0b9",
+      "bundled_sha256": "9050939999a7157378e8d5be5b6b65b677b37bcb673f52249199bc780c4ac0b9"
+    },
+    "src/vendor/asio/asio/include/asio/basic_socket_streambuf.hpp": {
+      "upstream_sha256": "562c2fec16934385114120fba3df16add7831ce7a651c4796e3ebac7eab9abe9",
+      "bundled_sha256": "562c2fec16934385114120fba3df16add7831ce7a651c4796e3ebac7eab9abe9"
+    },
+    "src/vendor/asio/asio/include/asio/basic_writable_pipe.hpp": {
+      "upstream_sha256": "22e60087e433a77d5991eff7d1cee0fb16841d48faaee04ed7cea8ac96c97bab",
+      "bundled_sha256": "22e60087e433a77d5991eff7d1cee0fb16841d48faaee04ed7cea8ac96c97bab"
+    },
+    "src/vendor/asio/asio/include/asio/buffered_stream.hpp": {
+      "upstream_sha256": "17986e1d93b8d1905cea4d51501fbb8fa78b92b49b0f8342eef72cc92a82bce2",
+      "bundled_sha256": "17986e1d93b8d1905cea4d51501fbb8fa78b92b49b0f8342eef72cc92a82bce2"
+    },
+    "src/vendor/asio/asio/include/asio/cancellation_signal.hpp": {
+      "upstream_sha256": "2fba9326e8399735c4f7255404b9d0616b1db0544dcce11a249f0898ca608602",
+      "bundled_sha256": "2fba9326e8399735c4f7255404b9d0616b1db0544dcce11a249f0898ca608602"
+    },
+    "src/vendor/asio/asio/include/asio/write_at.hpp": {
+      "upstream_sha256": "63edb10f8009e1e5779f09275f8ad85436d981afa73175bd94d9bbb080988fba",
+      "bundled_sha256": "63edb10f8009e1e5779f09275f8ad85436d981afa73175bd94d9bbb080988fba"
+    },
+    "src/vendor/asio/asio/include/asio/async_result.hpp": {
+      "upstream_sha256": "3db5d276fdedc5107863830065f70940c60abcbd20b0b79764f76e36944463ba",
+      "bundled_sha256": "3db5d276fdedc5107863830065f70940c60abcbd20b0b79764f76e36944463ba"
+    },
+    "src/vendor/asio/asio/include/asio/serial_port_base.hpp": {
+      "upstream_sha256": "6fe09d717af79851f9c5de5f057b33919051fea5d2ac971bbba85b42d6e14b86",
+      "bundled_sha256": "6fe09d717af79851f9c5de5f057b33919051fea5d2ac971bbba85b42d6e14b86"
+    },
+    "src/vendor/asio/asio/include/asio/awaitable.hpp": {
+      "upstream_sha256": "4dce0a40c2fb0e42b72c29beb4bcfb624f6e58af3d39a943c85721801b9f5c97",
+      "bundled_sha256": "4dce0a40c2fb0e42b72c29beb4bcfb624f6e58af3d39a943c85721801b9f5c97"
+    },
+    "src/vendor/asio/asio/include/asio/io_service.hpp": {
+      "upstream_sha256": "dee5605037409780d68680363c56fa978060dc4ff5846183431aca6c00dadcdb",
+      "bundled_sha256": "dee5605037409780d68680363c56fa978060dc4ff5846183431aca6c00dadcdb"
+    },
+    "src/vendor/asio/asio/include/asio/basic_file.hpp": {
+      "upstream_sha256": "bdfe706bb97fd9f12a211dd78d55b64cd316649256ac800afb18217121138eb5",
+      "bundled_sha256": "bdfe706bb97fd9f12a211dd78d55b64cd316649256ac800afb18217121138eb5"
+    },
+    "src/vendor/asio/asio/include/asio/file_base.hpp": {
+      "upstream_sha256": "bc8041d485ddfa58e61860a08be88b867503dce2881c0350985ae1ed435b4979",
+      "bundled_sha256": "bc8041d485ddfa58e61860a08be88b867503dce2881c0350985ae1ed435b4979"
+    },
+    "src/vendor/asio/asio/include/asio/system_timer.hpp": {
+      "upstream_sha256": "3f4bedd7c70832b4226d24e62b2ee62e67c1154618f39f383216b5d4cb6fc85f",
+      "bundled_sha256": "3f4bedd7c70832b4226d24e62b2ee62e67c1154618f39f383216b5d4cb6fc85f"
+    },
+    "src/vendor/asio/asio/include/asio/query.hpp": {
+      "upstream_sha256": "b2903142f827aa2c94e593715329446aabac5010e500bdc0d5b9d00a31f525db",
+      "bundled_sha256": "b2903142f827aa2c94e593715329446aabac5010e500bdc0d5b9d00a31f525db"
+    },
+    "src/vendor/asio/asio/include/asio/socket_base.hpp": {
+      "upstream_sha256": "659e861b2d0fab853878ef794fc32846e7f63296ce19c161d5bb4fb2ea53bf8a",
+      "bundled_sha256": "659e861b2d0fab853878ef794fc32846e7f63296ce19c161d5bb4fb2ea53bf8a"
+    },
+    "src/vendor/asio/asio/include/asio/connect.hpp": {
+      "upstream_sha256": "cd9800a884a5004ab87a127cce03d64119844320fc303a4fc53c7f198ee9ee9b",
+      "bundled_sha256": "cd9800a884a5004ab87a127cce03d64119844320fc303a4fc53c7f198ee9ee9b"
+    },
+    "src/vendor/asio/asio/include/asio/basic_socket_acceptor.hpp": {
+      "upstream_sha256": "2aea9eb74780f063de6f5b8962938ba0efdfac8b683a50c2dcd6058729cbcaaf",
+      "bundled_sha256": "2aea9eb74780f063de6f5b8962938ba0efdfac8b683a50c2dcd6058729cbcaaf"
+    },
+    "src/vendor/asio/asio/include/asio/basic_deadline_timer.hpp": {
+      "upstream_sha256": "1453d97a82aa25e708492ce89341c911a9734832f765aba4cc3bcf0636dbc222",
+      "bundled_sha256": "1453d97a82aa25e708492ce89341c911a9734832f765aba4cc3bcf0636dbc222"
+    },
+    "src/vendor/asio/asio/include/asio/require_concept.hpp": {
+      "upstream_sha256": "2f33564ab056344e0c006f3a58a3e4ae501ae6526a5528f9ca37e8dba47fc32c",
+      "bundled_sha256": "2f33564ab056344e0c006f3a58a3e4ae501ae6526a5528f9ca37e8dba47fc32c"
+    },
+    "src/vendor/asio/asio/include/asio/impl/read.hpp": {
+      "upstream_sha256": "079ae7200e5b4b33aa9bd95f8646a59979219a96a4043d8a6dc6f4d886ef153b",
+      "bundled_sha256": "079ae7200e5b4b33aa9bd95f8646a59979219a96a4043d8a6dc6f4d886ef153b"
+    },
+    "src/vendor/asio/asio/include/asio/impl/as_tuple.hpp": {
+      "upstream_sha256": "51ad4d18f8552f05bf73b90ba5c6b13b1fe83261cfe1351238bae4ce0030bbb6",
+      "bundled_sha256": "51ad4d18f8552f05bf73b90ba5c6b13b1fe83261cfe1351238bae4ce0030bbb6"
+    },
+    "src/vendor/asio/asio/include/asio/impl/use_future.hpp": {
+      "upstream_sha256": "90905b50f32904e122eb108931acdc34cbcfb0cb64268f9e4982fa2e4d08e8a2",
+      "bundled_sha256": "90905b50f32904e122eb108931acdc34cbcfb0cb64268f9e4982fa2e4d08e8a2"
+    },
+    "src/vendor/asio/asio/include/asio/impl/execution_context.hpp": {
+      "upstream_sha256": "b391e1e622dddc77bb6c8ce42ead18cab8e210344b8065ae2be0ecbb011af3b5",
+      "bundled_sha256": "b391e1e622dddc77bb6c8ce42ead18cab8e210344b8065ae2be0ecbb011af3b5"
+    },
+    "src/vendor/asio/asio/include/asio/impl/deferred.hpp": {
+      "upstream_sha256": "7490c711cb296553b1f1da242697e85262007c0574c09696372690bee9c0f2b4",
+      "bundled_sha256": "7490c711cb296553b1f1da242697e85262007c0574c09696372690bee9c0f2b4"
+    },
+    "src/vendor/asio/asio/include/asio/impl/cancellation_signal.ipp": {
+      "upstream_sha256": "aa4303991bb809e65cd5b71bad66bf2cfb11df6faa6625340ad6aee2bd001a84",
+      "bundled_sha256": "aa4303991bb809e65cd5b71bad66bf2cfb11df6faa6625340ad6aee2bd001a84"
+    },
+    "src/vendor/asio/asio/include/asio/impl/buffered_read_stream.hpp": {
+      "upstream_sha256": "81c25f23bf392ab49dc62704b2493ce858666b43716aebdbb8459af98f6f0685",
+      "bundled_sha256": "81c25f23bf392ab49dc62704b2493ce858666b43716aebdbb8459af98f6f0685"
+    },
+    "src/vendor/asio/asio/include/asio/impl/buffered_write_stream.hpp": {
+      "upstream_sha256": "e81dc4ca54df2153fbb67b630244887b588df685d90cae6ebd179a7ad71fda8a",
+      "bundled_sha256": "e81dc4ca54df2153fbb67b630244887b588df685d90cae6ebd179a7ad71fda8a"
+    },
+    "src/vendor/asio/asio/include/asio/impl/any_completion_executor.ipp": {
+      "upstream_sha256": "94e16863466fd8990e622350b4d625d278f1ab55614a29f36ab74e2ed3af3072",
+      "bundled_sha256": "94e16863466fd8990e622350b4d625d278f1ab55614a29f36ab74e2ed3af3072"
+    },
+    "src/vendor/asio/asio/include/asio/impl/co_spawn.hpp": {
+      "upstream_sha256": "4641789681171f47877aa9b4239fdeada8cef16425ce7af3ec9447c9481dfee9",
+      "bundled_sha256": "4641789681171f47877aa9b4239fdeada8cef16425ce7af3ec9447c9481dfee9"
+    },
+    "src/vendor/asio/asio/include/asio/impl/multiple_exceptions.ipp": {
+      "upstream_sha256": "ebd3a0042abdca25838611a2f0e4f1de6550cff4349dba1b1f162323c6363ca1",
+      "bundled_sha256": "ebd3a0042abdca25838611a2f0e4f1de6550cff4349dba1b1f162323c6363ca1"
+    },
+    "src/vendor/asio/asio/include/asio/impl/append.hpp": {
+      "upstream_sha256": "572a3207bcf8a89bd86ae45fec39a3ec0221e94ecda41bdfc701fd2cc2218d1e",
+      "bundled_sha256": "572a3207bcf8a89bd86ae45fec39a3ec0221e94ecda41bdfc701fd2cc2218d1e"
+    },
+    "src/vendor/asio/asio/include/asio/impl/io_context.hpp": {
+      "upstream_sha256": "a58758b84abbc7a43bab7051798e967b46164d8e0565e52f091ecde532aea84e",
+      "bundled_sha256": "a58758b84abbc7a43bab7051798e967b46164d8e0565e52f091ecde532aea84e"
+    },
+    "src/vendor/asio/asio/include/asio/impl/detached.hpp": {
+      "upstream_sha256": "9981a207feb969835a606a6193235d2b4b0a287444473d69484993bab7643b0f",
+      "bundled_sha256": "9981a207feb969835a606a6193235d2b4b0a287444473d69484993bab7643b0f"
+    },
+    "src/vendor/asio/asio/include/asio/impl/error.ipp": {
+      "upstream_sha256": "451c208f09648352d55075c5f67848cf0cb7dbbe840e968ffcac0ab249e1a0d9",
+      "bundled_sha256": "451c208f09648352d55075c5f67848cf0cb7dbbe840e968ffcac0ab249e1a0d9"
+    },
+    "src/vendor/asio/asio/include/asio/impl/redirect_error.hpp": {
+      "upstream_sha256": "41b5259bea763b651097df0f8014ba604455fd8436f334e0bca1993649350037",
+      "bundled_sha256": "41b5259bea763b651097df0f8014ba604455fd8436f334e0bca1993649350037"
+    },
+    "src/vendor/asio/asio/include/asio/impl/executor.ipp": {
+      "upstream_sha256": "f3ff4bc679f3769915599789a10308d7b2ab89fe51cebe28ccc67dc27b78366b",
+      "bundled_sha256": "f3ff4bc679f3769915599789a10308d7b2ab89fe51cebe28ccc67dc27b78366b"
+    },
+    "src/vendor/asio/asio/include/asio/impl/write.hpp": {
+      "upstream_sha256": "8107f53bd87a5c1cee253e7fc6912ef4a08ba0df3da016ea5641ec76d0e0d672",
+      "bundled_sha256": "8107f53bd87a5c1cee253e7fc6912ef4a08ba0df3da016ea5641ec76d0e0d672"
+    },
+    "src/vendor/asio/asio/include/asio/impl/system_executor.hpp": {
+      "upstream_sha256": "d88dea744f26e2f0895245a0a69ccd92561e5e5e55b4f6d94e5180264ad978b6",
+      "bundled_sha256": "d88dea744f26e2f0895245a0a69ccd92561e5e5e55b4f6d94e5180264ad978b6"
+    },
+    "src/vendor/asio/asio/include/asio/impl/execution_context.ipp": {
+      "upstream_sha256": "ff743bfd240c928a341155c9489f9029a9306c38cbc5681d9a5dc0d49959850c",
+      "bundled_sha256": "ff743bfd240c928a341155c9489f9029a9306c38cbc5681d9a5dc0d49959850c"
+    },
+    "src/vendor/asio/asio/include/asio/impl/thread_pool.hpp": {
+      "upstream_sha256": "e2085ec793e67116b801ddae5aa7c763bd87ddeb8de5af15dd7af47d441e271c",
+      "bundled_sha256": "e2085ec793e67116b801ddae5aa7c763bd87ddeb8de5af15dd7af47d441e271c"
+    },
+    "src/vendor/asio/asio/include/asio/impl/read_until.hpp": {
+      "upstream_sha256": "48ce5cddc03d2175682a72b2f5fe3c5e9d486f060025ce9eb5bcb956a2b04ab1",
+      "bundled_sha256": "48ce5cddc03d2175682a72b2f5fe3c5e9d486f060025ce9eb5bcb956a2b04ab1"
+    },
+    "src/vendor/asio/asio/include/asio/impl/connect_pipe.hpp": {
+      "upstream_sha256": "3d5d4b36b91cb93c34757c8139dd3a028c5b59aa350c06c8d8b453e59c7b6c38",
+      "bundled_sha256": "3d5d4b36b91cb93c34757c8139dd3a028c5b59aa350c06c8d8b453e59c7b6c38"
+    },
+    "src/vendor/asio/asio/include/asio/impl/connect_pipe.ipp": {
+      "upstream_sha256": "ccfc68b7b25223e6e77c95faf27252f1fe7314a1a185852f92e77318a5392ff1",
+      "bundled_sha256": "ccfc68b7b25223e6e77c95faf27252f1fe7314a1a185852f92e77318a5392ff1"
+    },
+    "src/vendor/asio/asio/include/asio/impl/prepend.hpp": {
+      "upstream_sha256": "1a81ced0f386f0f50d8a974832088d744d09b2927c88350389a09da512ca570d",
+      "bundled_sha256": "1a81ced0f386f0f50d8a974832088d744d09b2927c88350389a09da512ca570d"
+    },
+    "src/vendor/asio/asio/include/asio/impl/use_awaitable.hpp": {
+      "upstream_sha256": "9786e994cac579799a6f56e44e09d13d728871c74e95c3be522cdd5b9097f454",
+      "bundled_sha256": "9786e994cac579799a6f56e44e09d13d728871c74e95c3be522cdd5b9097f454"
+    },
+    "src/vendor/asio/asio/include/asio/impl/system_context.ipp": {
+      "upstream_sha256": "4c3583a7eb5daa5a2a1a14d35f458bf9184b726b013fe7d27c005a60eba16f58",
+      "bundled_sha256": "4c3583a7eb5daa5a2a1a14d35f458bf9184b726b013fe7d27c005a60eba16f58"
+    },
+    "src/vendor/asio/asio/include/asio/impl/system_context.hpp": {
+      "upstream_sha256": "fa903a43dcdc9828fd86fe9e20e4d3c91882b050576368212230fdd3b0fe7fc7",
+      "bundled_sha256": "fa903a43dcdc9828fd86fe9e20e4d3c91882b050576368212230fdd3b0fe7fc7"
+    },
+    "src/vendor/asio/asio/include/asio/impl/consign.hpp": {
+      "upstream_sha256": "a69843f33deeaed54bc1dbb214da71a808bb32588a279fd620b0d615374669dc",
+      "bundled_sha256": "a69843f33deeaed54bc1dbb214da71a808bb32588a279fd620b0d615374669dc"
+    },
+    "src/vendor/asio/asio/include/asio/impl/any_io_executor.ipp": {
+      "upstream_sha256": "04347e074725424516adb3abea103cccc4ca9fe1e1f53c98fe12c39917759c5e",
+      "bundled_sha256": "04347e074725424516adb3abea103cccc4ca9fe1e1f53c98fe12c39917759c5e"
+    },
+    "src/vendor/asio/asio/include/asio/impl/serial_port_base.ipp": {
+      "upstream_sha256": "9758571404b3471344148c3727386567a82579bb270d785cdf952fab445a51c8",
+      "bundled_sha256": "9758571404b3471344148c3727386567a82579bb270d785cdf952fab445a51c8"
+    },
+    "src/vendor/asio/asio/include/asio/impl/error_code.ipp": {
+      "upstream_sha256": "c7a03e7a8b1b9441b2718821b764c4b2846571bb52247f480b609860a5d706de",
+      "bundled_sha256": "c7a03e7a8b1b9441b2718821b764c4b2846571bb52247f480b609860a5d706de"
+    },
+    "src/vendor/asio/asio/include/asio/impl/executor.hpp": {
+      "upstream_sha256": "88ff95209c419761314c4b88a929d75c3d5261c5546fbb1bde7317261b69d69a",
+      "bundled_sha256": "88ff95209c419761314c4b88a929d75c3d5261c5546fbb1bde7317261b69d69a"
+    },
+    "src/vendor/asio/asio/include/asio/impl/read_at.hpp": {
+      "upstream_sha256": "294554cdb4327515ce8ced10ddb819f6751a303e795060f05c6866c9ca9f9b7c",
+      "bundled_sha256": "294554cdb4327515ce8ced10ddb819f6751a303e795060f05c6866c9ca9f9b7c"
+    },
+    "src/vendor/asio/asio/include/asio/impl/thread_pool.ipp": {
+      "upstream_sha256": "30996a832178c13948038e5b6e2a5095654242390b1bad4b3bc5a0fd9619a0fe",
+      "bundled_sha256": "30996a832178c13948038e5b6e2a5095654242390b1bad4b3bc5a0fd9619a0fe"
+    },
+    "src/vendor/asio/asio/include/asio/impl/spawn.hpp": {
+      "upstream_sha256": "680749869d8eb7cad62c9b89a1d872e2619874e0e5acfc2b9060071e48c0a1d9",
+      "bundled_sha256": "680749869d8eb7cad62c9b89a1d872e2619874e0e5acfc2b9060071e48c0a1d9"
+    },
+    "src/vendor/asio/asio/include/asio/impl/io_context.ipp": {
+      "upstream_sha256": "0a65bebd0c8ec2ca8d7dad285730d00237c60758727333f56a8c3554b22649a7",
+      "bundled_sha256": "0a65bebd0c8ec2ca8d7dad285730d00237c60758727333f56a8c3554b22649a7"
+    },
+    "src/vendor/asio/asio/include/asio/impl/src.hpp": {
+      "upstream_sha256": "01ec6c299c5ae9b0133a94899303e42ffd87eb3e6e9be16dec08f5efe76dccba",
+      "bundled_sha256": "01ec6c299c5ae9b0133a94899303e42ffd87eb3e6e9be16dec08f5efe76dccba"
+    },
+    "src/vendor/asio/asio/include/asio/impl/write_at.hpp": {
+      "upstream_sha256": "bea72dd9d41b590338a46d415e93b9df5ca733ee4aea93611310058273f2ee61",
+      "bundled_sha256": "bea72dd9d41b590338a46d415e93b9df5ca733ee4aea93611310058273f2ee61"
+    },
+    "src/vendor/asio/asio/include/asio/impl/serial_port_base.hpp": {
+      "upstream_sha256": "86998ebf074448bf84f32cce747b549f65a67309a130b54907a3da666548df5e",
+      "bundled_sha256": "86998ebf074448bf84f32cce747b549f65a67309a130b54907a3da666548df5e"
+    },
+    "src/vendor/asio/asio/include/asio/impl/awaitable.hpp": {
+      "upstream_sha256": "b9c8923b70850dbd346e006f30f16df4991d81ee8fbb3d37d4634507559d6cff",
+      "bundled_sha256": "b9c8923b70850dbd346e006f30f16df4991d81ee8fbb3d37d4634507559d6cff"
+    },
+    "src/vendor/asio/asio/include/asio/impl/connect.hpp": {
+      "upstream_sha256": "f3d0ddd8a6c2636ddf651e7bf55785196e1d8817d90bfbebce0732008937788a",
+      "bundled_sha256": "f3d0ddd8a6c2636ddf651e7bf55785196e1d8817d90bfbebce0732008937788a"
+    },
+    "src/vendor/asio/asio/include/asio/windows/basic_random_access_handle.hpp": {
+      "upstream_sha256": "963c7848443d70fe146ea491029b18b610e4b8624ddb9bc55812eb3750c54e7e",
+      "bundled_sha256": "963c7848443d70fe146ea491029b18b610e4b8624ddb9bc55812eb3750c54e7e"
+    },
+    "src/vendor/asio/asio/include/asio/windows/overlapped_handle.hpp": {
+      "upstream_sha256": "256bc2562cb39bf3c48963a34f5256459c253ca0612351d552c36ef0c840c752",
+      "bundled_sha256": "256bc2562cb39bf3c48963a34f5256459c253ca0612351d552c36ef0c840c752"
+    },
+    "src/vendor/asio/asio/include/asio/windows/stream_handle.hpp": {
+      "upstream_sha256": "416bb40031f4bfa0d727b9ce5bb08cb64a2f77276b630ea1c297463aa0ef826b",
+      "bundled_sha256": "416bb40031f4bfa0d727b9ce5bb08cb64a2f77276b630ea1c297463aa0ef826b"
+    },
+    "src/vendor/asio/asio/include/asio/windows/basic_overlapped_handle.hpp": {
+      "upstream_sha256": "e81b057d8d5c2d6892f2924fee6d1612020c5f802c09694d806f6f8b798366e1",
+      "bundled_sha256": "e81b057d8d5c2d6892f2924fee6d1612020c5f802c09694d806f6f8b798366e1"
+    },
+    "src/vendor/asio/asio/include/asio/windows/object_handle.hpp": {
+      "upstream_sha256": "bf98a29ec569daf015fa31eeb56f2720b7ecb0f94abd6ea3090331544ef3ad0a",
+      "bundled_sha256": "bf98a29ec569daf015fa31eeb56f2720b7ecb0f94abd6ea3090331544ef3ad0a"
+    },
+    "src/vendor/asio/asio/include/asio/windows/random_access_handle.hpp": {
+      "upstream_sha256": "6228a63ad3a8cdbfc294838ca49f176685f339d4cbaa313c3efc52dc5f607ef6",
+      "bundled_sha256": "6228a63ad3a8cdbfc294838ca49f176685f339d4cbaa313c3efc52dc5f607ef6"
+    },
+    "src/vendor/asio/asio/include/asio/windows/basic_object_handle.hpp": {
+      "upstream_sha256": "aa12519e417346a3dd135c6bc815776a029915f5d39bd09c8fdd30e0913858f7",
+      "bundled_sha256": "aa12519e417346a3dd135c6bc815776a029915f5d39bd09c8fdd30e0913858f7"
+    },
+    "src/vendor/asio/asio/include/asio/windows/basic_stream_handle.hpp": {
+      "upstream_sha256": "8d4474b81956a10bf7ead144f45d9e1ff418e0719c846755f31bd18333c60577",
+      "bundled_sha256": "8d4474b81956a10bf7ead144f45d9e1ff418e0719c846755f31bd18333c60577"
+    },
+    "src/vendor/asio/asio/include/asio/windows/overlapped_ptr.hpp": {
+      "upstream_sha256": "56a6f5ddfcc61122ec91bbaa70c08f569302b384678302572983fd31ed11c758",
+      "bundled_sha256": "56a6f5ddfcc61122ec91bbaa70c08f569302b384678302572983fd31ed11c758"
+    },
+    "src/vendor/asio/asio/include/asio/generic/seq_packet_protocol.hpp": {
+      "upstream_sha256": "cfcfb9d4e42f753b66a4456238595c215e0bc45268b693eaa4418b1b43b0881d",
+      "bundled_sha256": "cfcfb9d4e42f753b66a4456238595c215e0bc45268b693eaa4418b1b43b0881d"
+    },
+    "src/vendor/asio/asio/include/asio/generic/raw_protocol.hpp": {
+      "upstream_sha256": "2d58d4eb18c3b373da74282c0a951f3d2ca77109ee04c20f42c50832b4449753",
+      "bundled_sha256": "2d58d4eb18c3b373da74282c0a951f3d2ca77109ee04c20f42c50832b4449753"
+    },
+    "src/vendor/asio/asio/include/asio/generic/basic_endpoint.hpp": {
+      "upstream_sha256": "09c3b756ffc1ab61af35a0acb54058e4e7a6ec12230b3dd6577aef20633dbd7c",
+      "bundled_sha256": "09c3b756ffc1ab61af35a0acb54058e4e7a6ec12230b3dd6577aef20633dbd7c"
+    },
+    "src/vendor/asio/asio/include/asio/generic/stream_protocol.hpp": {
+      "upstream_sha256": "c50de5fe15fb84cac4d9b9e9c97a8ba28f70798308510c650cd2a2f9c79acaee",
+      "bundled_sha256": "c50de5fe15fb84cac4d9b9e9c97a8ba28f70798308510c650cd2a2f9c79acaee"
+    },
+    "src/vendor/asio/asio/include/asio/generic/datagram_protocol.hpp": {
+      "upstream_sha256": "2e536a6436204911729b48993333199bbc7c2324f06605b875d841fb03eb05b5",
+      "bundled_sha256": "2e536a6436204911729b48993333199bbc7c2324f06605b875d841fb03eb05b5"
+    },
+    "src/vendor/asio/asio/include/asio/traits/static_require_concept.hpp": {
+      "upstream_sha256": "ba930f82660d8c75c15400055972faa6f8430125e5165bb566556ac89f35c251",
+      "bundled_sha256": "ba930f82660d8c75c15400055972faa6f8430125e5165bb566556ac89f35c251"
+    },
+    "src/vendor/asio/asio/include/asio/traits/require_free.hpp": {
+      "upstream_sha256": "ede0170fb242d7a804eb17e338e65f8988a13431fa190ad4a54baf7baf46f538",
+      "bundled_sha256": "ede0170fb242d7a804eb17e338e65f8988a13431fa190ad4a54baf7baf46f538"
+    },
+    "src/vendor/asio/asio/include/asio/traits/query_member.hpp": {
+      "upstream_sha256": "0cbc5bd15747bf5e31dade1b9ac2cb09edd0d4e3533fcd7bffc12168be0d2437",
+      "bundled_sha256": "0cbc5bd15747bf5e31dade1b9ac2cb09edd0d4e3533fcd7bffc12168be0d2437"
+    },
+    "src/vendor/asio/asio/include/asio/traits/require_concept_free.hpp": {
+      "upstream_sha256": "13a17e0681869386df28ac16d83a1ab1ba25f7f754ac0fb0e558dc218a330549",
+      "bundled_sha256": "13a17e0681869386df28ac16d83a1ab1ba25f7f754ac0fb0e558dc218a330549"
+    },
+    "src/vendor/asio/asio/include/asio/traits/static_query.hpp": {
+      "upstream_sha256": "9c7a79f17426f29936f59496c42b21b50340d8a5a9c4fafe65c681e45f347711",
+      "bundled_sha256": "9c7a79f17426f29936f59496c42b21b50340d8a5a9c4fafe65c681e45f347711"
+    },
+    "src/vendor/asio/asio/include/asio/traits/static_require.hpp": {
+      "upstream_sha256": "eb6dbd580c91ac3c292064673ed2454a932eb89202d22e00810a3b3551c2e03e",
+      "bundled_sha256": "eb6dbd580c91ac3c292064673ed2454a932eb89202d22e00810a3b3551c2e03e"
+    },
+    "src/vendor/asio/asio/include/asio/traits/require_concept_member.hpp": {
+      "upstream_sha256": "a7d24cf85afd61926af0ee641f2d2596893327b6d9d26c9f1ee7ac08d25e8564",
+      "bundled_sha256": "a7d24cf85afd61926af0ee641f2d2596893327b6d9d26c9f1ee7ac08d25e8564"
+    },
+    "src/vendor/asio/asio/include/asio/traits/require_member.hpp": {
+      "upstream_sha256": "78cc5dfa7ce28b78304a7d51e35797f1164fc171cfedc7740c616ffba1f944d9",
+      "bundled_sha256": "78cc5dfa7ce28b78304a7d51e35797f1164fc171cfedc7740c616ffba1f944d9"
+    },
+    "src/vendor/asio/asio/include/asio/traits/equality_comparable.hpp": {
+      "upstream_sha256": "804c34303555012031ce797c51076fbdba74ee4915d125e3b381db8c5e0e7980",
+      "bundled_sha256": "804c34303555012031ce797c51076fbdba74ee4915d125e3b381db8c5e0e7980"
+    },
+    "src/vendor/asio/asio/include/asio/traits/prefer_member.hpp": {
+      "upstream_sha256": "9c51f6c4262e8d602eadda5dc312feb6eaa1a6ac42b5ea547298ea257d5713cf",
+      "bundled_sha256": "9c51f6c4262e8d602eadda5dc312feb6eaa1a6ac42b5ea547298ea257d5713cf"
+    },
+    "src/vendor/asio/asio/include/asio/traits/query_free.hpp": {
+      "upstream_sha256": "0a5c06ca6d66a3768a3c96eaa9b90e2fcae8668c7836b6ff7f9311727c00432c",
+      "bundled_sha256": "0a5c06ca6d66a3768a3c96eaa9b90e2fcae8668c7836b6ff7f9311727c00432c"
+    },
+    "src/vendor/asio/asio/include/asio/traits/query_static_constexpr_member.hpp": {
+      "upstream_sha256": "4d2ce799852865b27eb3d64402c1a2a8e2cb28a5a9588396d4b354cc2ec32b19",
+      "bundled_sha256": "4d2ce799852865b27eb3d64402c1a2a8e2cb28a5a9588396d4b354cc2ec32b19"
+    },
+    "src/vendor/asio/asio/include/asio/traits/execute_member.hpp": {
+      "upstream_sha256": "d0361ec6d47bf948918febdb55cf48ab70f3ac5da3713151e6ada2250576eff2",
+      "bundled_sha256": "d0361ec6d47bf948918febdb55cf48ab70f3ac5da3713151e6ada2250576eff2"
+    },
+    "src/vendor/asio/asio/include/asio/traits/prefer_free.hpp": {
+      "upstream_sha256": "4c396f62d6c87ff1a3e640229d2e497ffe9ab481092568274ee58192909d5075",
+      "bundled_sha256": "4c396f62d6c87ff1a3e640229d2e497ffe9ab481092568274ee58192909d5075"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/context_base.hpp": {
+      "upstream_sha256": "f78c77a9059146beb76a8baf70679f350f8babb7e8e8b91471db1fb326448dcd",
+      "bundled_sha256": "f78c77a9059146beb76a8baf70679f350f8babb7e8e8b91471db1fb326448dcd"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/rfc2818_verification.hpp": {
+      "upstream_sha256": "4bf36b999181f311a59c8eace5f5bc7fd1d6dbcd445403a7df8d974ad7f597af",
+      "bundled_sha256": "4bf36b999181f311a59c8eace5f5bc7fd1d6dbcd445403a7df8d974ad7f597af"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/host_name_verification.hpp": {
+      "upstream_sha256": "ce39cdf2396f64f6bef75d1526c6bcd18c275e91787f56f7c5b4d67f450eef8f",
+      "bundled_sha256": "ce39cdf2396f64f6bef75d1526c6bcd18c275e91787f56f7c5b4d67f450eef8f"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/error.hpp": {
+      "upstream_sha256": "a1e625a3b6000323328bfd4384e96254cf43a95a6c6b31a28559d7d4b6b24676",
+      "bundled_sha256": "a1e625a3b6000323328bfd4384e96254cf43a95a6c6b31a28559d7d4b6b24676"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/context.hpp": {
+      "upstream_sha256": "e01094870cdb572fa096e1d966052e892c73f517448f3893ec1f7c7b16372519",
+      "bundled_sha256": "e01094870cdb572fa096e1d966052e892c73f517448f3893ec1f7c7b16372519"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/stream_base.hpp": {
+      "upstream_sha256": "913345b66d14d56c8b9b6671aae83c9d3a638ea11d8a2fbfb57253722252dd35",
+      "bundled_sha256": "913345b66d14d56c8b9b6671aae83c9d3a638ea11d8a2fbfb57253722252dd35"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/verify_mode.hpp": {
+      "upstream_sha256": "a4f6575aa35d0ff92bb7aabd08918fc6149d27e19d9402bc600560519da2eaf9",
+      "bundled_sha256": "a4f6575aa35d0ff92bb7aabd08918fc6149d27e19d9402bc600560519da2eaf9"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/verify_context.hpp": {
+      "upstream_sha256": "22dd4982c1534953525fedb9b3bf17eff582ce043baeec020343a1f577a2bb01",
+      "bundled_sha256": "22dd4982c1534953525fedb9b3bf17eff582ce043baeec020343a1f577a2bb01"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/stream.hpp": {
+      "upstream_sha256": "2d566bb079685decffbf4aa343636cb096b6df2b5428df80560cb693176066e8",
+      "bundled_sha256": "2d566bb079685decffbf4aa343636cb096b6df2b5428df80560cb693176066e8"
+    },
+    "src/vendor/asio/asio/include/asio/ip/basic_resolver_results.hpp": {
+      "upstream_sha256": "0d856b8c1748640fed8c8fd4ac1ffdddfec98cf9f9ebbc16e39251670548e05f",
+      "bundled_sha256": "0d856b8c1748640fed8c8fd4ac1ffdddfec98cf9f9ebbc16e39251670548e05f"
+    },
+    "src/vendor/asio/asio/include/asio/ip/basic_resolver_entry.hpp": {
+      "upstream_sha256": "6643c44537e9f5d82fe7261c27b10e16c2267522d3a0526c2ced13dd278fa783",
+      "bundled_sha256": "6643c44537e9f5d82fe7261c27b10e16c2267522d3a0526c2ced13dd278fa783"
+    },
+    "src/vendor/asio/asio/include/asio/ip/address_v4.hpp": {
+      "upstream_sha256": "d9401a54ebd242da058016e2dab3544fa8c468b90de8b5b3b00ec90da3c52cce",
+      "bundled_sha256": "d9401a54ebd242da058016e2dab3544fa8c468b90de8b5b3b00ec90da3c52cce"
+    },
+    "src/vendor/asio/asio/include/asio/ip/icmp.hpp": {
+      "upstream_sha256": "46fcd01cd71a7029d48939ab74fd62d284aa28e7a9d7dcaf0082d27a3d860d41",
+      "bundled_sha256": "46fcd01cd71a7029d48939ab74fd62d284aa28e7a9d7dcaf0082d27a3d860d41"
+    },
+    "src/vendor/asio/asio/include/asio/ip/tcp.hpp": {
+      "upstream_sha256": "749286771db251b1e2384820963d79299a9ee4f51c6a32627a1434b20599b998",
+      "bundled_sha256": "749286771db251b1e2384820963d79299a9ee4f51c6a32627a1434b20599b998"
+    },
+    "src/vendor/asio/asio/include/asio/ip/host_name.hpp": {
+      "upstream_sha256": "1932e18cd57f9a7817fda87b20af7b753b0c1907f451450eb81a7ff189a7a87f",
+      "bundled_sha256": "1932e18cd57f9a7817fda87b20af7b753b0c1907f451450eb81a7ff189a7a87f"
+    },
+    "src/vendor/asio/asio/include/asio/ip/udp.hpp": {
+      "upstream_sha256": "016bf24601a00aa9b1ad7b2a682debd12f6a13cde6ac6f059f2b29d2d7cc51a4",
+      "bundled_sha256": "016bf24601a00aa9b1ad7b2a682debd12f6a13cde6ac6f059f2b29d2d7cc51a4"
+    },
+    "src/vendor/asio/asio/include/asio/ip/network_v4.hpp": {
+      "upstream_sha256": "0239830b96b42c69b419aac1888204db594489f1b2de4e9f0195b5f8dfef9cb1",
+      "bundled_sha256": "0239830b96b42c69b419aac1888204db594489f1b2de4e9f0195b5f8dfef9cb1"
+    },
+    "src/vendor/asio/asio/include/asio/ip/resolver_base.hpp": {
+      "upstream_sha256": "2ed488ec1250ad3d236adf62bfc4797cadcbe14f957cfc624b2a256ef6edffb6",
+      "bundled_sha256": "2ed488ec1250ad3d236adf62bfc4797cadcbe14f957cfc624b2a256ef6edffb6"
+    },
+    "src/vendor/asio/asio/include/asio/ip/address_v6.hpp": {
+      "upstream_sha256": "d21cd7c526846b0b6be54d02cbafd4c809afd28ed7f3185906b84f058db998d6",
+      "bundled_sha256": "d21cd7c526846b0b6be54d02cbafd4c809afd28ed7f3185906b84f058db998d6"
+    },
+    "src/vendor/asio/asio/include/asio/ip/basic_resolver_query.hpp": {
+      "upstream_sha256": "63dc4ec8964cd8e8408a26b425443b778319dda63c2901f163ddd7a999194c2e",
+      "bundled_sha256": "63dc4ec8964cd8e8408a26b425443b778319dda63c2901f163ddd7a999194c2e"
+    },
+    "src/vendor/asio/asio/include/asio/ip/basic_endpoint.hpp": {
+      "upstream_sha256": "357004698c028a4bb3fce7e0b7a426b8977ddf2211b50d73afe767d658b2bdee",
+      "bundled_sha256": "357004698c028a4bb3fce7e0b7a426b8977ddf2211b50d73afe767d658b2bdee"
+    },
+    "src/vendor/asio/asio/include/asio/ip/multicast.hpp": {
+      "upstream_sha256": "86836d51048fbc984aa0aefc1e034881d7213a9ffd3081cf723a1dc8d074ad5a",
+      "bundled_sha256": "86836d51048fbc984aa0aefc1e034881d7213a9ffd3081cf723a1dc8d074ad5a"
+    },
+    "src/vendor/asio/asio/include/asio/ip/v6_only.hpp": {
+      "upstream_sha256": "3e8ac345977b6c048763dbb583dbdf0e23b85b76ac97170713a78c89505cec66",
+      "bundled_sha256": "3e8ac345977b6c048763dbb583dbdf0e23b85b76ac97170713a78c89505cec66"
+    },
+    "src/vendor/asio/asio/include/asio/ip/basic_resolver_iterator.hpp": {
+      "upstream_sha256": "af8c7caf65e1c6d519fca55c9f66f3db8e3671eaf4c066f6cda6f4bc2bd6ea8d",
+      "bundled_sha256": "af8c7caf65e1c6d519fca55c9f66f3db8e3671eaf4c066f6cda6f4bc2bd6ea8d"
+    },
+    "src/vendor/asio/asio/include/asio/ip/address_v6_range.hpp": {
+      "upstream_sha256": "8876bf8496112e9137373680c00b3d0c3f1a9bd46ee90e84909e861eec7d0e57",
+      "bundled_sha256": "8876bf8496112e9137373680c00b3d0c3f1a9bd46ee90e84909e861eec7d0e57"
+    },
+    "src/vendor/asio/asio/include/asio/ip/address_v4_iterator.hpp": {
+      "upstream_sha256": "4cc99d995d3914907060b2345f616370d6681d9e1729d1e530a710b930aa8d82",
+      "bundled_sha256": "4cc99d995d3914907060b2345f616370d6681d9e1729d1e530a710b930aa8d82"
+    },
+    "src/vendor/asio/asio/include/asio/ip/bad_address_cast.hpp": {
+      "upstream_sha256": "ceb56ba5ed2f8fc5feb84bcb26642d7b39ec3f049a9b8a4d19c5c71933e2c976",
+      "bundled_sha256": "ceb56ba5ed2f8fc5feb84bcb26642d7b39ec3f049a9b8a4d19c5c71933e2c976"
+    },
+    "src/vendor/asio/asio/include/asio/ip/address_v6_iterator.hpp": {
+      "upstream_sha256": "c687ca5aaeaf09b54b55b52ebc2a01fa27141f8ed6b75925b9a295835d2d8cd0",
+      "bundled_sha256": "c687ca5aaeaf09b54b55b52ebc2a01fa27141f8ed6b75925b9a295835d2d8cd0"
+    },
+    "src/vendor/asio/asio/include/asio/ip/resolver_query_base.hpp": {
+      "upstream_sha256": "c9a784faf24f79cc7461a3aae5bdc510cb1fe5defbe58a621a9be8ff899fa438",
+      "bundled_sha256": "c9a784faf24f79cc7461a3aae5bdc510cb1fe5defbe58a621a9be8ff899fa438"
+    },
+    "src/vendor/asio/asio/include/asio/ip/address_v4_range.hpp": {
+      "upstream_sha256": "8d23a10447f3a023a54c4d1cefdafad1de55ccc390368eb09ae3ff0882125596",
+      "bundled_sha256": "8d23a10447f3a023a54c4d1cefdafad1de55ccc390368eb09ae3ff0882125596"
+    },
+    "src/vendor/asio/asio/include/asio/ip/address.hpp": {
+      "upstream_sha256": "50cc4a9f1630c9457daa0f232487e912483588e5677f5c17a82c8b78b9243256",
+      "bundled_sha256": "50cc4a9f1630c9457daa0f232487e912483588e5677f5c17a82c8b78b9243256"
+    },
+    "src/vendor/asio/asio/include/asio/ip/network_v6.hpp": {
+      "upstream_sha256": "8236557cb71490061df540e08bd9b829d6f4f50f1a40cf274aaa8d3fa5e1b3c8",
+      "bundled_sha256": "8236557cb71490061df540e08bd9b829d6f4f50f1a40cf274aaa8d3fa5e1b3c8"
+    },
+    "src/vendor/asio/asio/include/asio/ip/unicast.hpp": {
+      "upstream_sha256": "93dddb7581f776cd03c02d06e25660575ac51c82bbb53a1ff9d5125412abbc6d",
+      "bundled_sha256": "93dddb7581f776cd03c02d06e25660575ac51c82bbb53a1ff9d5125412abbc6d"
+    },
+    "src/vendor/asio/asio/include/asio/ip/basic_resolver.hpp": {
+      "upstream_sha256": "898849e9bab12c04235f3c84c47db42fbadd295c33ef5d6955f4b72cba3a0617",
+      "bundled_sha256": "898849e9bab12c04235f3c84c47db42fbadd295c33ef5d6955f4b72cba3a0617"
+    },
+    "src/vendor/asio/asio/include/asio/execution/mapping.hpp": {
+      "upstream_sha256": "b7e7fc197b18ea229c8d72dfc629f9a9fef0cd0d46b86bb3bc168b0972958338",
+      "bundled_sha256": "b7e7fc197b18ea229c8d72dfc629f9a9fef0cd0d46b86bb3bc168b0972958338"
+    },
+    "src/vendor/asio/asio/include/asio/execution/invocable_archetype.hpp": {
+      "upstream_sha256": "d377d07663a248167a754ad12cbf2c8314db9defe2a6e6d7ac4a8e06d98cdc95",
+      "bundled_sha256": "d377d07663a248167a754ad12cbf2c8314db9defe2a6e6d7ac4a8e06d98cdc95"
+    },
+    "src/vendor/asio/asio/include/asio/execution/allocator.hpp": {
+      "upstream_sha256": "881c9d9debaf79c77678b75511064fd43c47d6ed8447a14e06fb4882dc4ada35",
+      "bundled_sha256": "881c9d9debaf79c77678b75511064fd43c47d6ed8447a14e06fb4882dc4ada35"
+    },
+    "src/vendor/asio/asio/include/asio/execution/outstanding_work.hpp": {
+      "upstream_sha256": "4afa45930d0ff2294bfa630800e16b054825a2bdad3bac9396ba7223c308c9d9",
+      "bundled_sha256": "4afa45930d0ff2294bfa630800e16b054825a2bdad3bac9396ba7223c308c9d9"
+    },
+    "src/vendor/asio/asio/include/asio/execution/bad_executor.hpp": {
+      "upstream_sha256": "1f5231da15ebd9d92c7bb4df9098878e02a1091c7b28f98c7372f1aead0ba8ba",
+      "bundled_sha256": "1f5231da15ebd9d92c7bb4df9098878e02a1091c7b28f98c7372f1aead0ba8ba"
+    },
+    "src/vendor/asio/asio/include/asio/execution/occupancy.hpp": {
+      "upstream_sha256": "a338cec76b33542ba3fe5ae5079b767171dcfee090b5cef94e299a973301dda2",
+      "bundled_sha256": "a338cec76b33542ba3fe5ae5079b767171dcfee090b5cef94e299a973301dda2"
+    },
+    "src/vendor/asio/asio/include/asio/execution/context_as.hpp": {
+      "upstream_sha256": "2eb8ac4ccab41b4c2ac5da5ece9049c62496907b36c4910b222f29b5a5be2982",
+      "bundled_sha256": "2eb8ac4ccab41b4c2ac5da5ece9049c62496907b36c4910b222f29b5a5be2982"
+    },
+    "src/vendor/asio/asio/include/asio/execution/context.hpp": {
+      "upstream_sha256": "18a43373a22d16f41ae55e1878fccafddef5a3af16ef9a8d53388f09f33b6c80",
+      "bundled_sha256": "18a43373a22d16f41ae55e1878fccafddef5a3af16ef9a8d53388f09f33b6c80"
+    },
+    "src/vendor/asio/asio/include/asio/execution/prefer_only.hpp": {
+      "upstream_sha256": "c659e4145be25d577465e914397082d6c37271f18ded902b71dd14da9529364d",
+      "bundled_sha256": "c659e4145be25d577465e914397082d6c37271f18ded902b71dd14da9529364d"
+    },
+    "src/vendor/asio/asio/include/asio/execution/blocking.hpp": {
+      "upstream_sha256": "36ccb94e227a4bbdad195a7adff1530b5625e646485538d3b2329d47450ae3d9",
+      "bundled_sha256": "36ccb94e227a4bbdad195a7adff1530b5625e646485538d3b2329d47450ae3d9"
+    },
+    "src/vendor/asio/asio/include/asio/execution/executor.hpp": {
+      "upstream_sha256": "459d43b26087e707fa8d88bfef20b9703ccd558f05864430bd35cf3105bcad76",
+      "bundled_sha256": "459d43b26087e707fa8d88bfef20b9703ccd558f05864430bd35cf3105bcad76"
+    },
+    "src/vendor/asio/asio/include/asio/execution/any_executor.hpp": {
+      "upstream_sha256": "a22b186150f5a8d723793d01753c6d38bb06e8c50bbb9b19f6c424e21d1c516c",
+      "bundled_sha256": "a22b186150f5a8d723793d01753c6d38bb06e8c50bbb9b19f6c424e21d1c516c"
+    },
+    "src/vendor/asio/asio/include/asio/execution/relationship.hpp": {
+      "upstream_sha256": "98ad9cd9f10a071de1e0398d8b4698c5d7a045d76ffef5b16f7bf1abec4f703a",
+      "bundled_sha256": "98ad9cd9f10a071de1e0398d8b4698c5d7a045d76ffef5b16f7bf1abec4f703a"
+    },
+    "src/vendor/asio/asio/include/asio/execution/blocking_adaptation.hpp": {
+      "upstream_sha256": "63556957413b4c1a2c25aece5935e3ea1c7dcb46da1a64cdd988257aef51c4eb",
+      "bundled_sha256": "63556957413b4c1a2c25aece5935e3ea1c7dcb46da1a64cdd988257aef51c4eb"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/use_promise.hpp": {
+      "upstream_sha256": "cb596ef32b3564e0a7a9a51e585ba46e116f5427a48c904b62a5efd73164bf01",
+      "bundled_sha256": "cb596ef32b3564e0a7a9a51e585ba46e116f5427a48c904b62a5efd73164bf01"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/as_tuple.hpp": {
+      "upstream_sha256": "54b06c1130873bc7a1bfc0052845c85de079f110ce32410db80de51e7b983462",
+      "bundled_sha256": "54b06c1130873bc7a1bfc0052845c85de079f110ce32410db80de51e7b983462"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/deferred.hpp": {
+      "upstream_sha256": "f7ae99afd9ee2d73cfa5892e1f201359e59b91fe00ddd44e558ffba1984c5348",
+      "bundled_sha256": "f7ae99afd9ee2d73cfa5892e1f201359e59b91fe00ddd44e558ffba1984c5348"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/channel_error.hpp": {
+      "upstream_sha256": "15cc433982102cefa251bf72b30f2ad99329bbf38a691ed59949a87c17929e03",
+      "bundled_sha256": "15cc433982102cefa251bf72b30f2ad99329bbf38a691ed59949a87c17929e03"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/use_coro.hpp": {
+      "upstream_sha256": "47100a0186c27266e819d0829d262e0e9876e6b37c7ccd079b37bbeaa7a3869b",
+      "bundled_sha256": "47100a0186c27266e819d0829d262e0e9876e6b37c7ccd079b37bbeaa7a3869b"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/basic_channel.hpp": {
+      "upstream_sha256": "703aec5314b9f60a8b51a6518e0b420571ece8a8eb10890e0bf0558a7826aaf0",
+      "bundled_sha256": "703aec5314b9f60a8b51a6518e0b420571ece8a8eb10890e0bf0558a7826aaf0"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/channel_traits.hpp": {
+      "upstream_sha256": "2222ebac2206a1830cfcce5135a296b200c03696a3f5d972a9da045ba87f7d96",
+      "bundled_sha256": "2222ebac2206a1830cfcce5135a296b200c03696a3f5d972a9da045ba87f7d96"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/co_spawn.hpp": {
+      "upstream_sha256": "fada233d3aee48b17c891a05cc1756620320b29d11505d375789fd3ce747e8aa",
+      "bundled_sha256": "fada233d3aee48b17c891a05cc1756620320b29d11505d375789fd3ce747e8aa"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/coro.hpp": {
+      "upstream_sha256": "679982aad70863825a7ba23f87af78e96d85a893ea1f738308ad538a4115da1c",
+      "bundled_sha256": "679982aad70863825a7ba23f87af78e96d85a893ea1f738308ad538a4115da1c"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/concurrent_channel.hpp": {
+      "upstream_sha256": "3c552ba9494c99b9d2cd7861cbdc71de0003b062c6d0bb6e9b457fa6d58796fb",
+      "bundled_sha256": "3c552ba9494c99b9d2cd7861cbdc71de0003b062c6d0bb6e9b457fa6d58796fb"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/append.hpp": {
+      "upstream_sha256": "12aa01364f4ddaf1bdd4cc5cf87d0fa0b46a78e09632ff80fa52f702e32c59f2",
+      "bundled_sha256": "12aa01364f4ddaf1bdd4cc5cf87d0fa0b46a78e09632ff80fa52f702e32c59f2"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/parallel_group.hpp": {
+      "upstream_sha256": "7cd015edb375db61ab15f7743a2cded85acc59e47aca84f660006850ad16adbb",
+      "bundled_sha256": "7cd015edb375db61ab15f7743a2cded85acc59e47aca84f660006850ad16adbb"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/basic_concurrent_channel.hpp": {
+      "upstream_sha256": "0cf3d951123b48b56e34f89f5900cfa70d7c152d04b9be1a46576e7de9a754be",
+      "bundled_sha256": "0cf3d951123b48b56e34f89f5900cfa70d7c152d04b9be1a46576e7de9a754be"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/channel.hpp": {
+      "upstream_sha256": "da80a6472b22ccb99cead0fb6732f720bb4edd208b093c6923f33c701ff92ac4",
+      "bundled_sha256": "da80a6472b22ccb99cead0fb6732f720bb4edd208b093c6923f33c701ff92ac4"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/prepend.hpp": {
+      "upstream_sha256": "8b7070a2ab5923e99c0429c6af0f8c52a8661d368aed54f1de4b3fec3d4ce56c",
+      "bundled_sha256": "8b7070a2ab5923e99c0429c6af0f8c52a8661d368aed54f1de4b3fec3d4ce56c"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/promise.hpp": {
+      "upstream_sha256": "3081fd0d704a61ce9508b8780fc0d024ab84fed87fed370891e77af6498bdb5a",
+      "bundled_sha256": "3081fd0d704a61ce9508b8780fc0d024ab84fed87fed370891e77af6498bdb5a"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/as_single.hpp": {
+      "upstream_sha256": "551b9fb4f6869116a7a69063ce6bf35f11c21878e404aaf35393918445206639",
+      "bundled_sha256": "551b9fb4f6869116a7a69063ce6bf35f11c21878e404aaf35393918445206639"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/cancellation_condition.hpp": {
+      "upstream_sha256": "aa2b1df84a6da7326073bbcc42fd93c504ce10ad930b798d7d8c3bb2ba8e4981",
+      "bundled_sha256": "aa2b1df84a6da7326073bbcc42fd93c504ce10ad930b798d7d8c3bb2ba8e4981"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/awaitable_operators.hpp": {
+      "upstream_sha256": "c21b2053b60fccfd05b8c09b1164cfc2c9dda347b9e23db9a7a47d8b07be2275",
+      "bundled_sha256": "c21b2053b60fccfd05b8c09b1164cfc2c9dda347b9e23db9a7a47d8b07be2275"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/coro_traits.hpp": {
+      "upstream_sha256": "640d87c900d4caaa212ed804c590ba0c8aacbcc66e55fb7b47fc546925a10dd2",
+      "bundled_sha256": "640d87c900d4caaa212ed804c590ba0c8aacbcc66e55fb7b47fc546925a10dd2"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/co_composed.hpp": {
+      "upstream_sha256": "780568c0c11a66e3eac8bab8f9c14b9d27aed87e45fcf21598d01199b0a5cc8c",
+      "bundled_sha256": "780568c0c11a66e3eac8bab8f9c14b9d27aed87e45fcf21598d01199b0a5cc8c"
+    },
+    "src/vendor/asio/asio/include/asio/local/seq_packet_protocol.hpp": {
+      "upstream_sha256": "9e986bd11c8bd2d6acab101cb35b9d164446598fb997b40fbaf7e0b45e444a8c",
+      "bundled_sha256": "9e986bd11c8bd2d6acab101cb35b9d164446598fb997b40fbaf7e0b45e444a8c"
+    },
+    "src/vendor/asio/asio/include/asio/local/connect_pair.hpp": {
+      "upstream_sha256": "7653400f3c9faf4f91b7edb53bf1725d7657a81bcba7ab6fac86eee4762ade56",
+      "bundled_sha256": "7653400f3c9faf4f91b7edb53bf1725d7657a81bcba7ab6fac86eee4762ade56"
+    },
+    "src/vendor/asio/asio/include/asio/local/basic_endpoint.hpp": {
+      "upstream_sha256": "6a959b4c9926df2fdad817075bbfeeec9b2ff19163b2a457b11c9769991cbff9",
+      "bundled_sha256": "6a959b4c9926df2fdad817075bbfeeec9b2ff19163b2a457b11c9769991cbff9"
+    },
+    "src/vendor/asio/asio/include/asio/local/stream_protocol.hpp": {
+      "upstream_sha256": "2bce111aff698960bd24a39dec7c758ce1d06505e2cc509e3a7edc8977e7b01e",
+      "bundled_sha256": "2bce111aff698960bd24a39dec7c758ce1d06505e2cc509e3a7edc8977e7b01e"
+    },
+    "src/vendor/asio/asio/include/asio/local/datagram_protocol.hpp": {
+      "upstream_sha256": "77319d330e1daf9999fb9cb538c4198811332d78c9f53f609c5d7c01899bdd51",
+      "bundled_sha256": "77319d330e1daf9999fb9cb538c4198811332d78c9f53f609c5d7c01899bdd51"
+    },
+    "src/vendor/asio/asio/include/asio/detail/signal_init.hpp": {
+      "upstream_sha256": "158ab1b0116de68d8f83f092f46e1f517ba066e994ff8e331000c4e7e8eb5946",
+      "bundled_sha256": "158ab1b0116de68d8f83f092f46e1f517ba066e994ff8e331000c4e7e8eb5946"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_socket_recvmsg_op.hpp": {
+      "upstream_sha256": "844dc84cfec61d2a5abb5ed5652778250dad908d99e1f22a81903f641d67ccb7",
+      "bundled_sha256": "844dc84cfec61d2a5abb5ed5652778250dad908d99e1f22a81903f641d67ccb7"
+    },
+    "src/vendor/asio/asio/include/asio/detail/global.hpp": {
+      "upstream_sha256": "aa7532560d38c5529f624129e80e9c6750c12e4128742d5ed6fd81c6ceec403a",
+      "bundled_sha256": "aa7532560d38c5529f624129e80e9c6750c12e4128742d5ed6fd81c6ceec403a"
+    },
+    "src/vendor/asio/asio/include/asio/detail/op_queue.hpp": {
+      "upstream_sha256": "e10e7f8edd6ebab1bf08b7f27ee33edfd9683d814ea19fc2a05e143888cee9c9",
+      "bundled_sha256": "e10e7f8edd6ebab1bf08b7f27ee33edfd9683d814ea19fc2a05e143888cee9c9"
+    },
+    "src/vendor/asio/asio/include/asio/detail/concurrency_hint.hpp": {
+      "upstream_sha256": "40dd848aac539da2b9ac511c720e55b646191b3da18823d354d6ea68e0947eb4",
+      "bundled_sha256": "40dd848aac539da2b9ac511c720e55b646191b3da18823d354d6ea68e0947eb4"
+    },
+    "src/vendor/asio/asio/include/asio/detail/type_traits.hpp": {
+      "upstream_sha256": "129a827ac328e605b789c72ab1c0a931890ff487dd524c6894c647ed24bfa38f",
+      "bundled_sha256": "129a827ac328e605b789c72ab1c0a931890ff487dd524c6894c647ed24bfa38f"
+    },
+    "src/vendor/asio/asio/include/asio/detail/work_dispatcher.hpp": {
+      "upstream_sha256": "59a472d0bda827aa1aaf4d87141825d81c71797653dae25e5cc9e4a7dd04ca56",
+      "bundled_sha256": "59a472d0bda827aa1aaf4d87141825d81c71797653dae25e5cc9e4a7dd04ca56"
+    },
+    "src/vendor/asio/asio/include/asio/detail/handler_type_requirements.hpp": {
+      "upstream_sha256": "4a5fd201b149dffa5d5c04d6550af4a7f04173f6f14ca238fdba340da75490dc",
+      "bundled_sha256": "4a5fd201b149dffa5d5c04d6550af4a7f04173f6f14ca238fdba340da75490dc"
+    },
+    "src/vendor/asio/asio/include/asio/detail/posix_thread.hpp": {
+      "upstream_sha256": "e9377b55fcd5434d9a30b798846ee96826aac2b6f4cf72759587f57c2ab99834",
+      "bundled_sha256": "e9377b55fcd5434d9a30b798846ee96826aac2b6f4cf72759587f57c2ab99834"
+    },
+    "src/vendor/asio/asio/include/asio/detail/signal_set_service.hpp": {
+      "upstream_sha256": "dd69b17a8b5d444b45e20c05214b84d2fe76e00aa0821d995e51f17183abe8bc",
+      "bundled_sha256": "dd69b17a8b5d444b45e20c05214b84d2fe76e00aa0821d995e51f17183abe8bc"
+    },
+    "src/vendor/asio/asio/include/asio/detail/wait_handler.hpp": {
+      "upstream_sha256": "1a3c71a8254627e7279048fb6b67d68214e1abb7cf60935796ed4527f57c7131",
+      "bundled_sha256": "1a3c71a8254627e7279048fb6b67d68214e1abb7cf60935796ed4527f57c7131"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactive_socket_sendto_op.hpp": {
+      "upstream_sha256": "b9df97f9b7096866afc286e29304a701b79c0a5808c80f33266739c67d46ee50",
+      "bundled_sha256": "b9df97f9b7096866afc286e29304a701b79c0a5808c80f33266739c67d46ee50"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_socket_sendto_op.hpp": {
+      "upstream_sha256": "a84aabdf5a14da57ee537b957977d14c753af0a334852d909ba01a8e6245f0bc",
+      "bundled_sha256": "a84aabdf5a14da57ee537b957977d14c753af0a334852d909ba01a8e6245f0bc"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactive_socket_recvmsg_op.hpp": {
+      "upstream_sha256": "64071ad1a464430cd8178a3bb00c7be4235d3c45ab6856c45ecd6dc3b4b22f0c",
+      "bundled_sha256": "64071ad1a464430cd8178a3bb00c7be4235d3c45ab6856c45ecd6dc3b4b22f0c"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_socket_service_base.hpp": {
+      "upstream_sha256": "d978df4d9412c384db732a114c569b465e9829b66569479e35207c949ccb913f",
+      "bundled_sha256": "d978df4d9412c384db732a114c569b465e9829b66569479e35207c949ccb913f"
+    },
+    "src/vendor/asio/asio/include/asio/detail/signal_blocker.hpp": {
+      "upstream_sha256": "1ff6ddb6a776a91e76c94c4b8e48ebb1652d42ec2d86fdc22cdc442d9f68797d",
+      "bundled_sha256": "1ff6ddb6a776a91e76c94c4b8e48ebb1652d42ec2d86fdc22cdc442d9f68797d"
+    },
+    "src/vendor/asio/asio/include/asio/detail/scheduler.hpp": {
+      "upstream_sha256": "e0e10e54829f4673963c0ecd060adb552dac0443707a97ab063871f989614d8c",
+      "bundled_sha256": "e0e10e54829f4673963c0ecd060adb552dac0443707a97ab063871f989614d8c"
+    },
+    "src/vendor/asio/asio/include/asio/detail/posix_global.hpp": {
+      "upstream_sha256": "5de79f96ab988701ebc73e2d828e3a1fc1adcfa9ddce6670bea8beef72d7cfae",
+      "bundled_sha256": "5de79f96ab988701ebc73e2d828e3a1fc1adcfa9ddce6670bea8beef72d7cfae"
+    },
+    "src/vendor/asio/asio/include/asio/detail/call_stack.hpp": {
+      "upstream_sha256": "764565cc7ae4faa289107c5455467cb7001c09c887a61bcb3a96f993f77e5199",
+      "bundled_sha256": "764565cc7ae4faa289107c5455467cb7001c09c887a61bcb3a96f993f77e5199"
+    },
+    "src/vendor/asio/asio/include/asio/detail/signal_handler.hpp": {
+      "upstream_sha256": "05afa9fa6f3633cd1c60cfe0741d4387e2ff2eed3ceeeee45038976a5fe981e1",
+      "bundled_sha256": "05afa9fa6f3633cd1c60cfe0741d4387e2ff2eed3ceeeee45038976a5fe981e1"
+    },
+    "src/vendor/asio/asio/include/asio/detail/socket_holder.hpp": {
+      "upstream_sha256": "f7abaf15b7698a36f01cb9f6c206315d7dcd94f30fdc017905a7d74b3ba76141",
+      "bundled_sha256": "f7abaf15b7698a36f01cb9f6c206315d7dcd94f30fdc017905a7d74b3ba76141"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_socket_recvmsg_op.hpp": {
+      "upstream_sha256": "d12d73e0238f1ca4f8eda545f2d07696cc9ac437478b10e18688e88e673f8e45",
+      "bundled_sha256": "d12d73e0238f1ca4f8eda545f2d07696cc9ac437478b10e18688e88e673f8e45"
+    },
+    "src/vendor/asio/asio/include/asio/detail/composed_work.hpp": {
+      "upstream_sha256": "292c18bb8f9c72d99472281702bef7a640604ac7f94dd579c0c2e7657918207d",
+      "bundled_sha256": "292c18bb8f9c72d99472281702bef7a640604ac7f94dd579c0c2e7657918207d"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_event.hpp": {
+      "upstream_sha256": "41209913537ec441b8aebd949d6747079ee2ede4c30bfea31fa759847556f204",
+      "bundled_sha256": "41209913537ec441b8aebd949d6747079ee2ede4c30bfea31fa759847556f204"
+    },
+    "src/vendor/asio/asio/include/asio/detail/socket_types.hpp": {
+      "upstream_sha256": "74885a62bd01833b40d3d747be6f66981ac69b8a28139d5d495b22037c6e43b7",
+      "bundled_sha256": "74885a62bd01833b40d3d747be6f66981ac69b8a28139d5d495b22037c6e43b7"
+    },
+    "src/vendor/asio/asio/include/asio/detail/buffer_sequence_adapter.hpp": {
+      "upstream_sha256": "3494ce27095b8472e3106144602be891eb3f8cde30c50de2dbd6ab934207da29",
+      "bundled_sha256": "3494ce27095b8472e3106144602be891eb3f8cde30c50de2dbd6ab934207da29"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_socket_send_op.hpp": {
+      "upstream_sha256": "62d729819ff28fb8517ba49ce67bb8f27fc5bf028a618dc8c49d8178678761be",
+      "bundled_sha256": "62d729819ff28fb8517ba49ce67bb8f27fc5bf028a618dc8c49d8178678761be"
+    },
+    "src/vendor/asio/asio/include/asio/detail/winrt_socket_send_op.hpp": {
+      "upstream_sha256": "c95b58dd209cf25dab535830a871c0a74b3e610fb41380c79560c57c6f5e505b",
+      "bundled_sha256": "c95b58dd209cf25dab535830a871c0a74b3e610fb41380c79560c57c6f5e505b"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_handle_service.hpp": {
+      "upstream_sha256": "ca3801b52ddbeed2703c2963f519bb485b23ef4adb2e9b9a296ad71023e99ddc",
+      "bundled_sha256": "ca3801b52ddbeed2703c2963f519bb485b23ef4adb2e9b9a296ad71023e99ddc"
+    },
+    "src/vendor/asio/asio/include/asio/detail/timer_queue_set.hpp": {
+      "upstream_sha256": "604fceea14375a6bf9e143ba66a5c77cced5663eb10541da003bc49e0ccacf1c",
+      "bundled_sha256": "604fceea14375a6bf9e143ba66a5c77cced5663eb10541da003bc49e0ccacf1c"
+    },
+    "src/vendor/asio/asio/include/asio/detail/functional.hpp": {
+      "upstream_sha256": "2a322d5795629ccc159b6cb808a186e6a0307c92396b18cb5d49067f75dcefd3",
+      "bundled_sha256": "2a322d5795629ccc159b6cb808a186e6a0307c92396b18cb5d49067f75dcefd3"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_socket_service.hpp": {
+      "upstream_sha256": "48314220979a0d1f2e4a2c857ac109e9bae22cae40f6b5d315f77b0ae73d9733",
+      "bundled_sha256": "48314220979a0d1f2e4a2c857ac109e9bae22cae40f6b5d315f77b0ae73d9733"
+    },
+    "src/vendor/asio/asio/include/asio/detail/initiate_dispatch.hpp": {
+      "upstream_sha256": "e4bb3d0dd5aa283b07c5e3542601a7a165cd989dc0fdc09a40f9272b9bf1ab10",
+      "bundled_sha256": "e4bb3d0dd5aa283b07c5e3542601a7a165cd989dc0fdc09a40f9272b9bf1ab10"
+    },
+    "src/vendor/asio/asio/include/asio/detail/throw_error.hpp": {
+      "upstream_sha256": "dc0f40cc9068768cb5b671b581e2aee9ce21d77410d11643a78d192ca1159e9f",
+      "bundled_sha256": "dc0f40cc9068768cb5b671b581e2aee9ce21d77410d11643a78d192ca1159e9f"
+    },
+    "src/vendor/asio/asio/include/asio/detail/posix_serial_port_service.hpp": {
+      "upstream_sha256": "dfe345ad163a8f15cccecab9acea88f4511e7bf2d55ea1c611828087b4449a92",
+      "bundled_sha256": "dfe345ad163a8f15cccecab9acea88f4511e7bf2d55ea1c611828087b4449a92"
+    },
+    "src/vendor/asio/asio/include/asio/detail/winrt_resolve_op.hpp": {
+      "upstream_sha256": "29c3956b9b8bcfaf59fa8a284f6c4de816836e1956e6c7f24900147cffc83002",
+      "bundled_sha256": "29c3956b9b8bcfaf59fa8a284f6c4de816836e1956e6c7f24900147cffc83002"
+    },
+    "src/vendor/asio/asio/include/asio/detail/handler_cont_helpers.hpp": {
+      "upstream_sha256": "c0811b1f348607329dd2a1e4d4b7c6a17492837f9217b7e10b5cb6121a1288b4",
+      "bundled_sha256": "c0811b1f348607329dd2a1e4d4b7c6a17492837f9217b7e10b5cb6121a1288b4"
+    },
+    "src/vendor/asio/asio/include/asio/detail/conditionally_enabled_mutex.hpp": {
+      "upstream_sha256": "0331a0f2c6f1d626c3a2c48da702da77dc6ecf4f8c3deae7bd002d2bda4307c6",
+      "bundled_sha256": "0331a0f2c6f1d626c3a2c48da702da77dc6ecf4f8c3deae7bd002d2bda4307c6"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_socket_service_base.hpp": {
+      "upstream_sha256": "04c19c3c171d1f4f536826ec6b579985d974c8869f6a7415e67d54650652dbe4",
+      "bundled_sha256": "04c19c3c171d1f4f536826ec6b579985d974c8869f6a7415e67d54650652dbe4"
+    },
+    "src/vendor/asio/asio/include/asio/detail/fenced_block.hpp": {
+      "upstream_sha256": "a7c8f58c0f85f78fd01c32cddbc681963e99aedd24658ea8101b0556b8a732fa",
+      "bundled_sha256": "a7c8f58c0f85f78fd01c32cddbc681963e99aedd24658ea8101b0556b8a732fa"
+    },
+    "src/vendor/asio/asio/include/asio/detail/chrono.hpp": {
+      "upstream_sha256": "cb9b4b5793105d353dec111779e6ca7d686b5c103f3574d4577df70618d0325d",
+      "bundled_sha256": "cb9b4b5793105d353dec111779e6ca7d686b5c103f3574d4577df70618d0325d"
+    },
+    "src/vendor/asio/asio/include/asio/detail/null_signal_blocker.hpp": {
+      "upstream_sha256": "3449c7658437d9d6ecb5ad1175debf8cf03e5ad21639d8700af00a762b1a6cb4",
+      "bundled_sha256": "3449c7658437d9d6ecb5ad1175debf8cf03e5ad21639d8700af00a762b1a6cb4"
+    },
+    "src/vendor/asio/asio/include/asio/detail/non_const_lvalue.hpp": {
+      "upstream_sha256": "cfe0c7fbc9f1ba7ad53caee4fffa68ce0fbdaef8c55e324fe909c55f565b061e",
+      "bundled_sha256": "cfe0c7fbc9f1ba7ad53caee4fffa68ce0fbdaef8c55e324fe909c55f565b061e"
+    },
+    "src/vendor/asio/asio/include/asio/detail/wait_op.hpp": {
+      "upstream_sha256": "48d41cb5797e40107a296168fe6eee6d38f7895c0cf8c52d2af93115b4722404",
+      "bundled_sha256": "48d41cb5797e40107a296168fe6eee6d38f7895c0cf8c52d2af93115b4722404"
+    },
+    "src/vendor/asio/asio/include/asio/detail/posix_signal_blocker.hpp": {
+      "upstream_sha256": "adf24723fa630dda1a78505c00958a8021200a35d6f1734896e169c41f81a715",
+      "bundled_sha256": "adf24723fa630dda1a78505c00958a8021200a35d6f1734896e169c41f81a715"
+    },
+    "src/vendor/asio/asio/include/asio/detail/null_thread.hpp": {
+      "upstream_sha256": "e6d4fb2a0d485f6b493408d63a3f745a1943419ee52c500f16247911e50da086",
+      "bundled_sha256": "e6d4fb2a0d485f6b493408d63a3f745a1943419ee52c500f16247911e50da086"
+    },
+    "src/vendor/asio/asio/include/asio/detail/blocking_executor_op.hpp": {
+      "upstream_sha256": "6a93e57262ef6c0ba3fdb170272e76b5fd19e50c5506f4ee04bbfe43c219726f",
+      "bundled_sha256": "6a93e57262ef6c0ba3fdb170272e76b5fd19e50c5506f4ee04bbfe43c219726f"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_thread_info.hpp": {
+      "upstream_sha256": "b46f583c22ea6e1a5742df5e1114f2eae822b0101eea628bddb6e3b6387a4026",
+      "bundled_sha256": "b46f583c22ea6e1a5742df5e1114f2eae822b0101eea628bddb6e3b6387a4026"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactive_socket_send_op.hpp": {
+      "upstream_sha256": "87430249ac970f612528a0f2f0ff4cde316efabb3bcc7398c8250c9a68cc451d",
+      "bundled_sha256": "87430249ac970f612528a0f2f0ff4cde316efabb3bcc7398c8250c9a68cc451d"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_object_impl.hpp": {
+      "upstream_sha256": "7df6d065f97fde1a5258e7e90247baa9f13abc9bb0b01ae346a80f02b85780f3",
+      "bundled_sha256": "7df6d065f97fde1a5258e7e90247baa9f13abc9bb0b01ae346a80f02b85780f3"
+    },
+    "src/vendor/asio/asio/include/asio/detail/winapp_thread.hpp": {
+      "upstream_sha256": "ab37b916054b489c562828f3124a1f6c9ca839ff4777ce5dfb752906b7810f1a",
+      "bundled_sha256": "ab37b916054b489c562828f3124a1f6c9ca839ff4777ce5dfb752906b7810f1a"
+    },
+    "src/vendor/asio/asio/include/asio/detail/static_mutex.hpp": {
+      "upstream_sha256": "5fd2b75de72d30843bf9340c7a606ef7452acf7b3a2e525f4acc4a775ca3e954",
+      "bundled_sha256": "5fd2b75de72d30843bf9340c7a606ef7452acf7b3a2e525f4acc4a775ca3e954"
+    },
+    "src/vendor/asio/asio/include/asio/detail/handler_tracking.hpp": {
+      "upstream_sha256": "a6ba5b71b7467461ce8548c1e65de0ef78ecc90e4b754a49b6c7e24402f073ab",
+      "bundled_sha256": "a6ba5b71b7467461ce8548c1e65de0ef78ecc90e4b754a49b6c7e24402f073ab"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactive_socket_accept_op.hpp": {
+      "upstream_sha256": "59849f230444300fff8b1abfd253d9e0d3ab9340abf6009db548fc6d69f513cf",
+      "bundled_sha256": "59849f230444300fff8b1abfd253d9e0d3ab9340abf6009db548fc6d69f513cf"
+    },
+    "src/vendor/asio/asio/include/asio/detail/is_executor.hpp": {
+      "upstream_sha256": "d56d034c27a89de41df3e8a751dbbe725e1ee872f6294fb32f4f225babd93ddc",
+      "bundled_sha256": "d56d034c27a89de41df3e8a751dbbe725e1ee872f6294fb32f4f225babd93ddc"
+    },
+    "src/vendor/asio/asio/include/asio/detail/recycling_allocator.hpp": {
+      "upstream_sha256": "e0b51bf641b66d4e0e7732d47285cfc03a31ddfee7dfd117aa4931ff8aa12205",
+      "bundled_sha256": "e0b51bf641b66d4e0e7732d47285cfc03a31ddfee7dfd117aa4931ff8aa12205"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_null_buffers_op.hpp": {
+      "upstream_sha256": "e1fb48d8de97a3429fbf54e6bb8801fee91b8afe4d37ac480ea1e9ca16c99308",
+      "bundled_sha256": "e1fb48d8de97a3429fbf54e6bb8801fee91b8afe4d37ac480ea1e9ca16c99308"
+    },
+    "src/vendor/asio/asio/include/asio/detail/winrt_async_op.hpp": {
+      "upstream_sha256": "93e71cb206488602f63d9a813092a78b6c6865d7993aad450ae7258689ab304b",
+      "bundled_sha256": "93e71cb206488602f63d9a813092a78b6c6865d7993aad450ae7258689ab304b"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_io_context.hpp": {
+      "upstream_sha256": "a5289abdc7bbf74537dcecca5967f8700b22c50c858a6a5ef9b2bf72f57365f6",
+      "bundled_sha256": "a5289abdc7bbf74537dcecca5967f8700b22c50c858a6a5ef9b2bf72f57365f6"
+    },
+    "src/vendor/asio/asio/include/asio/detail/regex_fwd.hpp": {
+      "upstream_sha256": "4916f2c16849e86c839bc2579356580c56b20fcb8dbf598a35b4fb3fd97fdabd",
+      "bundled_sha256": "4916f2c16849e86c839bc2579356580c56b20fcb8dbf598a35b4fb3fd97fdabd"
+    },
+    "src/vendor/asio/asio/include/asio/detail/kqueue_reactor.hpp": {
+      "upstream_sha256": "bef2545c2aeb1fdd855dfef2e4211586d0cc6caa955979e3e1200d88c3777630",
+      "bundled_sha256": "bef2545c2aeb1fdd855dfef2e4211586d0cc6caa955979e3e1200d88c3777630"
+    },
+    "src/vendor/asio/asio/include/asio/detail/pipe_select_interrupter.hpp": {
+      "upstream_sha256": "f8a3157bb370ced09808eb927496b70b3543ea318d5e0a0ad43630b77aca7e7b",
+      "bundled_sha256": "f8a3157bb370ced09808eb927496b70b3543ea318d5e0a0ad43630b77aca7e7b"
+    },
+    "src/vendor/asio/asio/include/asio/detail/signal_op.hpp": {
+      "upstream_sha256": "f6f4f1c128d64504c1ed4e259ce4bd7c8db248fdfd919d0f2ed1feca346a939f",
+      "bundled_sha256": "f6f4f1c128d64504c1ed4e259ce4bd7c8db248fdfd919d0f2ed1feca346a939f"
+    },
+    "src/vendor/asio/asio/include/asio/detail/handler_alloc_helpers.hpp": {
+      "upstream_sha256": "6da21ca134bce38da29c7d5db7248e8e80ba1ef11621120b7bdf3b30209e54ce",
+      "bundled_sha256": "6da21ca134bce38da29c7d5db7248e8e80ba1ef11621120b7bdf3b30209e54ce"
+    },
+    "src/vendor/asio/asio/include/asio/detail/thread_info_base.hpp": {
+      "upstream_sha256": "912d61a44b34a8a6eb068af8d7ae175442241c0439873d2a146c17e20a399398",
+      "bundled_sha256": "912d61a44b34a8a6eb068af8d7ae175442241c0439873d2a146c17e20a399398"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_handle_write_op.hpp": {
+      "upstream_sha256": "654116e8039de7fcef06805918c4635b80e8371a3ec96dd5f11e8661c4c05bd4",
+      "bundled_sha256": "654116e8039de7fcef06805918c4635b80e8371a3ec96dd5f11e8661c4c05bd4"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_handle_read_op.hpp": {
+      "upstream_sha256": "5c3be98c05e3fb25fb58b64e95810d0e9154da8cbb467caf3e803eeae83b3a25",
+      "bundled_sha256": "5c3be98c05e3fb25fb58b64e95810d0e9154da8cbb467caf3e803eeae83b3a25"
+    },
+    "src/vendor/asio/asio/include/asio/detail/completion_handler.hpp": {
+      "upstream_sha256": "74007208e601a4392b4f0896c92e1682508c44d103dfcf4d9db5cc231641867e",
+      "bundled_sha256": "74007208e601a4392b4f0896c92e1682508c44d103dfcf4d9db5cc231641867e"
+    },
+    "src/vendor/asio/asio/include/asio/detail/select_interrupter.hpp": {
+      "upstream_sha256": "d40218b3b59e1ab84076da03b9c994e8c3a5b27cb393c28694ad88111690708b",
+      "bundled_sha256": "d40218b3b59e1ab84076da03b9c994e8c3a5b27cb393c28694ad88111690708b"
+    },
+    "src/vendor/asio/asio/include/asio/detail/array_fwd.hpp": {
+      "upstream_sha256": "a50a50bde199c6c2ee684d849f9544fb930d8b0eb90233c9388e67293dc137cd",
+      "bundled_sha256": "a50a50bde199c6c2ee684d849f9544fb930d8b0eb90233c9388e67293dc137cd"
+    },
+    "src/vendor/asio/asio/include/asio/detail/posix_mutex.hpp": {
+      "upstream_sha256": "a163e174f1422a8656ab2ffb28d7ef2314eca02fef2f62fe265a7aa79f7cd642",
+      "bundled_sha256": "a163e174f1422a8656ab2ffb28d7ef2314eca02fef2f62fe265a7aa79f7cd642"
+    },
+    "src/vendor/asio/asio/include/asio/detail/handler_work.hpp": {
+      "upstream_sha256": "7e867a499ab8ac7b2572b4f870cc1afdc38d27a8ed3b713f9360446e04d212a6",
+      "bundled_sha256": "7e867a499ab8ac7b2572b4f870cc1afdc38d27a8ed3b713f9360446e04d212a6"
+    },
+    "src/vendor/asio/asio/include/asio/detail/service_registry.hpp": {
+      "upstream_sha256": "d0c28d15171c52a8b50a0faa9e2420a1fbba6343528380486db3f0699f15ba56",
+      "bundled_sha256": "d0c28d15171c52a8b50a0faa9e2420a1fbba6343528380486db3f0699f15ba56"
+    },
+    "src/vendor/asio/asio/include/asio/detail/std_fenced_block.hpp": {
+      "upstream_sha256": "df3267ad60cd2b76e44b169ad20a234d1ea3f4faba3ced27a39daae0b7050df6",
+      "bundled_sha256": "df3267ad60cd2b76e44b169ad20a234d1ea3f4faba3ced27a39daae0b7050df6"
+    },
+    "src/vendor/asio/asio/include/asio/detail/base_from_completion_cond.hpp": {
+      "upstream_sha256": "47ca4d2c12a4194f1526072c9924cd1129c0af0e812f4152eb9c8e90dd7c0b6e",
+      "bundled_sha256": "47ca4d2c12a4194f1526072c9924cd1129c0af0e812f4152eb9c8e90dd7c0b6e"
+    },
+    "src/vendor/asio/asio/include/asio/detail/timer_scheduler.hpp": {
+      "upstream_sha256": "c1d2c80a8f633645ca47e4d36bd7d356c9100944f0d6a4d56d7d92b3c21b58b6",
+      "bundled_sha256": "c1d2c80a8f633645ca47e4d36bd7d356c9100944f0d6a4d56d7d92b3c21b58b6"
+    },
+    "src/vendor/asio/asio/include/asio/detail/throw_exception.hpp": {
+      "upstream_sha256": "98e5141239250c17c614d9e37afa9a5fe5360ebc51c50309a35efbc60330af52",
+      "bundled_sha256": "98e5141239250c17c614d9e37afa9a5fe5360ebc51c50309a35efbc60330af52"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_thread.hpp": {
+      "upstream_sha256": "44c565340e422864893dde5f8eeb11809468302f0c18c10c1df5492fe1a291ed",
+      "bundled_sha256": "44c565340e422864893dde5f8eeb11809468302f0c18c10c1df5492fe1a291ed"
+    },
+    "src/vendor/asio/asio/include/asio/detail/source_location.hpp": {
+      "upstream_sha256": "1a672e10dea5fa2ae96b314c1f01bd8276f9e47854eb2d5bf5327a1e294cc63a",
+      "bundled_sha256": "1a672e10dea5fa2ae96b314c1f01bd8276f9e47854eb2d5bf5327a1e294cc63a"
+    },
+    "src/vendor/asio/asio/include/asio/detail/select_reactor.hpp": {
+      "upstream_sha256": "54ee6fd3151449c4ee99a65f993255cdb380f309e0406a87c0c1b0a22cf42101",
+      "bundled_sha256": "54ee6fd3151449c4ee99a65f993255cdb380f309e0406a87c0c1b0a22cf42101"
+    },
+    "src/vendor/asio/asio/include/asio/detail/bind_handler.hpp": {
+      "upstream_sha256": "77c829ec428eb91f522ca7a506146b19b4330b80e2ebbc554703416932c8891d",
+      "bundled_sha256": "77c829ec428eb91f522ca7a506146b19b4330b80e2ebbc554703416932c8891d"
+    },
+    "src/vendor/asio/asio/include/asio/detail/string_view.hpp": {
+      "upstream_sha256": "8d63566b2b22808684623f37628ce7edd314cbb1b18b4e173a99c34580625fd2",
+      "bundled_sha256": "8d63566b2b22808684623f37628ce7edd314cbb1b18b4e173a99c34580625fd2"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_file_service.hpp": {
+      "upstream_sha256": "926823bff15be0f38dcb114b3541ac30945415b7bc897c75372c11b4d4c6c72d",
+      "bundled_sha256": "926823bff15be0f38dcb114b3541ac30945415b7bc897c75372c11b4d4c6c72d"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactive_descriptor_service.hpp": {
+      "upstream_sha256": "bad0e468c442ddd911bc2310771c5168f4bbe00740487609157171b3d8a7b0c3",
+      "bundled_sha256": "bad0e468c442ddd911bc2310771c5168f4bbe00740487609157171b3d8a7b0c3"
+    },
+    "src/vendor/asio/asio/include/asio/detail/keyword_tss_ptr.hpp": {
+      "upstream_sha256": "dc8815de08761a4284a4c0d098828fd22ba5742db7fe7af0d158e60558d70d4a",
+      "bundled_sha256": "dc8815de08761a4284a4c0d098828fd22ba5742db7fe7af0d158e60558d70d4a"
+    },
+    "src/vendor/asio/asio/include/asio/detail/winrt_socket_connect_op.hpp": {
+      "upstream_sha256": "4b436ed12b7eeb4364d20677469fe80ba7ff8dfded05e78925321a2f08919559",
+      "bundled_sha256": "4b436ed12b7eeb4364d20677469fe80ba7ff8dfded05e78925321a2f08919559"
+    },
+    "src/vendor/asio/asio/include/asio/detail/wrapped_handler.hpp": {
+      "upstream_sha256": "43da44670a2fb7b843088665daa1a9fe3e5e5b66b7a06c098842b0ece8947baa",
+      "bundled_sha256": "43da44670a2fb7b843088665daa1a9fe3e5e5b66b7a06c098842b0ece8947baa"
+    },
+    "src/vendor/asio/asio/include/asio/detail/scheduler_operation.hpp": {
+      "upstream_sha256": "b3a09bd378c97af3196ed881c365c1625da64bb7101d52eac35f35b29ffd2fb9",
+      "bundled_sha256": "b3a09bd378c97af3196ed881c365c1625da64bb7101d52eac35f35b29ffd2fb9"
+    },
+    "src/vendor/asio/asio/include/asio/detail/wince_thread.hpp": {
+      "upstream_sha256": "8d6f2fd37bcef088299d31204de8de7ae32a81e23dba653a82a5bacb2daf50de",
+      "bundled_sha256": "8d6f2fd37bcef088299d31204de8de7ae32a81e23dba653a82a5bacb2daf50de"
+    },
+    "src/vendor/asio/asio/include/asio/detail/dev_poll_reactor.hpp": {
+      "upstream_sha256": "da01d5c3c4645658320adfee5cb3bedebe4439207bf43155114e663540584b2c",
+      "bundled_sha256": "da01d5c3c4645658320adfee5cb3bedebe4439207bf43155114e663540584b2c"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactive_socket_recv_op.hpp": {
+      "upstream_sha256": "4a9c7f56b69b1bbe0cf45db81ee63bde68e6b8aa57b01039b9b801c5b97ac76e",
+      "bundled_sha256": "4a9c7f56b69b1bbe0cf45db81ee63bde68e6b8aa57b01039b9b801c5b97ac76e"
+    },
+    "src/vendor/asio/asio/include/asio/detail/eventfd_select_interrupter.hpp": {
+      "upstream_sha256": "51bda324eb4e36330b1eb8d9b2afd8697c52739ff4e49675776275cc74bf58f3",
+      "bundled_sha256": "51bda324eb4e36330b1eb8d9b2afd8697c52739ff4e49675776275cc74bf58f3"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_wait_op.hpp": {
+      "upstream_sha256": "63aa20c24cb4cd7898d688b8f1cd5e3852781d49f4329067060eb6f9ae35f356",
+      "bundled_sha256": "63aa20c24cb4cd7898d688b8f1cd5e3852781d49f4329067060eb6f9ae35f356"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_static_mutex.hpp": {
+      "upstream_sha256": "08bbbeb442e9ab8933893fc5980966465e0db9dafd6a9c3dc5a0b43ce6de9a14",
+      "bundled_sha256": "08bbbeb442e9ab8933893fc5980966465e0db9dafd6a9c3dc5a0b43ce6de9a14"
+    },
+    "src/vendor/asio/asio/include/asio/detail/thread_group.hpp": {
+      "upstream_sha256": "5fe6a4ae8311cd980849782d218869666a6e507d5a104abb6465c6cff9563559",
+      "bundled_sha256": "5fe6a4ae8311cd980849782d218869666a6e507d5a104abb6465c6cff9563559"
+    },
+    "src/vendor/asio/asio/include/asio/detail/deadline_timer_service.hpp": {
+      "upstream_sha256": "3bfdf0f679c2ffd3654bb538b64da59d01e7a482ada7303b075ffc9eb0354b0c",
+      "bundled_sha256": "3bfdf0f679c2ffd3654bb538b64da59d01e7a482ada7303b075ffc9eb0354b0c"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactor_op.hpp": {
+      "upstream_sha256": "3e755b412274f394cbcad01d7cde1d0b36615333f662d92e7e1930b46bd500d7",
+      "bundled_sha256": "3e755b412274f394cbcad01d7cde1d0b36615333f662d92e7e1930b46bd500d7"
+    },
+    "src/vendor/asio/asio/include/asio/detail/mutex.hpp": {
+      "upstream_sha256": "5180da253550cdad4f891ffe8c50e9ba39d77598c3471b2223e6fb35452faf8f",
+      "bundled_sha256": "5180da253550cdad4f891ffe8c50e9ba39d77598c3471b2223e6fb35452faf8f"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactor.hpp": {
+      "upstream_sha256": "9d0341092bdd75ffe6920878a4037fbd6224ff5fb38624cf2b34ec5a3ee0a5d7",
+      "bundled_sha256": "9d0341092bdd75ffe6920878a4037fbd6224ff5fb38624cf2b34ec5a3ee0a5d7"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_descriptor_read_at_op.hpp": {
+      "upstream_sha256": "169f8e2b0f47b77aafda32d39ac5766cf15127b2ea78b270272e06a7f7b6193b",
+      "bundled_sha256": "169f8e2b0f47b77aafda32d39ac5766cf15127b2ea78b270272e06a7f7b6193b"
+    },
+    "src/vendor/asio/asio/include/asio/detail/fd_set_adapter.hpp": {
+      "upstream_sha256": "399f9196223d85a0da64e495da9249c3940ddd791eef1bb86f5bceb89cd6511e",
+      "bundled_sha256": "399f9196223d85a0da64e495da9249c3940ddd791eef1bb86f5bceb89cd6511e"
+    },
+    "src/vendor/asio/asio/include/asio/detail/posix_tss_ptr.hpp": {
+      "upstream_sha256": "c43c0af2705158412d68632019e9216f218c015a6cb9aaf1ed1f0861b05c8021",
+      "bundled_sha256": "c43c0af2705158412d68632019e9216f218c015a6cb9aaf1ed1f0861b05c8021"
+    },
+    "src/vendor/asio/asio/include/asio/detail/posix_static_mutex.hpp": {
+      "upstream_sha256": "e341e383663b21ada2bfec03ca04557e1d3b956ac8d82022c8ff5e42b83772be",
+      "bundled_sha256": "e341e383663b21ada2bfec03ca04557e1d3b956ac8d82022c8ff5e42b83772be"
+    },
+    "src/vendor/asio/asio/include/asio/detail/atomic_count.hpp": {
+      "upstream_sha256": "c04f56a10472ca1183d8750cf1f80853d22578170cf50996ccf80aa657367d36",
+      "bundled_sha256": "c04f56a10472ca1183d8750cf1f80853d22578170cf50996ccf80aa657367d36"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_operation.hpp": {
+      "upstream_sha256": "e457af4d406cb20a24f4e03dc3635d025d5a3f1590bb3cadc3c780ca65b3276a",
+      "bundled_sha256": "e457af4d406cb20a24f4e03dc3635d025d5a3f1590bb3cadc3c780ca65b3276a"
+    },
+    "src/vendor/asio/asio/include/asio/detail/null_tss_ptr.hpp": {
+      "upstream_sha256": "1dbcdaa4695c5d9132767ac786feb958018fac6da2ccf19070ef4de317222be9",
+      "bundled_sha256": "1dbcdaa4695c5d9132767ac786feb958018fac6da2ccf19070ef4de317222be9"
+    },
+    "src/vendor/asio/asio/include/asio/detail/cstddef.hpp": {
+      "upstream_sha256": "166d2612a648dd777f2955c839295e8a939094afd7e4a953533eb3e658ad41d9",
+      "bundled_sha256": "166d2612a648dd777f2955c839295e8a939094afd7e4a953533eb3e658ad41d9"
+    },
+    "src/vendor/asio/asio/include/asio/detail/epoll_reactor.hpp": {
+      "upstream_sha256": "5b3b98e8c04aede7db92f5e32c55c42525407eab2896d48cb9b9b630b85859df",
+      "bundled_sha256": "5b3b98e8c04aede7db92f5e32c55c42525407eab2896d48cb9b9b630b85859df"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactive_wait_op.hpp": {
+      "upstream_sha256": "3a3f02be2ac263fc161da0a9d062b409c0318dd70ed900ebfcd3e4f24f8bc941",
+      "bundled_sha256": "3a3f02be2ac263fc161da0a9d062b409c0318dd70ed900ebfcd3e4f24f8bc941"
+    },
+    "src/vendor/asio/asio/include/asio/detail/resolve_query_op.hpp": {
+      "upstream_sha256": "82ac3a0d154b0821e3a032853d6068f980389a02a600a1724ea4b26b714cb8ff",
+      "bundled_sha256": "82ac3a0d154b0821e3a032853d6068f980389a02a600a1724ea4b26b714cb8ff"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_file_service.hpp": {
+      "upstream_sha256": "23f4d410101333ec0915911a2cc295486589e3d9b942520faa695edd239d593c",
+      "bundled_sha256": "23f4d410101333ec0915911a2cc295486589e3d9b942520faa695edd239d593c"
+    },
+    "src/vendor/asio/asio/include/asio/detail/socket_ops.hpp": {
+      "upstream_sha256": "cd780bf0e1bcca37790bfa47076d96580a98500096a4d3d6bd614a0bb0be5bb0",
+      "bundled_sha256": "cd780bf0e1bcca37790bfa47076d96580a98500096a4d3d6bd614a0bb0be5bb0"
+    },
+    "src/vendor/asio/asio/include/asio/detail/executor_function.hpp": {
+      "upstream_sha256": "34ba6a96e32db7ec6c8ecd941aba2766a3e5ab42b3d4a4b61ba83a700d8b1f8f",
+      "bundled_sha256": "34ba6a96e32db7ec6c8ecd941aba2766a3e5ab42b3d4a4b61ba83a700d8b1f8f"
+    },
+    "src/vendor/asio/asio/include/asio/detail/descriptor_write_op.hpp": {
+      "upstream_sha256": "d1ecada7d93736418ee3ca5863c926e5396d792a5e643bd5ad08add5f12d3748",
+      "bundled_sha256": "d1ecada7d93736418ee3ca5863c926e5396d792a5e643bd5ad08add5f12d3748"
+    },
+    "src/vendor/asio/asio/include/asio/detail/posix_fd_set_adapter.hpp": {
+      "upstream_sha256": "68f6502149b2d6f96abd34f092b1b449b3c0f21e4b52589dde2394c49bd2d02e",
+      "bundled_sha256": "68f6502149b2d6f96abd34f092b1b449b3c0f21e4b52589dde2394c49bd2d02e"
+    },
+    "src/vendor/asio/asio/include/asio/detail/conditionally_enabled_event.hpp": {
+      "upstream_sha256": "4a17e25849653c83c198729e70394b56fbe708c6f146f12daa8bc2801a2bd79a",
+      "bundled_sha256": "4a17e25849653c83c198729e70394b56fbe708c6f146f12daa8bc2801a2bd79a"
+    },
+    "src/vendor/asio/asio/include/asio/detail/socket_option.hpp": {
+      "upstream_sha256": "1a9de2b92ccd0be88491986f6b72dd01705c463c8b218fd9971c7d126aeb07ef",
+      "bundled_sha256": "1a9de2b92ccd0be88491986f6b72dd01705c463c8b218fd9971c7d126aeb07ef"
+    },
+    "src/vendor/asio/asio/include/asio/detail/config.hpp": {
+      "upstream_sha256": "cc3fb65a3134f845d9adccf86cc12e0294cd6a188f8a09b861efed338b1d9b60",
+      "bundled_sha256": "cc3fb65a3134f845d9adccf86cc12e0294cd6a188f8a09b861efed338b1d9b60"
+    },
+    "src/vendor/asio/asio/include/asio/detail/buffered_stream_storage.hpp": {
+      "upstream_sha256": "1e750580c6fde1ff0fcf9f11c34e3b04b7dea42a4e6af2144fe75f4903f302db",
+      "bundled_sha256": "1e750580c6fde1ff0fcf9f11c34e3b04b7dea42a4e6af2144fe75f4903f302db"
+    },
+    "src/vendor/asio/asio/include/asio/detail/array.hpp": {
+      "upstream_sha256": "5ad2278cf5fa62f6dcd9aeb8181f2dd004c990c94ad0ed6de9f2e78f655378d7",
+      "bundled_sha256": "5ad2278cf5fa62f6dcd9aeb8181f2dd004c990c94ad0ed6de9f2e78f655378d7"
+    },
+    "src/vendor/asio/asio/include/asio/detail/thread.hpp": {
+      "upstream_sha256": "d7bd17ec89e38a3c7f1d089f37d9093f0bd8d2c954b6171bbdbfb725a113acf5",
+      "bundled_sha256": "d7bd17ec89e38a3c7f1d089f37d9093f0bd8d2c954b6171bbdbfb725a113acf5"
+    },
+    "src/vendor/asio/asio/include/asio/detail/timer_scheduler_fwd.hpp": {
+      "upstream_sha256": "6f2d1a26660e1969826ac1c9073638d5e2f54b31182fb0f541a6f76bc66ca5b3",
+      "bundled_sha256": "6f2d1a26660e1969826ac1c9073638d5e2f54b31182fb0f541a6f76bc66ca5b3"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_overlapped_ptr.hpp": {
+      "upstream_sha256": "09f4e6446e8e311153c81d7d6950d5fbf2a6c9787238b70be20f3903dad042cf",
+      "bundled_sha256": "09f4e6446e8e311153c81d7d6950d5fbf2a6c9787238b70be20f3903dad042cf"
+    },
+    "src/vendor/asio/asio/include/asio/detail/memory.hpp": {
+      "upstream_sha256": "7041b425b247c196bfc6303d98c23e5f0f9b9f26d6b1730ea47aecb0fd595f0d",
+      "bundled_sha256": "7041b425b247c196bfc6303d98c23e5f0f9b9f26d6b1730ea47aecb0fd595f0d"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_socket_recvfrom_op.hpp": {
+      "upstream_sha256": "d0994e90ff668c2753e6045d544b231e1cfc530bd61abeef42130f9ac8b6c100",
+      "bundled_sha256": "d0994e90ff668c2753e6045d544b231e1cfc530bd61abeef42130f9ac8b6c100"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_socket_accept_op.hpp": {
+      "upstream_sha256": "7c5fbc42c03f1a52823475d07656064c8a3f995273d7c45977e25900d1e966b6",
+      "bundled_sha256": "7c5fbc42c03f1a52823475d07656064c8a3f995273d7c45977e25900d1e966b6"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_socket_recv_op.hpp": {
+      "upstream_sha256": "52d1b2f2f11b7217bf9f96ed7dbd99f11afeb4c48d3ee4963e306bcb8c12a578",
+      "bundled_sha256": "52d1b2f2f11b7217bf9f96ed7dbd99f11afeb4c48d3ee4963e306bcb8c12a578"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_control.hpp": {
+      "upstream_sha256": "e48065304138a2049f015c7eb60964e7b05608b54b771d3d9c9e9ecc4d79259c",
+      "bundled_sha256": "e48065304138a2049f015c7eb60964e7b05608b54b771d3d9c9e9ecc4d79259c"
+    },
+    "src/vendor/asio/asio/include/asio/detail/null_reactor.hpp": {
+      "upstream_sha256": "2a188cedfb125f6cb98150cdd834218042ffeb242b0ea563216653b1142ef9c9",
+      "bundled_sha256": "2a188cedfb125f6cb98150cdd834218042ffeb242b0ea563216653b1142ef9c9"
+    },
+    "src/vendor/asio/asio/include/asio/detail/base_from_cancellation_state.hpp": {
+      "upstream_sha256": "f86996d31609e25ec654492b3492e94e760d5c472a4d4b7e057885d9c34a2759",
+      "bundled_sha256": "f86996d31609e25ec654492b3492e94e760d5c472a4d4b7e057885d9c34a2759"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_tss_ptr.hpp": {
+      "upstream_sha256": "98bfe8159fe891d6d785dddd88022d265a52ae8d0d15739035c591a1c9dcaa42",
+      "bundled_sha256": "98bfe8159fe891d6d785dddd88022d265a52ae8d0d15739035c591a1c9dcaa42"
+    },
+    "src/vendor/asio/asio/include/asio/detail/strand_executor_service.hpp": {
+      "upstream_sha256": "70fabdb71d97f7e47d6b7dec87263f4603b4d1adbb42176868d1f2c96beaf1f7",
+      "bundled_sha256": "70fabdb71d97f7e47d6b7dec87263f4603b4d1adbb42176868d1f2c96beaf1f7"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_service.hpp": {
+      "upstream_sha256": "aa4e7f0253ec8b34a355b6cf127326919cacc60de3058bc13fde59091ba9d52c",
+      "bundled_sha256": "aa4e7f0253ec8b34a355b6cf127326919cacc60de3058bc13fde59091ba9d52c"
+    },
+    "src/vendor/asio/asio/include/asio/detail/date_time_fwd.hpp": {
+      "upstream_sha256": "15f7e63ffd4b89c723d517946c49ede5eea2aea3f95af038b078fb223224278d",
+      "bundled_sha256": "15f7e63ffd4b89c723d517946c49ede5eea2aea3f95af038b078fb223224278d"
+    },
+    "src/vendor/asio/asio/include/asio/detail/tss_ptr.hpp": {
+      "upstream_sha256": "ac1419b182f924a54569c157866c89ebf6e875943f6272e156b5a1c04e3da429",
+      "bundled_sha256": "ac1419b182f924a54569c157866c89ebf6e875943f6272e156b5a1c04e3da429"
+    },
+    "src/vendor/asio/asio/include/asio/detail/resolve_endpoint_op.hpp": {
+      "upstream_sha256": "33ed8db8ebb801e04b33f1ed6bb383905f47738867a8adbd2eb7d23a5227b663",
+      "bundled_sha256": "33ed8db8ebb801e04b33f1ed6bb383905f47738867a8adbd2eb7d23a5227b663"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_descriptor_write_op.hpp": {
+      "upstream_sha256": "7004c7f943d7f6aba1ee69b94da7efd2a2eefd01f6d83c7b964620c613f25366",
+      "bundled_sha256": "7004c7f943d7f6aba1ee69b94da7efd2a2eefd01f6d83c7b964620c613f25366"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_wait_op.hpp": {
+      "upstream_sha256": "7a975bc617344fc6b64a7e66b5d0b7d233de30c677604331cfabdd040f015a0f",
+      "bundled_sha256": "7a975bc617344fc6b64a7e66b5d0b7d233de30c677604331cfabdd040f015a0f"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactive_socket_connect_op.hpp": {
+      "upstream_sha256": "39dbecfe2aedd368ff6a6560bc36806351f73fd4f263605ded574115dcb075ab",
+      "bundled_sha256": "39dbecfe2aedd368ff6a6560bc36806351f73fd4f263605ded574115dcb075ab"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_null_buffers_op.hpp": {
+      "upstream_sha256": "fed746514bdc6c59afc4583b9ce18283ffe18993ea19103eba22d907f1ea0e39",
+      "bundled_sha256": "fed746514bdc6c59afc4583b9ce18283ffe18993ea19103eba22d907f1ea0e39"
+    },
+    "src/vendor/asio/asio/include/asio/detail/exception.hpp": {
+      "upstream_sha256": "8d1e45457cd08f21b1e6c61a638422e40bcba092345178a36dfba2f8730ad73d",
+      "bundled_sha256": "8d1e45457cd08f21b1e6c61a638422e40bcba092345178a36dfba2f8730ad73d"
+    },
+    "src/vendor/asio/asio/include/asio/detail/pop_options.hpp": {
+      "upstream_sha256": "f76aa7843d0711ee060f7b1fb4459e4404abb149dec43e58d256430ca9004115",
+      "bundled_sha256": "f76aa7843d0711ee060f7b1fb4459e4404abb149dec43e58d256430ca9004115"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_socket_service.hpp": {
+      "upstream_sha256": "d5991521f500cf36438ff5cc8f80c5df7e9b33b8815581e87405f8e1c20f4804",
+      "bundled_sha256": "d5991521f500cf36438ff5cc8f80c5df7e9b33b8815581e87405f8e1c20f4804"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactive_null_buffers_op.hpp": {
+      "upstream_sha256": "2753affa93410d9b6feee8913ab135befaca89145a53e8f3a374da500ad0fc63",
+      "bundled_sha256": "2753affa93410d9b6feee8913ab135befaca89145a53e8f3a374da500ad0fc63"
+    },
+    "src/vendor/asio/asio/include/asio/detail/event.hpp": {
+      "upstream_sha256": "b7b45730daf9677c09832246142ad6cb8c9374bbe6620fda4cccb64540b393ab",
+      "bundled_sha256": "b7b45730daf9677c09832246142ad6cb8c9374bbe6620fda4cccb64540b393ab"
+    },
+    "src/vendor/asio/asio/include/asio/detail/future.hpp": {
+      "upstream_sha256": "12d6a8cec7368d7d9100f0dea9c3bcc0fe277a77401a8cad984581275c1f3541",
+      "bundled_sha256": "12d6a8cec7368d7d9100f0dea9c3bcc0fe277a77401a8cad984581275c1f3541"
+    },
+    "src/vendor/asio/asio/include/asio/detail/descriptor_read_op.hpp": {
+      "upstream_sha256": "bc67d8519d25a4ba351fd18b3966d836322dac567c3c7e0f04ed429948c525a9",
+      "bundled_sha256": "bc67d8519d25a4ba351fd18b3966d836322dac567c3c7e0f04ed429948c525a9"
+    },
+    "src/vendor/asio/asio/include/asio/detail/winrt_ssocket_service_base.hpp": {
+      "upstream_sha256": "04af2800cfcd42515f702241e1ffffe1dd91d00041a77ab82c87dc4e8433402b",
+      "bundled_sha256": "04af2800cfcd42515f702241e1ffffe1dd91d00041a77ab82c87dc4e8433402b"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactor_op_queue.hpp": {
+      "upstream_sha256": "39d6f0be65617c1acacb33900643f36c6e594419412462110b73b29d490dafcf",
+      "bundled_sha256": "39d6f0be65617c1acacb33900643f36c6e594419412462110b73b29d490dafcf"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_operation.hpp": {
+      "upstream_sha256": "4893f88568c254adf78df08f82d47fdb40824e957e35b6d0032d4a48cd36c191",
+      "bundled_sha256": "4893f88568c254adf78df08f82d47fdb40824e957e35b6d0032d4a48cd36c191"
+    },
+    "src/vendor/asio/asio/include/asio/detail/std_event.hpp": {
+      "upstream_sha256": "8983e685b6aa2fe4422941bd01941a87817365d06419fff67a8924e47944dee9",
+      "bundled_sha256": "8983e685b6aa2fe4422941bd01941a87817365d06419fff67a8924e47944dee9"
+    },
+    "src/vendor/asio/asio/include/asio/detail/std_mutex.hpp": {
+      "upstream_sha256": "e76aa81f450fe50e3c306eaa9e3fec54bfee0005d0115104e30cf34348d25ef2",
+      "bundled_sha256": "e76aa81f450fe50e3c306eaa9e3fec54bfee0005d0115104e30cf34348d25ef2"
+    },
+    "src/vendor/asio/asio/include/asio/detail/descriptor_ops.hpp": {
+      "upstream_sha256": "451c4615a841b6881cb2a7c22845d4013972b59569adba4b388b95301953c8af",
+      "bundled_sha256": "451c4615a841b6881cb2a7c22845d4013972b59569adba4b388b95301953c8af"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_socket_connect_op.hpp": {
+      "upstream_sha256": "78d1d877cc44b4de6a38530a474063e7299906e7a2493f71bfde59d6c2953057",
+      "bundled_sha256": "78d1d877cc44b4de6a38530a474063e7299906e7a2493f71bfde59d6c2953057"
+    },
+    "src/vendor/asio/asio/include/asio/detail/assert.hpp": {
+      "upstream_sha256": "fe95a1f061312659fd5c44c0acc3c8d21d966ea1ef781b5fc1d4edad9d39cc0b",
+      "bundled_sha256": "fe95a1f061312659fd5c44c0acc3c8d21d966ea1ef781b5fc1d4edad9d39cc0b"
+    },
+    "src/vendor/asio/asio/include/asio/detail/hash_map.hpp": {
+      "upstream_sha256": "b88eb6287182844e50806148207f6d737ace2d83e255ee23a7aba372dc7d06c2",
+      "bundled_sha256": "b88eb6287182844e50806148207f6d737ace2d83e255ee23a7aba372dc7d06c2"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_descriptor_service.hpp": {
+      "upstream_sha256": "4c072a11443fdf2f2e1bb48241662126dfe924dc55cb37b2b82fe9fc0c895443",
+      "bundled_sha256": "4c072a11443fdf2f2e1bb48241662126dfe924dc55cb37b2b82fe9fc0c895443"
+    },
+    "src/vendor/asio/asio/include/asio/detail/push_options.hpp": {
+      "upstream_sha256": "6b751947b9004d91bbb68b80b0790ffec60dc70025a887c07b7ab7e639550a4f",
+      "bundled_sha256": "6b751947b9004d91bbb68b80b0790ffec60dc70025a887c07b7ab7e639550a4f"
+    },
+    "src/vendor/asio/asio/include/asio/detail/std_global.hpp": {
+      "upstream_sha256": "267e7339ac8a42478ffab2a76b78b8f51e1832e40fd991e3b5081c4e283a367a",
+      "bundled_sha256": "267e7339ac8a42478ffab2a76b78b8f51e1832e40fd991e3b5081c4e283a367a"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_descriptor_write_at_op.hpp": {
+      "upstream_sha256": "1b34074c68464e1a311b1d843ce88a4b3a1eb55c0e0803615f3bbe263a923727",
+      "bundled_sha256": "1b34074c68464e1a311b1d843ce88a4b3a1eb55c0e0803615f3bbe263a923727"
+    },
+    "src/vendor/asio/asio/include/asio/detail/null_static_mutex.hpp": {
+      "upstream_sha256": "6160e5a6cfe33298587d2eb5bf16406eb08843555dcf02d7ba8e01c5b31a8f30",
+      "bundled_sha256": "6160e5a6cfe33298587d2eb5bf16406eb08843555dcf02d7ba8e01c5b31a8f30"
+    },
+    "src/vendor/asio/asio/include/asio/detail/winrt_resolver_service.hpp": {
+      "upstream_sha256": "32e9f9307dceab9b597526ca68bb6e4e6b58d849d80f11dbae5d474596d990b0",
+      "bundled_sha256": "32e9f9307dceab9b597526ca68bb6e4e6b58d849d80f11dbae5d474596d990b0"
+    },
+    "src/vendor/asio/asio/include/asio/detail/scoped_lock.hpp": {
+      "upstream_sha256": "1793470eabd549dd9ecbe5d8d572d22a23670757e58e3491d2d0970bf91773c8",
+      "bundled_sha256": "1793470eabd549dd9ecbe5d8d572d22a23670757e58e3491d2d0970bf91773c8"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_mutex.hpp": {
+      "upstream_sha256": "fbf453f0198e1241a4a117ee81169b2bee3533045915445c3c87f744c3c77934",
+      "bundled_sha256": "fbf453f0198e1241a4a117ee81169b2bee3533045915445c3c87f744c3c77934"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_descriptor_read_op.hpp": {
+      "upstream_sha256": "3954d43ef9d564b9a353a3eeecf68e79a7ad5acf787a884bccb3ea0db4b139bb",
+      "bundled_sha256": "3954d43ef9d564b9a353a3eeecf68e79a7ad5acf787a884bccb3ea0db4b139bb"
+    },
+    "src/vendor/asio/asio/include/asio/detail/winrt_socket_recv_op.hpp": {
+      "upstream_sha256": "f531f6bab4e1498d513400f98c9edba2132eec1856d6ee3099fa568b14dd3812",
+      "bundled_sha256": "f531f6bab4e1498d513400f98c9edba2132eec1856d6ee3099fa568b14dd3812"
+    },
+    "src/vendor/asio/asio/include/asio/detail/scheduler_task.hpp": {
+      "upstream_sha256": "82d78c7d8a0daa847ec978ea7143074de5e27a60a714fd8b2f8dc93cf343d610",
+      "bundled_sha256": "82d78c7d8a0daa847ec978ea7143074de5e27a60a714fd8b2f8dc93cf343d610"
+    },
+    "src/vendor/asio/asio/include/asio/detail/cstdint.hpp": {
+      "upstream_sha256": "70e5e3bbdbc0b400c5e49c71189f7c2e8c8f1fa6632b2e5a6cfb7cb6fc336036",
+      "bundled_sha256": "70e5e3bbdbc0b400c5e49c71189f7c2e8c8f1fa6632b2e5a6cfb7cb6fc336036"
+    },
+    "src/vendor/asio/asio/include/asio/detail/initiate_defer.hpp": {
+      "upstream_sha256": "05ca919901b6e43b69c60f97c8c781f6792a27f3640bd7f805f66ae063d5a620",
+      "bundled_sha256": "05ca919901b6e43b69c60f97c8c781f6792a27f3640bd7f805f66ae063d5a620"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_socket_send_op.hpp": {
+      "upstream_sha256": "a65ac6b3144b8647756206eea247811908a3f2d286a4cacbd7fa06847ec58317",
+      "bundled_sha256": "a65ac6b3144b8647756206eea247811908a3f2d286a4cacbd7fa06847ec58317"
+    },
+    "src/vendor/asio/asio/include/asio/detail/resolve_op.hpp": {
+      "upstream_sha256": "43a6d2edd6077f9b8f74246f9a63829956b14e479c0570b4fc6a86d7cff442ea",
+      "bundled_sha256": "43a6d2edd6077f9b8f74246f9a63829956b14e479c0570b4fc6a86d7cff442ea"
+    },
+    "src/vendor/asio/asio/include/asio/detail/operation.hpp": {
+      "upstream_sha256": "1c80f50f9e66d5b10f7766e4b4bec3e5504e6abd046aaf87e8d656949c031009",
+      "bundled_sha256": "1c80f50f9e66d5b10f7766e4b4bec3e5504e6abd046aaf87e8d656949c031009"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_fd_set_adapter.hpp": {
+      "upstream_sha256": "8843c492a157f267f43fb45037f41348f7b749d8f1a034cdf56eaf1f007563e7",
+      "bundled_sha256": "8843c492a157f267f43fb45037f41348f7b749d8f1a034cdf56eaf1f007563e7"
+    },
+    "src/vendor/asio/asio/include/asio/detail/winrt_utils.hpp": {
+      "upstream_sha256": "aa43bbfddd5fa51c5b714a3fe72fb611c98d47c727787b794df608b59d560b4f",
+      "bundled_sha256": "aa43bbfddd5fa51c5b714a3fe72fb611c98d47c727787b794df608b59d560b4f"
+    },
+    "src/vendor/asio/asio/include/asio/detail/null_event.hpp": {
+      "upstream_sha256": "ec27d43397a1215f9a2b1f87fad4fe10ffa6d8b4ed73268f86bc47c3066b5f2d",
+      "bundled_sha256": "ec27d43397a1215f9a2b1f87fad4fe10ffa6d8b4ed73268f86bc47c3066b5f2d"
+    },
+    "src/vendor/asio/asio/include/asio/detail/local_free_on_block_exit.hpp": {
+      "upstream_sha256": "5c5337b78651004488c1c60c17668a141c2408c9c0a4766e48c8b28437b4c01c",
+      "bundled_sha256": "5c5337b78651004488c1c60c17668a141c2408c9c0a4766e48c8b28437b4c01c"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_object_handle_service.hpp": {
+      "upstream_sha256": "8d549ec136f0d2c6721278d3c5302adfc75db9f5edeaa0cb9f0fdc84ad303d85",
+      "bundled_sha256": "8d549ec136f0d2c6721278d3c5302adfc75db9f5edeaa0cb9f0fdc84ad303d85"
+    },
+    "src/vendor/asio/asio/include/asio/detail/utility.hpp": {
+      "upstream_sha256": "1c00e113c64d64ba8cb00425ed848b493299325c1ff2f434db640212003467f8",
+      "bundled_sha256": "1c00e113c64d64ba8cb00425ed848b493299325c1ff2f434db640212003467f8"
+    },
+    "src/vendor/asio/asio/include/asio/detail/posix_event.hpp": {
+      "upstream_sha256": "a63be121e96bcf41efc047031fd5e1b52b2fc02277cf6902862020901e6aa1f5",
+      "bundled_sha256": "a63be121e96bcf41efc047031fd5e1b52b2fc02277cf6902862020901e6aa1f5"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_socket_recvfrom_op.hpp": {
+      "upstream_sha256": "74f38016509b009ffe04e5bdd68bb778b86319ce5912b344d476881eab8b2264",
+      "bundled_sha256": "74f38016509b009ffe04e5bdd68bb778b86319ce5912b344d476881eab8b2264"
+    },
+    "src/vendor/asio/asio/include/asio/detail/resolver_service_base.hpp": {
+      "upstream_sha256": "e938228a8ec6bd8aa2ce862773ddbd5a843fbc128e4e3a7f126eca25e80d6751",
+      "bundled_sha256": "e938228a8ec6bd8aa2ce862773ddbd5a843fbc128e4e3a7f126eca25e80d6751"
+    },
+    "src/vendor/asio/asio/include/asio/detail/timer_queue_ptime.hpp": {
+      "upstream_sha256": "9d26e4691cdcbe91b0017469bf7b99bffd912aac0d4e8885bfa8b69d05fc85d0",
+      "bundled_sha256": "9d26e4691cdcbe91b0017469bf7b99bffd912aac0d4e8885bfa8b69d05fc85d0"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_socket_recv_op.hpp": {
+      "upstream_sha256": "e7527a1546b14df74bffc5b0e76a35b190755bccd1c39fd542b0fa85db37478b",
+      "bundled_sha256": "e7527a1546b14df74bffc5b0e76a35b190755bccd1c39fd542b0fa85db37478b"
+    },
+    "src/vendor/asio/asio/include/asio/detail/noncopyable.hpp": {
+      "upstream_sha256": "dc3f8558f0977a59619c6b91dfa73a3014c128aa7234c5f58197d9fa7cf50ec3",
+      "bundled_sha256": "dc3f8558f0977a59619c6b91dfa73a3014c128aa7234c5f58197d9fa7cf50ec3"
+    },
+    "src/vendor/asio/asio/include/asio/detail/buffer_resize_guard.hpp": {
+      "upstream_sha256": "0899e5eaa55517f83e6c0b4702d3a2e1e64fb6f6073e72c5b323cc8ec4617f7c",
+      "bundled_sha256": "0899e5eaa55517f83e6c0b4702d3a2e1e64fb6f6073e72c5b323cc8ec4617f7c"
+    },
+    "src/vendor/asio/asio/include/asio/detail/winrt_async_manager.hpp": {
+      "upstream_sha256": "c6aac02294f5f97501733b5b9bad057438a5f913af9ab4696f841805a33cf72c",
+      "bundled_sha256": "c6aac02294f5f97501733b5b9bad057438a5f913af9ab4696f841805a33cf72c"
+    },
+    "src/vendor/asio/asio/include/asio/detail/is_buffer_sequence.hpp": {
+      "upstream_sha256": "a135605419104602190bb8870df5e21b937dc5013aa2413fc9bdf18bb213d04f",
+      "bundled_sha256": "a135605419104602190bb8870df5e21b937dc5013aa2413fc9bdf18bb213d04f"
+    },
+    "src/vendor/asio/asio/include/asio/detail/socket_select_interrupter.hpp": {
+      "upstream_sha256": "e8187cf7a8e45231c88e3653b3d6099ba27c44d0e32610f14cb4578fdd00bd92",
+      "bundled_sha256": "e8187cf7a8e45231c88e3653b3d6099ba27c44d0e32610f14cb4578fdd00bd92"
+    },
+    "src/vendor/asio/asio/include/asio/detail/chrono_time_traits.hpp": {
+      "upstream_sha256": "c794f5b1192c326ce399993b3f983f0ac5d78ec8f1ee884e9cfd67908fbdaecf",
+      "bundled_sha256": "c794f5b1192c326ce399993b3f983f0ac5d78ec8f1ee884e9cfd67908fbdaecf"
+    },
+    "src/vendor/asio/asio/include/asio/detail/limits.hpp": {
+      "upstream_sha256": "99d4083c7cd5f48daff40f094015d0ffe010a2c6b8db417bb591d1f2b437c112",
+      "bundled_sha256": "99d4083c7cd5f48daff40f094015d0ffe010a2c6b8db417bb591d1f2b437c112"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_global.hpp": {
+      "upstream_sha256": "69e53c762e08614ce96a71e38dd3b3a97f11352e4f4f892ddaf95cadde2b4471",
+      "bundled_sha256": "69e53c762e08614ce96a71e38dd3b3a97f11352e4f4f892ddaf95cadde2b4471"
+    },
+    "src/vendor/asio/asio/include/asio/detail/consuming_buffers.hpp": {
+      "upstream_sha256": "3740ae4fbb93c2fd4776befb26112661c08105457c9d7e5718b4b27b2e8d650b",
+      "bundled_sha256": "3740ae4fbb93c2fd4776befb26112661c08105457c9d7e5718b4b27b2e8d650b"
+    },
+    "src/vendor/asio/asio/include/asio/detail/null_socket_service.hpp": {
+      "upstream_sha256": "7ab765e3a2419b773366959d38106bfe56b10e42ceea13ca58f8543c2ccf2da3",
+      "bundled_sha256": "7ab765e3a2419b773366959d38106bfe56b10e42ceea13ca58f8543c2ccf2da3"
+    },
+    "src/vendor/asio/asio/include/asio/detail/scheduler_thread_info.hpp": {
+      "upstream_sha256": "2e994fc4be5a9fc5f28b95e97857bcc4c006a6a0f6febbcc220e36cf581efac0",
+      "bundled_sha256": "2e994fc4be5a9fc5f28b95e97857bcc4c006a6a0f6febbcc220e36cf581efac0"
+    },
+    "src/vendor/asio/asio/include/asio/detail/winrt_ssocket_service.hpp": {
+      "upstream_sha256": "158223fee7230f55f640c207b03419f799cc5855ae358de92040c5774af044ad",
+      "bundled_sha256": "158223fee7230f55f640c207b03419f799cc5855ae358de92040c5774af044ad"
+    },
+    "src/vendor/asio/asio/include/asio/detail/null_mutex.hpp": {
+      "upstream_sha256": "a0cef5c50c31cb50eae78480a69dd270daa7073d0d2cf095f0f725756cf060c5",
+      "bundled_sha256": "a0cef5c50c31cb50eae78480a69dd270daa7073d0d2cf095f0f725756cf060c5"
+    },
+    "src/vendor/asio/asio/include/asio/detail/object_pool.hpp": {
+      "upstream_sha256": "d09efcbd118c6ed1b54607e89d8a6e76b8554574db530d9d82b9d582f3754d85",
+      "bundled_sha256": "d09efcbd118c6ed1b54607e89d8a6e76b8554574db530d9d82b9d582f3754d85"
+    },
+    "src/vendor/asio/asio/include/asio/detail/null_global.hpp": {
+      "upstream_sha256": "6a2a4db82784c75a1ae61e657d60b46349a46e87da4ce506c26e0c66214e3946",
+      "bundled_sha256": "6a2a4db82784c75a1ae61e657d60b46349a46e87da4ce506c26e0c66214e3946"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_socket_connect_op.hpp": {
+      "upstream_sha256": "a73d3fea5e14f1b8dec86a6ff7fbba56b447239aba7e462154ab1596e1516f9c",
+      "bundled_sha256": "a73d3fea5e14f1b8dec86a6ff7fbba56b447239aba7e462154ab1596e1516f9c"
+    },
+    "src/vendor/asio/asio/include/asio/detail/strand_service.hpp": {
+      "upstream_sha256": "d8e9154862be604d4823ce327554ba4903b453930ac16ec94b998381df049267",
+      "bundled_sha256": "d8e9154862be604d4823ce327554ba4903b453930ac16ec94b998381df049267"
+    },
+    "src/vendor/asio/asio/include/asio/detail/scoped_ptr.hpp": {
+      "upstream_sha256": "57005d1b4cf87c31d0d8a4202cbf40be53e31dc9bb15c91a7e77da11f42992e0",
+      "bundled_sha256": "57005d1b4cf87c31d0d8a4202cbf40be53e31dc9bb15c91a7e77da11f42992e0"
+    },
+    "src/vendor/asio/asio/include/asio/detail/io_uring_socket_accept_op.hpp": {
+      "upstream_sha256": "2fbb3fc5073844b4c8790a7225651e79aeb6b76184759a12b651d1c0111d5ddb",
+      "bundled_sha256": "2fbb3fc5073844b4c8790a7225651e79aeb6b76184759a12b651d1c0111d5ddb"
+    },
+    "src/vendor/asio/asio/include/asio/detail/winrt_timer_scheduler.hpp": {
+      "upstream_sha256": "5b1fae2af3d273a70af417c5840d077fc356a30d02d903c9a35e19e88419f755",
+      "bundled_sha256": "5b1fae2af3d273a70af417c5840d077fc356a30d02d903c9a35e19e88419f755"
+    },
+    "src/vendor/asio/asio/include/asio/detail/dependent_type.hpp": {
+      "upstream_sha256": "d4c7cd80b0baabcb026493f0626156f9e0b8b545f98d98dc11cdbca71438e71d",
+      "bundled_sha256": "d4c7cd80b0baabcb026493f0626156f9e0b8b545f98d98dc11cdbca71438e71d"
+    },
+    "src/vendor/asio/asio/include/asio/detail/executor_op.hpp": {
+      "upstream_sha256": "bcf8cc0d9d4c764cb01cd4550a93682f54f87373f7921cf3b8abda3ffcc8d227",
+      "bundled_sha256": "bcf8cc0d9d4c764cb01cd4550a93682f54f87373f7921cf3b8abda3ffcc8d227"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactive_socket_service.hpp": {
+      "upstream_sha256": "bab7054a444150452a636c1519b5dbf30b6a20f2331d352cebecea20c932abc2",
+      "bundled_sha256": "bab7054a444150452a636c1519b5dbf30b6a20f2331d352cebecea20c932abc2"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactive_socket_recvfrom_op.hpp": {
+      "upstream_sha256": "a3946e0a7efaa0946e1e03cdeb714ee99718afe2abf31bb2760990414da3f7ab",
+      "bundled_sha256": "a3946e0a7efaa0946e1e03cdeb714ee99718afe2abf31bb2760990414da3f7ab"
+    },
+    "src/vendor/asio/asio/include/asio/detail/std_thread.hpp": {
+      "upstream_sha256": "f68f73830ff68ab64eed12612f5192db9247d2b609d696aa702a947efe8c05e3",
+      "bundled_sha256": "f68f73830ff68ab64eed12612f5192db9247d2b609d696aa702a947efe8c05e3"
+    },
+    "src/vendor/asio/asio/include/asio/detail/resolver_service.hpp": {
+      "upstream_sha256": "93b1ff997fc6d50498ed9b9525877d0a1bfc11635d8b6698c28b82e080db1f73",
+      "bundled_sha256": "93b1ff997fc6d50498ed9b9525877d0a1bfc11635d8b6698c28b82e080db1f73"
+    },
+    "src/vendor/asio/asio/include/asio/detail/null_fenced_block.hpp": {
+      "upstream_sha256": "2038e5fe97c56774509988c1a68206626220f472b724830fde9c5c4c17c28f37",
+      "bundled_sha256": "2038e5fe97c56774509988c1a68206626220f472b724830fde9c5c4c17c28f37"
+    },
+    "src/vendor/asio/asio/include/asio/detail/timer_queue_base.hpp": {
+      "upstream_sha256": "3ba8227e0fe41a6fc1114fa9ec5c0c827ed38df744652082f0545ee5d3409db9",
+      "bundled_sha256": "3ba8227e0fe41a6fc1114fa9ec5c0c827ed38df744652082f0545ee5d3409db9"
+    },
+    "src/vendor/asio/asio/include/asio/detail/old_win_sdk_compat.hpp": {
+      "upstream_sha256": "b4585269078fbb6ab0c7d2aa677e17be5821e9404af8aa86fa9689cd967d352f",
+      "bundled_sha256": "b4585269078fbb6ab0c7d2aa677e17be5821e9404af8aa86fa9689cd967d352f"
+    },
+    "src/vendor/asio/asio/include/asio/detail/timer_queue.hpp": {
+      "upstream_sha256": "07b10a02c44ee428b2eba2e9bb6a0fe5099bf59971e76b354994306a958ac63e",
+      "bundled_sha256": "07b10a02c44ee428b2eba2e9bb6a0fe5099bf59971e76b354994306a958ac63e"
+    },
+    "src/vendor/asio/asio/include/asio/detail/initiate_post.hpp": {
+      "upstream_sha256": "39876ebdbb61b019802d69775a74b69a43f3bb182906c4176ca8d0486b95e61b",
+      "bundled_sha256": "39876ebdbb61b019802d69775a74b69a43f3bb182906c4176ca8d0486b95e61b"
+    },
+    "src/vendor/asio/asio/include/asio/detail/winsock_init.hpp": {
+      "upstream_sha256": "4145b75a5ff67826e6626e1cc9317420b7fe9a331297762e31753b627f058b0e",
+      "bundled_sha256": "4145b75a5ff67826e6626e1cc9317420b7fe9a331297762e31753b627f058b0e"
+    },
+    "src/vendor/asio/asio/include/asio/detail/thread_context.hpp": {
+      "upstream_sha256": "e36fdecffcac0e7d5fb32c4b96d38b724f0113667316d5b64f6933a786a17f23",
+      "bundled_sha256": "e36fdecffcac0e7d5fb32c4b96d38b724f0113667316d5b64f6933a786a17f23"
+    },
+    "src/vendor/asio/asio/include/asio/detail/reactive_socket_service_base.hpp": {
+      "upstream_sha256": "c4284006187d9a4650f8280ad2a759e0dc9f4d8d1ea4d5f74df3840d38a7acf6",
+      "bundled_sha256": "c4284006187d9a4650f8280ad2a759e0dc9f4d8d1ea4d5f74df3840d38a7acf6"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_serial_port_service.hpp": {
+      "upstream_sha256": "2803d81cec591fd8d23e1db46a17c72d0b515b336ccef785a5a8ce4714969dda",
+      "bundled_sha256": "2803d81cec591fd8d23e1db46a17c72d0b515b336ccef785a5a8ce4714969dda"
+    },
+    "src/vendor/asio/asio/include/asio/detail/win_iocp_overlapped_op.hpp": {
+      "upstream_sha256": "c7aac4e8a4899bacc51717d614a40e64623a468676bb8dabe4716b756a5c0bb7",
+      "bundled_sha256": "c7aac4e8a4899bacc51717d614a40e64623a468676bb8dabe4716b756a5c0bb7"
+    },
+    "src/vendor/asio/asio/include/asio/detail/std_static_mutex.hpp": {
+      "upstream_sha256": "ebe12a6b7b68fb9da1493e48e5779f3ab93a100147e7204f44c4401564242eef",
+      "bundled_sha256": "ebe12a6b7b68fb9da1493e48e5779f3ab93a100147e7204f44c4401564242eef"
+    },
+    "src/vendor/asio/asio/include/asio/ts/netfwd.hpp": {
+      "upstream_sha256": "b27b21904884f8d075b497848071e8392d8bbe3869fb5675fc8bbf60653d1254",
+      "bundled_sha256": "b27b21904884f8d075b497848071e8392d8bbe3869fb5675fc8bbf60653d1254"
+    },
+    "src/vendor/asio/asio/include/asio/ts/timer.hpp": {
+      "upstream_sha256": "a2905a12173129b0af75c3126e12d93faa9b548025f1042ef3d06788457db179",
+      "bundled_sha256": "a2905a12173129b0af75c3126e12d93faa9b548025f1042ef3d06788457db179"
+    },
+    "src/vendor/asio/asio/include/asio/ts/io_context.hpp": {
+      "upstream_sha256": "3a9d9f6eee7b788aa581c554874e370100ac9b936a485df88a00c32ed154ba91",
+      "bundled_sha256": "3a9d9f6eee7b788aa581c554874e370100ac9b936a485df88a00c32ed154ba91"
+    },
+    "src/vendor/asio/asio/include/asio/ts/internet.hpp": {
+      "upstream_sha256": "fe15bd419d385c45d0b6e95738b9f34c84d68c406ec03b7a2737ec78e0fb0770",
+      "bundled_sha256": "fe15bd419d385c45d0b6e95738b9f34c84d68c406ec03b7a2737ec78e0fb0770"
+    },
+    "src/vendor/asio/asio/include/asio/ts/net.hpp": {
+      "upstream_sha256": "408a7c2ad0022dca038aa8b53760d2bc73e2a7a19f5711b0c23c7cdfd6dfc6f3",
+      "bundled_sha256": "408a7c2ad0022dca038aa8b53760d2bc73e2a7a19f5711b0c23c7cdfd6dfc6f3"
+    },
+    "src/vendor/asio/asio/include/asio/ts/buffer.hpp": {
+      "upstream_sha256": "97fc06463d5076b1682ed66a318c076254b9c4f24850f7e86c5858a65058d8da",
+      "bundled_sha256": "97fc06463d5076b1682ed66a318c076254b9c4f24850f7e86c5858a65058d8da"
+    },
+    "src/vendor/asio/asio/include/asio/ts/executor.hpp": {
+      "upstream_sha256": "ef904d562dbcd2001a75d32dc4d13fc1af7658d613e80c3416bb318f896eb5e3",
+      "bundled_sha256": "ef904d562dbcd2001a75d32dc4d13fc1af7658d613e80c3416bb318f896eb5e3"
+    },
+    "src/vendor/asio/asio/include/asio/ts/socket.hpp": {
+      "upstream_sha256": "628758015b1370dc34c0a89ca367be9c8fea5ffa779520a307bff8f9b26c77c1",
+      "bundled_sha256": "628758015b1370dc34c0a89ca367be9c8fea5ffa779520a307bff8f9b26c77c1"
+    },
+    "src/vendor/asio/asio/include/asio/posix/stream_descriptor.hpp": {
+      "upstream_sha256": "a7f63fb5d0cc70088ab4e2d65d3e6c7f0d0e809f7630ac4ab20c1c525c8111f3",
+      "bundled_sha256": "a7f63fb5d0cc70088ab4e2d65d3e6c7f0d0e809f7630ac4ab20c1c525c8111f3"
+    },
+    "src/vendor/asio/asio/include/asio/posix/basic_stream_descriptor.hpp": {
+      "upstream_sha256": "b5d80334441ebc1f6128682cc6bf0c37b9de0f51207b741739b207f1e39d93ca",
+      "bundled_sha256": "b5d80334441ebc1f6128682cc6bf0c37b9de0f51207b741739b207f1e39d93ca"
+    },
+    "src/vendor/asio/asio/include/asio/posix/descriptor_base.hpp": {
+      "upstream_sha256": "06d817613e750c1238f23ad55d6b280e0acdb1d5f2d5817b0b3191232309f601",
+      "bundled_sha256": "06d817613e750c1238f23ad55d6b280e0acdb1d5f2d5817b0b3191232309f601"
+    },
+    "src/vendor/asio/asio/include/asio/posix/descriptor.hpp": {
+      "upstream_sha256": "cdae8ca935ea33572e70cc968c6ef98a02ba7423d49523d56441b2daa60d0e8c",
+      "bundled_sha256": "cdae8ca935ea33572e70cc968c6ef98a02ba7423d49523d56441b2daa60d0e8c"
+    },
+    "src/vendor/asio/asio/include/asio/posix/basic_descriptor.hpp": {
+      "upstream_sha256": "7f4810fd5202dc95984195c366465acd1116dd961f47db7202461ef39de50682",
+      "bundled_sha256": "7f4810fd5202dc95984195c366465acd1116dd961f47db7202461ef39de50682"
+    },
+    "src/vendor/asio/asio/include/asio/generic/detail/endpoint.hpp": {
+      "upstream_sha256": "063a545dae62bfeaac8b3d7d814de48a3671eeaf5f5d23c0cc7c8c3750c3ab02",
+      "bundled_sha256": "063a545dae62bfeaac8b3d7d814de48a3671eeaf5f5d23c0cc7c8c3750c3ab02"
+    },
+    "src/vendor/asio/asio/include/asio/generic/detail/impl/endpoint.ipp": {
+      "upstream_sha256": "edf2d42ea9daf4634b5292d9f8d8b38ae00b9789a440e57503014c855870aa39",
+      "bundled_sha256": "edf2d42ea9daf4634b5292d9f8d8b38ae00b9789a440e57503014c855870aa39"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/impl/host_name_verification.ipp": {
+      "upstream_sha256": "82788a9c19f39d814bb25f6e3712f48b88822cbeeccca6d87327dfe5e7a6c12e",
+      "bundled_sha256": "82788a9c19f39d814bb25f6e3712f48b88822cbeeccca6d87327dfe5e7a6c12e"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/impl/error.ipp": {
+      "upstream_sha256": "2cc22abace84e58761f4cbecb1f1678c9fd0676a343d7a7db855e970d7225968",
+      "bundled_sha256": "2cc22abace84e58761f4cbecb1f1678c9fd0676a343d7a7db855e970d7225968"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/impl/rfc2818_verification.ipp": {
+      "upstream_sha256": "1efb1c154974a8f03569c786fe5dfb1e48459eaee439ead09310fa233bc1467e",
+      "bundled_sha256": "1efb1c154974a8f03569c786fe5dfb1e48459eaee439ead09310fa233bc1467e"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/impl/context.hpp": {
+      "upstream_sha256": "43cdbad697b5d9d85e9a93e7010a1ae480c9055ef3b27419785ccf4808ba8c0b",
+      "bundled_sha256": "43cdbad697b5d9d85e9a93e7010a1ae480c9055ef3b27419785ccf4808ba8c0b"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/impl/context.ipp": {
+      "upstream_sha256": "31fccd0857edbe9f7bf5344631b6d9064589be48f5eba88d568f4b05d827bdfe",
+      "bundled_sha256": "31fccd0857edbe9f7bf5344631b6d9064589be48f5eba88d568f4b05d827bdfe"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/impl/src.hpp": {
+      "upstream_sha256": "111c79f43a5cf796bd998f1080be4d5f1362bc2e28a871ea02c579e74c0933fa",
+      "bundled_sha256": "111c79f43a5cf796bd998f1080be4d5f1362bc2e28a871ea02c579e74c0933fa"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/write_op.hpp": {
+      "upstream_sha256": "921fc70f5a1f93a08bcfb9ce56945d5a45ab664c9b05a7452aebbb038ee0b6e9",
+      "bundled_sha256": "921fc70f5a1f93a08bcfb9ce56945d5a45ab664c9b05a7452aebbb038ee0b6e9"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/engine.hpp": {
+      "upstream_sha256": "6c7e4ca5a89cbb9691da746d3aca79ba429bc9d1780173b9d96837b0f06b7f5d",
+      "bundled_sha256": "6c7e4ca5a89cbb9691da746d3aca79ba429bc9d1780173b9d96837b0f06b7f5d"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/stream_core.hpp": {
+      "upstream_sha256": "9d7d3a9cf337e6489e3b167893aa616c4e28f1d7d69bd79de099ff234c9305fa",
+      "bundled_sha256": "9d7d3a9cf337e6489e3b167893aa616c4e28f1d7d69bd79de099ff234c9305fa"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/shutdown_op.hpp": {
+      "upstream_sha256": "ed5a3be80505feeb72ba0ddb34002d527d907d3699a06842613763901a048515",
+      "bundled_sha256": "ed5a3be80505feeb72ba0ddb34002d527d907d3699a06842613763901a048515"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/openssl_types.hpp": {
+      "upstream_sha256": "1ee31d51a8c3070a6a91193abacf8025190e1e157e2be02d635e2a70fc372849",
+      "bundled_sha256": "1ee31d51a8c3070a6a91193abacf8025190e1e157e2be02d635e2a70fc372849"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/read_op.hpp": {
+      "upstream_sha256": "3e185314cd6af1eb6ee04a71fe16425be0bfca2034094ad53c5efb4435aeaf22",
+      "bundled_sha256": "3e185314cd6af1eb6ee04a71fe16425be0bfca2034094ad53c5efb4435aeaf22"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/verify_callback.hpp": {
+      "upstream_sha256": "bcb551b2e8bfef6c202817d75e770e29ed19eefb669ce7d7c9b5ea0be5540e80",
+      "bundled_sha256": "bcb551b2e8bfef6c202817d75e770e29ed19eefb669ce7d7c9b5ea0be5540e80"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/buffered_handshake_op.hpp": {
+      "upstream_sha256": "af66dac1da427017da9616885315edd3bf41ece51391af42f38e2c689c306a23",
+      "bundled_sha256": "af66dac1da427017da9616885315edd3bf41ece51391af42f38e2c689c306a23"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/handshake_op.hpp": {
+      "upstream_sha256": "d3895cb68c1a352420edb33840ded8878bc094cc07934c861bc2e848a3ca4e0a",
+      "bundled_sha256": "d3895cb68c1a352420edb33840ded8878bc094cc07934c861bc2e848a3ca4e0a"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/password_callback.hpp": {
+      "upstream_sha256": "e66c8ae47d7e00ab3dbda5cb3d3423d861a9986650feed483604000beabbf206",
+      "bundled_sha256": "e66c8ae47d7e00ab3dbda5cb3d3423d861a9986650feed483604000beabbf206"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/openssl_init.hpp": {
+      "upstream_sha256": "2fd0e62e8639b68b077f102d084d4fc543a91abbdbe1f2514e49842a10c3aef6",
+      "bundled_sha256": "2fd0e62e8639b68b077f102d084d4fc543a91abbdbe1f2514e49842a10c3aef6"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/io.hpp": {
+      "upstream_sha256": "c5275482efe2905d18bad8f6c160f28c50df5d020d5770352b0f8661c22aea04",
+      "bundled_sha256": "c5275482efe2905d18bad8f6c160f28c50df5d020d5770352b0f8661c22aea04"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/impl/engine.ipp": {
+      "upstream_sha256": "1d49177caa9878669ac7fd3c3db8bafc1364483a5056a9168ed3654c2180626c",
+      "bundled_sha256": "1d49177caa9878669ac7fd3c3db8bafc1364483a5056a9168ed3654c2180626c"
+    },
+    "src/vendor/asio/asio/include/asio/ssl/detail/impl/openssl_init.ipp": {
+      "upstream_sha256": "6dc8e6754e4786f630869e5aff8eca8cd4633f92f84f7a5f076e0d31bb7a91be",
+      "bundled_sha256": "6dc8e6754e4786f630869e5aff8eca8cd4633f92f84f7a5f076e0d31bb7a91be"
+    },
+    "src/vendor/asio/asio/include/asio/ip/impl/address_v4.hpp": {
+      "upstream_sha256": "e174274840292eddeb235b8fa311176e232ca1154fa6a3e3bafd7f8c408fd95a",
+      "bundled_sha256": "e174274840292eddeb235b8fa311176e232ca1154fa6a3e3bafd7f8c408fd95a"
+    },
+    "src/vendor/asio/asio/include/asio/ip/impl/network_v4.ipp": {
+      "upstream_sha256": "49d9b3ff6be1412056aac887acd4b25ae5ab67585ac15ae5b22f77227d830123",
+      "bundled_sha256": "49d9b3ff6be1412056aac887acd4b25ae5ab67585ac15ae5b22f77227d830123"
+    },
+    "src/vendor/asio/asio/include/asio/ip/impl/address_v6.ipp": {
+      "upstream_sha256": "18d1c07d16b6878695ef76c0c621865ef54d8f4c555ec825710c45c27ec9464e",
+      "bundled_sha256": "18d1c07d16b6878695ef76c0c621865ef54d8f4c555ec825710c45c27ec9464e"
+    },
+    "src/vendor/asio/asio/include/asio/ip/impl/network_v6.ipp": {
+      "upstream_sha256": "407497768f74206243783d0a37f305e9f175fa5e525583998191bf6f3b12d4f8",
+      "bundled_sha256": "407497768f74206243783d0a37f305e9f175fa5e525583998191bf6f3b12d4f8"
+    },
+    "src/vendor/asio/asio/include/asio/ip/impl/network_v4.hpp": {
+      "upstream_sha256": "a73d9aaa64fa2c871ee23ea653f4db82f3a5ee510f8d65bd02bd4aa4650a66f1",
+      "bundled_sha256": "a73d9aaa64fa2c871ee23ea653f4db82f3a5ee510f8d65bd02bd4aa4650a66f1"
+    },
+    "src/vendor/asio/asio/include/asio/ip/impl/address.ipp": {
+      "upstream_sha256": "d1de51f86e75e0971628e71a34f18d30e9b67fb68c0cd9405dbaf71e60af9759",
+      "bundled_sha256": "d1de51f86e75e0971628e71a34f18d30e9b67fb68c0cd9405dbaf71e60af9759"
+    },
+    "src/vendor/asio/asio/include/asio/ip/impl/address_v6.hpp": {
+      "upstream_sha256": "533fb2e6c5bc8cc5eab61ca50878008c13738c5bd1ad8fadfb931b40ffd4b9ba",
+      "bundled_sha256": "533fb2e6c5bc8cc5eab61ca50878008c13738c5bd1ad8fadfb931b40ffd4b9ba"
+    },
+    "src/vendor/asio/asio/include/asio/ip/impl/basic_endpoint.hpp": {
+      "upstream_sha256": "1ae52a46805b5ea6a34325fe7cc44ea813396e180257326ff30361ebb836180d",
+      "bundled_sha256": "1ae52a46805b5ea6a34325fe7cc44ea813396e180257326ff30361ebb836180d"
+    },
+    "src/vendor/asio/asio/include/asio/ip/impl/address.hpp": {
+      "upstream_sha256": "535eaa1475dbc7f77f5b92be11956b160371f457453b85c269fd35b5f0845033",
+      "bundled_sha256": "535eaa1475dbc7f77f5b92be11956b160371f457453b85c269fd35b5f0845033"
+    },
+    "src/vendor/asio/asio/include/asio/ip/impl/address_v4.ipp": {
+      "upstream_sha256": "e9bcea8785332146e03dfd9f0ca6b67b10a5a257b26c328fa2442ff26edbdf46",
+      "bundled_sha256": "e9bcea8785332146e03dfd9f0ca6b67b10a5a257b26c328fa2442ff26edbdf46"
+    },
+    "src/vendor/asio/asio/include/asio/ip/impl/network_v6.hpp": {
+      "upstream_sha256": "783c44ad4b156d65bb638bf12d12ee55dadaaf4d65cc75e744ea67a23d76ad2f",
+      "bundled_sha256": "783c44ad4b156d65bb638bf12d12ee55dadaaf4d65cc75e744ea67a23d76ad2f"
+    },
+    "src/vendor/asio/asio/include/asio/ip/impl/host_name.ipp": {
+      "upstream_sha256": "6a5463f896487b6c2d73b13de2a5831ae322ef7a339c9e61de8b47fcc467382b",
+      "bundled_sha256": "6a5463f896487b6c2d73b13de2a5831ae322ef7a339c9e61de8b47fcc467382b"
+    },
+    "src/vendor/asio/asio/include/asio/ip/detail/socket_option.hpp": {
+      "upstream_sha256": "aad73f61db6c8b28eac1ba21164ea84b91ebe07136f7219b6a501252db3c3fba",
+      "bundled_sha256": "aad73f61db6c8b28eac1ba21164ea84b91ebe07136f7219b6a501252db3c3fba"
+    },
+    "src/vendor/asio/asio/include/asio/ip/detail/endpoint.hpp": {
+      "upstream_sha256": "4c8fd9e94c8c3a07fe6b3d005b00890b25ce7991dadf1749916d0b3770008194",
+      "bundled_sha256": "4c8fd9e94c8c3a07fe6b3d005b00890b25ce7991dadf1749916d0b3770008194"
+    },
+    "src/vendor/asio/asio/include/asio/ip/detail/impl/endpoint.ipp": {
+      "upstream_sha256": "d2a74f2cccf46843fb151ba8b3e38446e15a224c128da9c41d85e6f52afd0c34",
+      "bundled_sha256": "d2a74f2cccf46843fb151ba8b3e38446e15a224c128da9c41d85e6f52afd0c34"
+    },
+    "src/vendor/asio/asio/include/asio/execution/impl/bad_executor.ipp": {
+      "upstream_sha256": "5afffaf7a177cbaab92f36f0d37d39152b6563e62a005e2a21e5f97a15e843ae",
+      "bundled_sha256": "5afffaf7a177cbaab92f36f0d37d39152b6563e62a005e2a21e5f97a15e843ae"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/impl/use_promise.hpp": {
+      "upstream_sha256": "dc5743e461bad1e01e931a007f3ff4f42b531f7b6230631d54739b6aa9fcfd7e",
+      "bundled_sha256": "dc5743e461bad1e01e931a007f3ff4f42b531f7b6230631d54739b6aa9fcfd7e"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/impl/use_coro.hpp": {
+      "upstream_sha256": "3f0194770218a68b8bafcce644a79e3f7fa5b4ae5d91f2dcd09222f282edea02",
+      "bundled_sha256": "3f0194770218a68b8bafcce644a79e3f7fa5b4ae5d91f2dcd09222f282edea02"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/impl/channel_error.ipp": {
+      "upstream_sha256": "2510b388e78b19f8d0665dbad31380fd3f1a90be0a2a390a79909a7b9fbb74c3",
+      "bundled_sha256": "2510b388e78b19f8d0665dbad31380fd3f1a90be0a2a390a79909a7b9fbb74c3"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/impl/coro.hpp": {
+      "upstream_sha256": "ade43ee9f133c185feb8f7e692fb97391730999f84b5c2688c64d5c7572b8f3d",
+      "bundled_sha256": "ade43ee9f133c185feb8f7e692fb97391730999f84b5c2688c64d5c7572b8f3d"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/impl/parallel_group.hpp": {
+      "upstream_sha256": "972ee99f6010b5005921b699c273b202204512a3f6d90a506c0c70decc47170f",
+      "bundled_sha256": "972ee99f6010b5005921b699c273b202204512a3f6d90a506c0c70decc47170f"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/impl/promise.hpp": {
+      "upstream_sha256": "36f02553965dfbff78980db8a1905526f3fc1b5d4285b848f419534a8173095a",
+      "bundled_sha256": "36f02553965dfbff78980db8a1905526f3fc1b5d4285b848f419534a8173095a"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/impl/as_single.hpp": {
+      "upstream_sha256": "2be87a386d820fc4cc5e446ad1f7efde4737085a0a440834f7f04b3e6af3fcd0",
+      "bundled_sha256": "2be87a386d820fc4cc5e446ad1f7efde4737085a0a440834f7f04b3e6af3fcd0"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/impl/co_composed.hpp": {
+      "upstream_sha256": "8c095ede09798342110b076c92edd869e7abab0af21f1606d3118ab8fc073476",
+      "bundled_sha256": "8c095ede09798342110b076c92edd869e7abab0af21f1606d3118ab8fc073476"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/detail/partial_promise.hpp": {
+      "upstream_sha256": "3514195a67571d50eabe155da0fa90245a5beddcf184e3c7ce349defbf5427cf",
+      "bundled_sha256": "3514195a67571d50eabe155da0fa90245a5beddcf184e3c7ce349defbf5427cf"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/detail/channel_receive_op.hpp": {
+      "upstream_sha256": "fd188adc4f71792a627d39d6870c1cd4976ab8f591ee73562e5eb21258991ffb",
+      "bundled_sha256": "fd188adc4f71792a627d39d6870c1cd4976ab8f591ee73562e5eb21258991ffb"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/detail/channel_operation.hpp": {
+      "upstream_sha256": "a6e2e8039b9f4fa3edfba12ff888a7d1429e2fafe8e9b05fcfe3b50c5c5690c4",
+      "bundled_sha256": "a6e2e8039b9f4fa3edfba12ff888a7d1429e2fafe8e9b05fcfe3b50c5c5690c4"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/detail/channel_send_functions.hpp": {
+      "upstream_sha256": "05c96a9d3372bdd92b1284a2945802140940519c4e0909ddd5480cf1a9709731",
+      "bundled_sha256": "05c96a9d3372bdd92b1284a2945802140940519c4e0909ddd5480cf1a9709731"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/detail/coro_promise_allocator.hpp": {
+      "upstream_sha256": "c56ae3123459f8dabe7b3625c859ae33fcc944f374da164f3573666700d2a670",
+      "bundled_sha256": "c56ae3123459f8dabe7b3625c859ae33fcc944f374da164f3573666700d2a670"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/detail/channel_handler.hpp": {
+      "upstream_sha256": "671d962fe87fae90f9aa2e53345996beedcd9fa1b24e1b78eae255958fd218ca",
+      "bundled_sha256": "671d962fe87fae90f9aa2e53345996beedcd9fa1b24e1b78eae255958fd218ca"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/detail/channel_service.hpp": {
+      "upstream_sha256": "4140ed25b98e54c705452d6a528ddd8d6470d5a5ce47108846674645bc817373",
+      "bundled_sha256": "4140ed25b98e54c705452d6a528ddd8d6470d5a5ce47108846674645bc817373"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/detail/channel_send_op.hpp": {
+      "upstream_sha256": "5c67f0152a00c9360e4ef22d8ca2de049331d9d2016314f32bbed6b8b6a7c3e3",
+      "bundled_sha256": "5c67f0152a00c9360e4ef22d8ca2de049331d9d2016314f32bbed6b8b6a7c3e3"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/detail/coro_completion_handler.hpp": {
+      "upstream_sha256": "a8428b4f093e8a891a3ae40f2e7a95320f9b4c63011643ca579f853cec2015e2",
+      "bundled_sha256": "a8428b4f093e8a891a3ae40f2e7a95320f9b4c63011643ca579f853cec2015e2"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/detail/channel_message.hpp": {
+      "upstream_sha256": "7b40e78556d7d57971e4e6d93f69198adda4a88cb40602f0db7947cad5e60462",
+      "bundled_sha256": "7b40e78556d7d57971e4e6d93f69198adda4a88cb40602f0db7947cad5e60462"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/detail/has_signature.hpp": {
+      "upstream_sha256": "043a5cd64ae994d6481fdb7d7f65b1d008aab4aa014ca12d814a35c9328fed25",
+      "bundled_sha256": "043a5cd64ae994d6481fdb7d7f65b1d008aab4aa014ca12d814a35c9328fed25"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/detail/channel_payload.hpp": {
+      "upstream_sha256": "96e75acf84b219d966c31c4bf8a65dbbb40397f5d256890fa5271a086e5c5950",
+      "bundled_sha256": "96e75acf84b219d966c31c4bf8a65dbbb40397f5d256890fa5271a086e5c5950"
+    },
+    "src/vendor/asio/asio/include/asio/experimental/detail/impl/channel_service.hpp": {
+      "upstream_sha256": "76c122faf0118ffda76cfc12a3f26ca342c8a50f9c1fbabe0a22d754aeb01baa",
+      "bundled_sha256": "76c122faf0118ffda76cfc12a3f26ca342c8a50f9c1fbabe0a22d754aeb01baa"
+    },
+    "src/vendor/asio/asio/include/asio/local/detail/endpoint.hpp": {
+      "upstream_sha256": "c0b7b6ab259512ed3cdf2f96834e4fbc8179c02221e9496d036addd9faaf9b22",
+      "bundled_sha256": "c0b7b6ab259512ed3cdf2f96834e4fbc8179c02221e9496d036addd9faaf9b22"
+    },
+    "src/vendor/asio/asio/include/asio/local/detail/impl/endpoint.ipp": {
+      "upstream_sha256": "40ee39aece0de0b603694eaed881cd465840f1d77b67a14a94d936cd3a9d99bc",
+      "bundled_sha256": "40ee39aece0de0b603694eaed881cd465840f1d77b67a14a94d936cd3a9d99bc"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/strand_executor_service.ipp": {
+      "upstream_sha256": "cf3907175b3f044645dab893e741973d33022e57e6472fef0780007de8fceb55",
+      "bundled_sha256": "cf3907175b3f044645dab893e741973d33022e57e6472fef0780007de8fceb55"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/kqueue_reactor.ipp": {
+      "upstream_sha256": "473ab3244b04969f964e0197e0c8be60bc874c32a5bdb9e358da4adf4f2c7918",
+      "bundled_sha256": "473ab3244b04969f964e0197e0c8be60bc874c32a5bdb9e358da4adf4f2c7918"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/service_registry.ipp": {
+      "upstream_sha256": "6642f063268b7a6daee54b25c8f291d1aa2371748a6fc8017959b89063336320",
+      "bundled_sha256": "6642f063268b7a6daee54b25c8f291d1aa2371748a6fc8017959b89063336320"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/win_mutex.ipp": {
+      "upstream_sha256": "6630a0a0e3c6c6a4ecaae095453855199346a5f24af3f9e3337042abd42f3010",
+      "bundled_sha256": "6630a0a0e3c6c6a4ecaae095453855199346a5f24af3f9e3337042abd42f3010"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/posix_event.ipp": {
+      "upstream_sha256": "700749ce5df90c7c7a30aaf849ccdf150b16a0c8adf1a466574ebafb5b3e9ba7",
+      "bundled_sha256": "700749ce5df90c7c7a30aaf849ccdf150b16a0c8adf1a466574ebafb5b3e9ba7"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/io_uring_service.ipp": {
+      "upstream_sha256": "fdc2b476f6852528d2ced11c57c071a7700fd2e35626c8fe989c69a51a9f7a76",
+      "bundled_sha256": "fdc2b476f6852528d2ced11c57c071a7700fd2e35626c8fe989c69a51a9f7a76"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/winsock_init.ipp": {
+      "upstream_sha256": "8c97752252b2eb7dc937603f2e4369469cea3f7d84a8fb0589b66657f155eb4a",
+      "bundled_sha256": "8c97752252b2eb7dc937603f2e4369469cea3f7d84a8fb0589b66657f155eb4a"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/win_iocp_socket_service_base.ipp": {
+      "upstream_sha256": "958b397ddee2cf82b9c1777f09663d7128bbe1181cde71584858ab1cd6ed6f0b",
+      "bundled_sha256": "958b397ddee2cf82b9c1777f09663d7128bbe1181cde71584858ab1cd6ed6f0b"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/thread_context.ipp": {
+      "upstream_sha256": "798c059ebbe76c80b20483ac6fb16bd862b26d5a5c574d8e95047f7938c0196f",
+      "bundled_sha256": "798c059ebbe76c80b20483ac6fb16bd862b26d5a5c574d8e95047f7938c0196f"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/posix_thread.ipp": {
+      "upstream_sha256": "311802072f713791507ad56bee2ad18c65add5b657a72e0cb5cbf00cd30ccb8a",
+      "bundled_sha256": "311802072f713791507ad56bee2ad18c65add5b657a72e0cb5cbf00cd30ccb8a"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/win_iocp_io_context.hpp": {
+      "upstream_sha256": "e5dc4e6532a4b92a2c1f10b9c955fa0d4fa8b7fbc3dbe2bb500704ade648715e",
+      "bundled_sha256": "e5dc4e6532a4b92a2c1f10b9c955fa0d4fa8b7fbc3dbe2bb500704ade648715e"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/kqueue_reactor.hpp": {
+      "upstream_sha256": "1ca6cf43960cf5919b2ce63fc754173057d9a40a9d089b7accd611913a2a3fe6",
+      "bundled_sha256": "1ca6cf43960cf5919b2ce63fc754173057d9a40a9d089b7accd611913a2a3fe6"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/posix_tss_ptr.ipp": {
+      "upstream_sha256": "3c63a6a354e583f70ec66f61c65fe0bf046a6e755f66c22100e6ce12dafac253",
+      "bundled_sha256": "3c63a6a354e583f70ec66f61c65fe0bf046a6e755f66c22100e6ce12dafac253"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/service_registry.hpp": {
+      "upstream_sha256": "7b69b4be1287e5678f89e57bd06eb75170a07956c8af7e25cab87242df9c02ac",
+      "bundled_sha256": "7b69b4be1287e5678f89e57bd06eb75170a07956c8af7e25cab87242df9c02ac"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/throw_error.ipp": {
+      "upstream_sha256": "c9496414c78d9cb81d1357a0c2e4946f30ac3ce4f17c0a2036e58638dfa01ce7",
+      "bundled_sha256": "c9496414c78d9cb81d1357a0c2e4946f30ac3ce4f17c0a2036e58638dfa01ce7"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/socket_select_interrupter.ipp": {
+      "upstream_sha256": "536a24a9648f036c51a97f6131142529f64be8ac0f83668f71e38a3ddc41ffe1",
+      "bundled_sha256": "536a24a9648f036c51a97f6131142529f64be8ac0f83668f71e38a3ddc41ffe1"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/socket_ops.ipp": {
+      "upstream_sha256": "11afe749add6c87d0cc0ded0932031ebf6d0ab76f04efacdfbf44f7991a5de1e",
+      "bundled_sha256": "11afe749add6c87d0cc0ded0932031ebf6d0ab76f04efacdfbf44f7991a5de1e"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/select_reactor.hpp": {
+      "upstream_sha256": "8aa95811752017a17d6b81077b9dcb77774a5f11ffda844353a53f1d582eb9fe",
+      "bundled_sha256": "8aa95811752017a17d6b81077b9dcb77774a5f11ffda844353a53f1d582eb9fe"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/descriptor_ops.ipp": {
+      "upstream_sha256": "a5e37056c22b7e3090e98d6022b8545bf6e8c3bdd55a87f8561a7bfd54e9a58b",
+      "bundled_sha256": "a5e37056c22b7e3090e98d6022b8545bf6e8c3bdd55a87f8561a7bfd54e9a58b"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/dev_poll_reactor.hpp": {
+      "upstream_sha256": "cb179808b1fb9ef4c463674af3e0ed643ac5f5058a60b6f69391fa4d0efa2c6d",
+      "bundled_sha256": "cb179808b1fb9ef4c463674af3e0ed643ac5f5058a60b6f69391fa4d0efa2c6d"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/pipe_select_interrupter.ipp": {
+      "upstream_sha256": "9559d2b9ec6452f6ddd9e70c53acbef65790f0fdf8fdf17174579b3f6552eae0",
+      "bundled_sha256": "9559d2b9ec6452f6ddd9e70c53acbef65790f0fdf8fdf17174579b3f6552eae0"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/reactive_descriptor_service.ipp": {
+      "upstream_sha256": "dfe61bc72380b6d0b62739983b0dd52d364781164aa30ec71a1c4245572c9d92",
+      "bundled_sha256": "dfe61bc72380b6d0b62739983b0dd52d364781164aa30ec71a1c4245572c9d92"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/win_iocp_io_context.ipp": {
+      "upstream_sha256": "66607eb7e6187a3bd3c0f02106b3128745262663f4b93a510035cd17ff4bfb03",
+      "bundled_sha256": "66607eb7e6187a3bd3c0f02106b3128745262663f4b93a510035cd17ff4bfb03"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/null_event.ipp": {
+      "upstream_sha256": "158ebd829f1c6aa86ef819e249572ca1e5193bc5c99ee0c0b480144f7f4a64d7",
+      "bundled_sha256": "158ebd829f1c6aa86ef819e249572ca1e5193bc5c99ee0c0b480144f7f4a64d7"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/scheduler.ipp": {
+      "upstream_sha256": "e05fb6b8c152db7f678e6fd445d8720535ac4fd05d9deae4f9b5e556fb8b83a7",
+      "bundled_sha256": "e05fb6b8c152db7f678e6fd445d8720535ac4fd05d9deae4f9b5e556fb8b83a7"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/io_uring_socket_service_base.ipp": {
+      "upstream_sha256": "a9037ffac67e4c48173f3c206abe31ebf72303cd20f137177ca9c5667224546b",
+      "bundled_sha256": "a9037ffac67e4c48173f3c206abe31ebf72303cd20f137177ca9c5667224546b"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/epoll_reactor.hpp": {
+      "upstream_sha256": "48c3278d8088cdb8493538ee61466610468db2033c7a0f619bcf9a480c61a582",
+      "bundled_sha256": "48c3278d8088cdb8493538ee61466610468db2033c7a0f619bcf9a480c61a582"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/resolver_service_base.ipp": {
+      "upstream_sha256": "6f0837a074fb3e1d921ada0819b221bb364f8f0b0a933960f0d7bbe201d3a418",
+      "bundled_sha256": "6f0837a074fb3e1d921ada0819b221bb364f8f0b0a933960f0d7bbe201d3a418"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/winrt_ssocket_service_base.ipp": {
+      "upstream_sha256": "d32a36f15586e765e7ea672084662ce149ca4b6eb4fc3ab64f07b1c8b866b0f1",
+      "bundled_sha256": "d32a36f15586e765e7ea672084662ce149ca4b6eb4fc3ab64f07b1c8b866b0f1"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/timer_queue_ptime.ipp": {
+      "upstream_sha256": "c03f5e690174fe153449f7ba692ee85f34dbf5986bbda1cc800b1babf1d22c80",
+      "bundled_sha256": "c03f5e690174fe153449f7ba692ee85f34dbf5986bbda1cc800b1babf1d22c80"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/posix_mutex.ipp": {
+      "upstream_sha256": "e924f2afc0eb1a7e492f9a5d0c9b73cf680b3f2f691ec994ade53f83a28ae783",
+      "bundled_sha256": "e924f2afc0eb1a7e492f9a5d0c9b73cf680b3f2f691ec994ade53f83a28ae783"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/io_uring_descriptor_service.ipp": {
+      "upstream_sha256": "9cb005946c0cad2745fa8c110034ce4305de05628973ff27aea7cdd07c349880",
+      "bundled_sha256": "9cb005946c0cad2745fa8c110034ce4305de05628973ff27aea7cdd07c349880"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/strand_executor_service.hpp": {
+      "upstream_sha256": "ee902806a1113bbd96620e0b850045a1b5d7a6a83f6e3c2ddf34cd8e1bd151e4",
+      "bundled_sha256": "ee902806a1113bbd96620e0b850045a1b5d7a6a83f6e3c2ddf34cd8e1bd151e4"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/io_uring_service.hpp": {
+      "upstream_sha256": "3dbfb2d5c67b90e7aeefe4cfbc4a7fc6bd337ccd7bb43f5aac517894526e5562",
+      "bundled_sha256": "3dbfb2d5c67b90e7aeefe4cfbc4a7fc6bd337ccd7bb43f5aac517894526e5562"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/win_iocp_serial_port_service.ipp": {
+      "upstream_sha256": "e29d0f4dccc3d56cfca09c51b67718fc7e10653fe3dace1f9254102fb3579b15",
+      "bundled_sha256": "e29d0f4dccc3d56cfca09c51b67718fc7e10653fe3dace1f9254102fb3579b15"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/posix_serial_port_service.ipp": {
+      "upstream_sha256": "ba74f537f459a48ee5ab9b24d9d0ed412f7535a0ec7dce11e5e7987f0715ec38",
+      "bundled_sha256": "ba74f537f459a48ee5ab9b24d9d0ed412f7535a0ec7dce11e5e7987f0715ec38"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/win_iocp_handle_service.ipp": {
+      "upstream_sha256": "d97ff98e875d9946112be53816c5b57455d8149cffb8ff2e47df2b5f304896d6",
+      "bundled_sha256": "d97ff98e875d9946112be53816c5b57455d8149cffb8ff2e47df2b5f304896d6"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/io_uring_file_service.ipp": {
+      "upstream_sha256": "1df4ad945425762cbcbafa405cec806f93be216cbc54fa2a5e4ff4e46f586694",
+      "bundled_sha256": "1df4ad945425762cbcbafa405cec806f93be216cbc54fa2a5e4ff4e46f586694"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/win_event.ipp": {
+      "upstream_sha256": "0f1599889af40c15f1a48104da3112f3fbc462db52130d6aa67bc64ad87200ad",
+      "bundled_sha256": "0f1599889af40c15f1a48104da3112f3fbc462db52130d6aa67bc64ad87200ad"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/reactive_socket_service_base.ipp": {
+      "upstream_sha256": "4ee951b657473e490f9809b875a9ced1f1dbb664d8be18219f7cf6cdb547a50d",
+      "bundled_sha256": "4ee951b657473e490f9809b875a9ced1f1dbb664d8be18219f7cf6cdb547a50d"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/win_thread.ipp": {
+      "upstream_sha256": "2fd11b5f010ac988e6114057dfd097ea36e0bf79210c0d9ac6d741755d9045f3",
+      "bundled_sha256": "2fd11b5f010ac988e6114057dfd097ea36e0bf79210c0d9ac6d741755d9045f3"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/strand_service.ipp": {
+      "upstream_sha256": "7068549770c3b0cc96fce6abb9c80f3d2d78d68a5e0bec6e69a53ecaeca72812",
+      "bundled_sha256": "7068549770c3b0cc96fce6abb9c80f3d2d78d68a5e0bec6e69a53ecaeca72812"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/dev_poll_reactor.ipp": {
+      "upstream_sha256": "345a7af268853c97ac176acb0b795dd015a3364f46c8866db6fbe941324d4806",
+      "bundled_sha256": "345a7af268853c97ac176acb0b795dd015a3364f46c8866db6fbe941324d4806"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/win_static_mutex.ipp": {
+      "upstream_sha256": "36afa5ce09cb270182b9e3d31e1878ee366bbbfbe5b6c1947549d7222a675dcc",
+      "bundled_sha256": "36afa5ce09cb270182b9e3d31e1878ee366bbbfbe5b6c1947549d7222a675dcc"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/timer_queue_set.ipp": {
+      "upstream_sha256": "fe12e03b22bcf6cddd78eb781975bc6eed21191c08f7043141a0693c23713127",
+      "bundled_sha256": "fe12e03b22bcf6cddd78eb781975bc6eed21191c08f7043141a0693c23713127"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/win_tss_ptr.ipp": {
+      "upstream_sha256": "4402dd83a90fbefd45b7a7bbfd30e9146b72c1ee5c9511ef3e6a6539826462de",
+      "bundled_sha256": "4402dd83a90fbefd45b7a7bbfd30e9146b72c1ee5c9511ef3e6a6539826462de"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/winrt_timer_scheduler.ipp": {
+      "upstream_sha256": "2e72a42124daabd2a1ddaae2b7a338bdb54975c0c8c5a056d38db673e931977c",
+      "bundled_sha256": "2e72a42124daabd2a1ddaae2b7a338bdb54975c0c8c5a056d38db673e931977c"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/win_iocp_file_service.ipp": {
+      "upstream_sha256": "76a633f9e0a8dc1b0f9961325fa878fd1fb4c4baea7aeda6de865055d0788db8",
+      "bundled_sha256": "76a633f9e0a8dc1b0f9961325fa878fd1fb4c4baea7aeda6de865055d0788db8"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/signal_set_service.ipp": {
+      "upstream_sha256": "919c980b5257ead09ab8efabbaef57b67e059f80b7135d34284f54fd0cc617e1",
+      "bundled_sha256": "919c980b5257ead09ab8efabbaef57b67e059f80b7135d34284f54fd0cc617e1"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/select_reactor.ipp": {
+      "upstream_sha256": "f0a6bef19fa668751d82519ceea86b08b1f25006f882b2ca153d8fd95fce1304",
+      "bundled_sha256": "f0a6bef19fa668751d82519ceea86b08b1f25006f882b2ca153d8fd95fce1304"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/handler_tracking.ipp": {
+      "upstream_sha256": "e201dfc17cd67b7935b86805851173408c86401f2735eabd91fecccb97463313",
+      "bundled_sha256": "e201dfc17cd67b7935b86805851173408c86401f2735eabd91fecccb97463313"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/strand_service.hpp": {
+      "upstream_sha256": "853537df14c92747604b549b792c01ce052a1e0425edab0f21cc20a0587fba5a",
+      "bundled_sha256": "853537df14c92747604b549b792c01ce052a1e0425edab0f21cc20a0587fba5a"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/winrt_timer_scheduler.hpp": {
+      "upstream_sha256": "11a4c7852c9efc2f1bae514e15e87a29604daaa08b938e80a4ad95846f843fe0",
+      "bundled_sha256": "11a4c7852c9efc2f1bae514e15e87a29604daaa08b938e80a4ad95846f843fe0"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/win_object_handle_service.ipp": {
+      "upstream_sha256": "00cfd464f9b850c9f2370f778a9aa6388effcb137110f4dd8a5e5da431300923",
+      "bundled_sha256": "00cfd464f9b850c9f2370f778a9aa6388effcb137110f4dd8a5e5da431300923"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/epoll_reactor.ipp": {
+      "upstream_sha256": "db328aa913507a5ccf3ba889e70ef5e26c74313ae698c513856ae31c715b95c7",
+      "bundled_sha256": "db328aa913507a5ccf3ba889e70ef5e26c74313ae698c513856ae31c715b95c7"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/buffer_sequence_adapter.ipp": {
+      "upstream_sha256": "30d87ae4d671c695af85069768bb413cbb77f8ed096a96ecceb922db589b21bf",
+      "bundled_sha256": "30d87ae4d671c695af85069768bb413cbb77f8ed096a96ecceb922db589b21bf"
+    },
+    "src/vendor/asio/asio/include/asio/detail/impl/eventfd_select_interrupter.ipp": {
+      "upstream_sha256": "c355b28c7a7c9f82f0c9e14975990d8993629288e6e262dd015f728cb0f3f31c",
+      "bundled_sha256": "c355b28c7a7c9f82f0c9e14975990d8993629288e6e262dd015f728cb0f3f31c"
+    }
+  }
+}

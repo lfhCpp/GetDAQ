@@ -1,0 +1,20 @@
+--- a/getEccSoapServer.cpp
++++ b/getEccSoapServer.cpp
+@@ -38,7 +38,8 @@
+ 
+ static bool askedForShutdown = false;
+ 
+-get::soap::EccServer getEccServer;
++get::soap::EccServer &OriginalEccServer() { static get::soap::EccServer server; return server; }
++#define getEccServer OriginalEccServer()
+ //_________________________________________________________________________________________________
+ int ecc__ServerExit(struct soap *, ecc__Response & response)
+ {
+@@ -154,6 +155,7 @@
+ 		getEccServer.createAlarmLogger(alarmPort);
+ 
+ 		eccService soap;
++        soap_set_namespaces(&soap, ::namespaces);
+ 		soap.send_timeout = 60; // 60 seconds
+ 		soap.recv_timeout = 60; // 60 seconds
+ 		soap.accept_timeout = 3600; // server stops after 1 hour of inactivity

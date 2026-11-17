@@ -68,3 +68,10 @@ QT_QPA_PLATFORM=offscreen ./getdaq-original-editor-smoke
 Linux Qt 5.12 local validation passed, including opening the historical
 `configure-pedestals.xcfg`. Windows/macOS builds and complete manual parity
 of all editor operations have not been verified in this change.
+
+The default configuration directory prefers an existing installation `config/`
+(or `code/config/`, `share/config/`) directory. A fresh private default workspace
+is created when the editor is explicitly opened. If a loaded configuration points
+to a missing/unreadable directory, the editor action offers an existing-directory
+chooser; Save YAML retains the selected path. It does not silently create an
+empty substitute for an unavailable configured/NFS directory.

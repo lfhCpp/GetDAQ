@@ -28,6 +28,9 @@ private:
     QJsonObject Execute(const QJsonObject &request,bool *effectStarted);
     void Progress(const QJsonObject &request,const QString &stage);
     QJsonObject Prepare(const QJsonObject &request);
+    QJsonObject PrepareOriginal(const QJsonObject &,const QJsonObject &,const QMap<QString,QByteArray> &,const QString &);
+    QJsonObject OriginalOperation(const QJsonObject &,bool *);
+    QJsonObject OriginalStatus(const QJsonObject &) const;
     QJsonObject Activate(const QJsonObject &request,bool *effectStarted);
     QJsonObject StopInstance(const QJsonObject &request,bool repair,bool *effectStarted);
     QJsonObject ReleaseTerminated(const QJsonObject &request,bool *effectStarted);

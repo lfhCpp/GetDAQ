@@ -14,9 +14,9 @@ Run setup 顶部右侧提供 Automatic Run，与左侧标题对齐。Apply 与�
 
 ## 两轮之间的收尾与间隔
 
-达到阈值后复用现有 Run stop、receiver 停止/封存、catalog/归档、Run snapshot 和 journal 完成流程。只有收到当前 Run **成功完成**的信号，才递增已完成轮数并考虑续跑。单纯硬件到达 Ready/Prepared 不算完成。
+达到阈值后复用现有 Run stop、接收数据稳定、catalog/归档、Run snapshot 和 journal 完成流程。只有收到当前 Run **成功完成**的信号，才递增已完成轮数并考虑续跑。单纯硬件到达 Ready/Prepared 不算完成。
 
-Next Run 在上一轮成功收尾后 **至少等待 3 秒**，随后再次核对新鲜状态、无待完成操作、无 UNKNOWN/故障及控制可用性。Native 在需要时先 Configure 新的接收会话，确认 Ready 后才 Start；Ready 接收端必须满足既有空会话校验。慢收尾和慢准备会延长实际间隔。不能靠等满 3 秒绕过收尾或就绪检查。
+Next Run 在上一轮成功收尾后 **至少等待 3 秒**，随后再次核对新鲜状态、无待完成操作、无 UNKNOWN/故障及控制可用性。确认原版 ECC 为 Ready、Sentry 状态新鲜且数据目录可用后才开始下一轮。慢收尾和慢准备会延长实际间隔。不能靠等满 3 秒绕过收尾或就绪检查。
 
 收尾失败、超时、观察失效、会话/PID 改变或字节计数倒退都会取消自动续跑，并显示诊断。下一个 Run 号已经存在时也停止自动循环，交给用户明确处理；自动模式不授予覆盖旧 Run 的许可。
 
@@ -25,16 +25,13 @@ Next Run 在上一轮成功收尾后 **至少等待 3 秒**，随后再次核对
 - 手动 Run start 开始新的计数窗口和轮数序列；Run stop 立即取消后续自动循环。
 - Pause 暂停自动触发，Resume 从零重新计算时间和大小窗口。Run 的真实累计统计及 raw 数据不被清零。
 - Apply 只在 Run/自动序列开始前可用；运行中、暂停中及两轮间隔均不能变更阈值/动作/轮数，控制层也会拒绝绕过界面的修改。Enable 使用独立接口，只开关已保存策略，不改变条件；确认 Running/Paused 后可开启，计数从启用时重新开始（大小基准使用新鲜观察）。关闭时不会发 Stop，已开始的收尾不会撤销；在两轮间隔关闭后，重新开启仅为下次明确 Run start 做准备。更改 Run 号、手动 Progress/Regress、断开、恢复和维护操作会取消待执行的自动续跑。
-- Native 观察到外部/MCP Pause/Resume 时遵守同样的窗口规则；观察到其他外部状态操作会取消续跑。观察有轮询延迟。自动 Run 不接管扫描点自身的事件数停止流程。
 - YAML 保存的是设置，启动/恢复程序不会自动重新武装；需要明确 Run start。手动查看状态或选择节点不会重置计数。
 
 ## 文件大小数据与部署
 
 Legacy/Sentry 由原目录扫描返回 `data_written_bytes` 十进制字符串；兼容旧 Sentry 的实际 `data_written_gb` 目录大小报告。建议同时更新 `getdaq-sentry` 以保留整数字节精度。
 
-Native 需启用 `getdaq.native_receiver_status`，并更新 ECC、数据主机 supervisor 与 receiver。新增认证的只读 `/v1/receiver-file-bytes/<source>`，沿固定 source、deployment、plan、instance、session、PID 绑定返回 `accepted_file_bytes`。现有 receiver-events 协议及事件数扫描保持兼容；旧服务不支持新接口时取消自动大小触发，不猜测数据。
 
-Native 的 accepted_file_bytes 来自接收写入路径的累计计数，最终正确性仍由原封存/归档流程确认；它不是实时 fsync 落盘证明。控制软件只读取计数元数据，不拉取 raw 内容。新增查询不会发送硬件动作；没有改变接收数据的热路径。
 
 ## Event log
 

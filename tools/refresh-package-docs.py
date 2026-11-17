@@ -41,8 +41,7 @@ def verify(kind, candidate):
         module = load('getdaq_windows_deploy', ROOT / 'tools/deploy-windows-from-wsl.py')
         module.verify_runtime(candidate)
     else:
-        module = load('getdaq_ubuntu24_package', ROOT / 'tools/package_ubuntu24_catalog_ssh.py')
-        module.verify_files(candidate)
+        raise ValueError('Retired native package format: use the current host suite')
 
 
 def source_docs(staging):
@@ -139,7 +138,7 @@ def refresh(kind, candidate):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--kind', choices=('host', 'windows', 'ubuntu24'), required=True)
+    parser.add_argument('--kind', choices=('host', 'windows'), required=True)
     parser.add_argument('--candidate', type=Path, required=True)
     args = parser.parse_args()
     refresh(args.kind, args.candidate)

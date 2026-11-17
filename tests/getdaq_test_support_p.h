@@ -9,6 +9,7 @@ class QSignalSpy;
 namespace GetDAQTestSupport {
 
 RunConfig Config(const QString &directory);
+void AttachMockNodes(RunConfig &config);
 bool At(const QSignalSpy &spy, int state);
 QString Phase(const QSignalSpy &spy);
 void MakeFiles(const RunConfig &config);

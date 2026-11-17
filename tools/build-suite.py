@@ -13,18 +13,13 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTROL = ['GetDAQ', 'getdaq-sentry', 'getdaq-simulator', 'getdaq-config',
-           'getdaq-config-check', 'getdaq-config-upload', 'getdaq-supervisor-query',
-           'getdaq-waveform-viewer', 'getdaq-cconfig-editor', 'getdaq-control-mcp']
-GUI_CONTROL = [name for name in CONTROL if name != 'getdaq-control-mcp']
-QT_CONTROL = [name for name in CONTROL if name != 'getdaq-supervisor-query']
-RECEIVER = ['getdaq-receiver', 'getdaq-inspect', 'getdaq-merge', 'getdaq-matrix']
+CONTROL = ['GetDAQ', 'getdaq-sentry', 'getdaq-waveform-viewer', 'getdaq-cconfig-editor']
+GUI_CONTROL = CONTROL[:]
+QT_CONTROL = CONTROL[:]
+RECEIVER = ['getdaq-inspect', 'getdaq-merge', 'getdaq-matrix']
 ANALYSIS = RECEIVER + ['getdaq-fits', 'getdaq-root', 'getdaq-root-viewer']
-DATA_TOOLS = ['getdaq-supervisor-query', 'getdaq-catalog']
-NATIVE = ['getdaq-hardware', 'getdaq-align', 'getdaq-system-config',
-          'getdaq-system-describe', 'getdaq-ecc-select', 'getdaq-ecc-handoff', 'getdaq-scan-deploy', 'getdaq-ecc-server', 'getdaq-handoff-service',
-          'getdaq-ice-check', 'getdaq-supervisor', 'getdaq-catalog',
-          'getdaq-ice-receiver', 'getdaq-ice-send']
+DATA_TOOLS = []
+NATIVE = []
 REPOSITORY = ['getdaq-config-repository', 'getdaq-config-service']
 PROFILES = ('control', 'data', 'data-host', 'analysis', 'full')
 
@@ -54,21 +49,21 @@ def write_json(path, value):
 
 def source_hashes():
     """Small tracked inputs, including Slice and local dependency archives."""
-    files = {ROOT / 'GetDAQ.pro', Path(__file__).resolve()}
+    files = {ROOT / 'GetDAQ.pro', ROOT / 'build-macos.command', Path(__file__).resolve()}
     files.update(ROOT / name for name in ('tools/verify-dependencies.py',
                  'third_party/dependencies.json', 'third_party/archives/SHA256SUMS',
                  'third_party/yaml-cpp/SHA256SUMS'))
-    suffixes = {'.cpp', '.c', '.h', '.hpp', '.pri', '.pro', '.ui', '.ice', '.qrc'}
+    suffixes = {'.cpp', '.c', '.h', '.hpp', '.pri', '.pro', '.ui', '.ice', '.qrc', '.patch'}
     for directory in ('apps', 'common', 'third_party/yaml-cpp'):
         for path in (ROOT / directory).rglob('*'):
             if path.is_file() and (path.suffix in suffixes or path.name == 'CMakeLists.txt'):
                 files.add(path)
     files.add(ROOT / 'third_party/ice-compat/CMakeLists.txt')
-    for name in ('prepare-original-cconfig.py', 'prepare-original-getcontroller.py', 'build-original-getcontroller.py', 'verify-legacy-sources.py'):
+    for name in ('original-backend-patches.py', 'verify-original-backends.py', 'build-original-backends.py', 'prepare-original-cconfig.py', 'prepare-original-getcontroller.py', 'build-original-getcontroller.py', 'verify-legacy-sources.py', 'prepare-ice-platform.py', 'build-macos.py', 'package-macos.py'):
         files.add(ROOT / 'tools' / name)
-    files.update(p for p in (ROOT/'third_party/legacy-get').rglob('*') if p.is_file())
+    files.update(p for directory in ('third_party/legacy-get', 'third_party/DataExporter') for p in (ROOT/directory).rglob('*') if p.is_file())
     files.update((ROOT / 'third_party/archives').glob('*.tar.gz'))
-    files.update(p for p in (ROOT / 'config/backend-presets').rglob('*') if p.is_file())
+    files.update(p for p in (ROOT / 'config').rglob('*') if p.is_file())
     return {str(p.relative_to(ROOT)): sha(p) for p in sorted(files)}
 
 
@@ -94,16 +89,9 @@ def plan(args, build):
     elif args.profile != 'control':
         cmake('receiver', 'apps/datareceiver', RECEIVER, RECEIVER)
         if args.profile == 'full':
-            cmake('native', 'third_party/ice-compat',
-                  [*NATIVE, 'getdaq-ecc-journal-tool'], [*NATIVE, 'getdaq-ecc-journal'],
-                  ['-DGETDAQ_BUILD_ICE_RECEIVER=ON', '-DGETDAQ_ICE_DATA_ONLY=OFF',
-                   '-DGETDAQ_BUILD_SUPERVISOR_SERVICE=ON', '-DGETDAQ_BUILD_ECC_SERVICE=ON'])
+            cmake('native', 'third_party/ice-compat', ['compat-GET'], [],
+                  [])
             cmake('repository', 'apps/configrepository', REPOSITORY, REPOSITORY)
-        else:
-            programs = DATA_TOOLS + (['getdaq-supervisor'] if args.profile == 'data-host' else [])
-            cmake('supervisor', 'apps/datasupervisor', programs, programs,
-                  ['-DGETDAQ_BUILD_SUPERVISOR_SERVICE=' +
-                   ('ON' if args.profile == 'data-host' else 'OFF')])
     if args.profile in ('control', 'full'):
         directory = build / 'control'
         items.append({'component': 'control', 'directory': str(directory),
@@ -112,13 +100,6 @@ def plan(args, build):
                                     'CONFIG+=release', 'CONFIG-=debug', 'CONFIG-=app_bundle'],
                       'build': [args.make, '-j' + str(args.jobs)],
                       'programs': {n: str(build / 'bin' / (n + suffix)) for n in GUI_CONTROL}})
-        mcp_directory = build / 'mcp'
-        items.append({'component': 'mcp', 'directory': str(mcp_directory),
-                      'configure': [args.qmake, str(ROOT / 'apps/ecc/mcp/mcp.pro'),
-                                    'DESTDIR=' + str(build / 'bin'), '-after',
-                                    'CONFIG+=release', 'CONFIG-=debug', 'CONFIG-=app_bundle'],
-                      'build': [args.make, '-j' + str(args.jobs)],
-                      'programs': {'getdaq-control-mcp': str(build / 'bin' / ('getdaq-control-mcp' + suffix))}})
     if args.profile in ('full', 'data-host') and platform.system() == 'Linux':
         directory = build / 'node-agent'
         items.append({'component': 'node-agent', 'directory': str(directory),
@@ -127,16 +108,36 @@ def plan(args, build):
                                     'CONFIG+=release', 'CONFIG-=debug'],
                       'build': [args.make, '-j' + str(args.jobs)],
                       'programs': {'getdaq-node-agent': str(build / 'bin/getdaq-node-agent')}})
-    if args.profile in ('control', 'full') and platform.system() == 'Linux':
+    if args.profile == 'data-host' and platform.system() in ('Linux', 'Darwin'):
+        directory = build / 'sentry'
+        items.append({'component': 'sentry', 'directory': str(directory),
+                      'configure': [args.qmake, str(ROOT / 'apps/sentry/sentry.pro'),
+                                    'DESTDIR=' + str(build / 'bin'), '-after', 'CONFIG+=release', 'CONFIG-=debug'],
+                      'build': [args.make, '-j' + str(args.jobs)],
+                      'programs': {'getdaq-sentry': str(build / 'bin/getdaq-sentry')}})
+    if args.profile in ('control', 'full') and platform.system() in ('Linux', 'Darwin'):
         directory = build / 'original-controller'
         ice_build = build / 'native' if args.profile == 'full' else directory / 'ice'
         command = [sys.executable, str(ROOT / 'tools/build-original-getcontroller.py'),
                    '--build-dir', str(directory), '--ice-build', str(ice_build),
                    '--destination', str(build / 'bin'), '--qmake', args.qmake,
                    '--make', args.make, '--cmake', args.cmake, '--jobs', str(args.jobs)]
+        if platform.system() == 'Linux' and os.environ.get('GETDAQ_SVG_HEADERS'):
+            command += ['--svg-headers', os.environ['GETDAQ_SVG_HEADERS']]
         items.append({'component': 'original-controller', 'directory': str(directory),
                       'configure': command + ['--configure-only'], 'build': command,
                       'programs': {'getdaq-getcontroller': str(build / 'bin/getdaq-getcontroller')}})
+    if args.profile in ('full', 'control', 'data-host') and platform.system() in ('Linux', 'Darwin'):
+        directory = build / 'original-backends'
+        ice_build = build / 'native' if args.profile == 'full' else build / 'original-controller/ice'
+        if args.profile == 'data-host':
+            cmake('original-controller/ice', 'third_party/ice-compat', ['compat-GET'], [],
+                  [])
+        command = [sys.executable, str(ROOT / 'tools/build-original-backends.py'),
+                   '--build-dir', str(directory), '--ice-build', str(ice_build), '--jobs', str(args.jobs)]
+        items.append({'component': 'original-backends', 'directory': str(directory),
+                      'configure': command + ['--prepare-only'], 'build': command,
+                      'programs': {name: str(directory / 'build' / name) for name in ('getEccSoapServer', 'DataExporter')}})
     return items
 
 
@@ -209,7 +210,7 @@ def runtime_dependencies(program, name):
         forbidden_tokens = {'qt': 'libQt', 'ice': 'libIce', 'yaml': 'libyaml',
                             'boost': 'libboost', 'curl': 'libcurl'}
         has_forbidden = lambda library: forbidden_tokens[library] in text
-    if name in RECEIVER + DATA_TOOLS + ['getdaq-config-check', 'getdaq-config-repository']:
+    if name in RECEIVER + DATA_TOOLS + ['getdaq-config-repository']:
         if any(has_forbidden(library) for library in ('qt', 'ice', 'yaml', 'boost', 'curl')):
             raise RuntimeError('Unexpected dependency in native program ' + name)
     if name in ('getdaq-fits', 'getdaq-root') and any(
@@ -227,11 +228,13 @@ def runtime_dependencies(program, name):
 
 def stage_files():
     """Only documented templates; never include private credentials or run data."""
-    files = [(ROOT / 'README.md', 'README.md')]
+    files = [(ROOT / 'README.md', 'README.md'),
+             (ROOT / 'config/product-features.json', 'share/product-features.json'),
+             (ROOT / 'docs/manual/GetDAQ-Quick-Guide.pdf', 'docs/manual/GetDAQ-Quick-Guide.pdf')]
     files += [(p, 'docs/' + p.name) for p in sorted((ROOT / 'docs').glob('*'))
               if p.is_file() and p.suffix in ('.md', '.png')]
     for p in sorted((ROOT / 'config').rglob('*')):
-        if p.is_file() and ('.example.' in p.name or p.name == 'simulation.yml'):
+        if p.is_file() and ('.example.' in p.name):
             files.append((p, 'share/' + str(p.relative_to(ROOT))))
     files += [(p, 'share/third_party/' + str(p.relative_to(ROOT / 'third_party')))
               for p in sorted((ROOT / 'third_party/licenses').rglob('*')) if p.is_file()]

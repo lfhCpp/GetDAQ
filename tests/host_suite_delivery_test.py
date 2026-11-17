@@ -13,16 +13,12 @@ ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('host_suite_builder', ROOT / 'tools/build-suite.py')
 suite = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(suite)
-platform_spec = importlib.util.spec_from_file_location(
-    'ubuntu24_platform', ROOT / 'tests/ubuntu24_platform_validation.py')
-platform_validation = importlib.util.module_from_spec(platform_spec)
-platform_spec.loader.exec_module(platform_validation)
 
 
 class HostSuiteDeliveryTest(unittest.TestCase):
     def test_macos_runtime_dependencies_use_otool_and_are_recorded(self):
         with tempfile.TemporaryDirectory(prefix='getdaq-ice-compat-runtime-deps-') as temporary:
-            program = Path(temporary) / 'getdaq-receiver'
+            program = Path(temporary) / 'getdaq-inspect'
             program.write_bytes(b'Mach-O inspection fixture; not an executable')
             output = ('%s:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1.0.0)\n'
                       '\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 2500.0.0)\n') % program
@@ -31,7 +27,7 @@ class HostSuiteDeliveryTest(unittest.TestCase):
             with mock.patch.object(suite.platform, 'system', return_value='Darwin'), \
                     mock.patch.object(suite.platform, 'machine', return_value='arm64'), \
                     mock.patch.object(suite.subprocess, 'run', side_effect=[otool_result, lipo_result]) as run:
-                receipt = suite.runtime_dependencies(program, 'getdaq-receiver')
+                receipt = suite.runtime_dependencies(program, 'getdaq-inspect')
             self.assertEqual(run.call_args_list[0].args[0], ['otool', '-L', str(program)])
             self.assertEqual(run.call_args_list[1].args[0], ['lipo', '-archs', str(program)])
             self.assertTrue(receipt['checked'])
@@ -70,21 +66,6 @@ class HostSuiteDeliveryTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'with lipo'):
                 suite.macos_architectures(program)
 
-    def test_macos_native_data_program_rejects_qt_and_third_party_runtime(self):
-        with tempfile.TemporaryDirectory(prefix='getdaq-macos-runtime-deps-') as temporary:
-            program = Path(temporary) / 'getdaq-receiver'
-            program.write_bytes(b'Mach-O inspection fixture; not an executable')
-            for library in ('@rpath/QtCore.framework/Versions/5/QtCore',
-                            '@rpath/libyaml-cpp.0.dylib',
-                            '@rpath/libboost_system.dylib',
-                            '@rpath/libcurl.4.dylib',
-                            '@rpath/libIce.3.5.1.dylib'):
-                output = '%s:\n\t%s (compatibility version 1.0.0, current version 1.0.0)\n' % (program, library)
-                with self.subTest(library=library), \
-                        mock.patch.object(suite.platform, 'system', return_value='Darwin'), \
-                        mock.patch.object(suite.subprocess, 'run', return_value=SimpleNamespace(stdout=output, returncode=0)):
-                    with self.assertRaisesRegex(RuntimeError, 'Unexpected dependency'):
-                        suite.runtime_dependencies(program, 'getdaq-receiver')
 
     def test_analysis_converters_reject_qt_but_root_viewer_allows_it(self):
         with tempfile.TemporaryDirectory(prefix='getdaq-analysis-runtime-deps-') as temporary:
@@ -111,34 +92,24 @@ class HostSuiteDeliveryTest(unittest.TestCase):
             self.assertTrue(viewer['checked'])
             self.assertIn('libQt5Core.so.5', viewer['ldd'])
 
-    def test_macos_optional_ice_tools_still_reject_qt(self):
-        with tempfile.TemporaryDirectory(prefix='getdaq-macos-runtime-deps-') as temporary:
-            program = Path(temporary) / 'getdaq-ice-send'
-            program.write_bytes(b'Mach-O inspection fixture; not an executable')
-            output = '%s:\n\t@rpath/QtNetwork.framework/Versions/5/QtNetwork (compatibility version 5.0.0, current version 5.15.0)\n' % program
-            with mock.patch.object(suite.platform, 'system', return_value='Darwin'), \
-                    mock.patch.object(suite.subprocess, 'run', return_value=SimpleNamespace(stdout=output, returncode=0)):
-                with self.assertRaisesRegex(RuntimeError, 'Qt must not enter'):
-                    suite.runtime_dependencies(program, 'getdaq-ice-send')
 
     def test_macos_runtime_inspection_failure_is_not_recorded_as_unchecked(self):
         with tempfile.TemporaryDirectory(prefix='getdaq-macos-runtime-deps-') as temporary:
-            program = Path(temporary) / 'getdaq-receiver'
+            program = Path(temporary) / 'getdaq-inspect'
             program.write_bytes(b'Mach-O inspection fixture; not an executable')
             with mock.patch.object(suite.platform, 'system', return_value='Darwin'), \
                     mock.patch.object(suite.subprocess, 'run', return_value=SimpleNamespace(stdout='otool: bad object', returncode=1)):
                 with self.assertRaisesRegex(RuntimeError, 'with otool'):
-                    suite.runtime_dependencies(program, 'getdaq-receiver')
+                    suite.runtime_dependencies(program, 'getdaq-inspect')
 
     def test_data_profile_has_no_qt_or_ice_configuration(self):
         args = SimpleNamespace(profile='data', jobs=2, cmake='cmake', qmake='qmake', make='make')
         steps = suite.plan(args, Path('/tmp/host-suite-plan'))
-        self.assertEqual({s['component'] for s in steps}, {'receiver', 'supervisor'})
+        self.assertEqual({s['component'] for s in steps}, {'receiver'})
         programs = {name for step in steps for name in step['programs']}
         self.assertEqual(programs, set(suite.RECEIVER + suite.DATA_TOOLS))
         self.assertIn('getdaq-merge', programs)
         self.assertIn('getdaq-matrix', programs)
-        self.assertIn('-DGETDAQ_BUILD_SUPERVISOR_SERVICE=OFF', steps[1]['configure'])
         self.assertNotIn('qmake', json.dumps(steps))
         self.assertNotIn('ice-compat', json.dumps(steps))
 
@@ -157,52 +128,9 @@ class HostSuiteDeliveryTest(unittest.TestCase):
         self.assertNotIn('apps/envoy', json.dumps(steps))
         self.assertNotIn('ice-compat', json.dumps(steps))
 
-    def test_native_data_supervisor_configures_without_qt(self):
-        if os.name == 'nt':
-            self.skipTest('The native data supervisor core is POSIX-only')
-        with tempfile.TemporaryDirectory(prefix='getdaq-data-noqt-config-') as temporary:
-            result = subprocess.run([
-                'cmake', '-S', str(ROOT / 'apps/datasupervisor'), '-B', temporary,
-                '-DGETDAQ_BUILD_SUPERVISOR_SERVICE=OFF',
-                '-DCMAKE_DISABLE_FIND_PACKAGE_Qt5=TRUE', '-DBUILD_TESTING=OFF'],
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-            self.assertEqual(result.returncode, 0, result.stdout)
 
-    def test_supervisor_service_requires_qt_during_configuration(self):
-        if os.name == 'nt':
-            self.skipTest('The POSIX supervisor service target is not configured on Windows')
-        with tempfile.TemporaryDirectory(prefix='getdaq-supervisor-noqt-config-') as temporary:
-            result = subprocess.run([
-                'cmake', '-S', str(ROOT / 'apps/datasupervisor'), '-B', temporary,
-                '-DGETDAQ_BUILD_SUPERVISOR_SERVICE=ON',
-                '-DCMAKE_DISABLE_FIND_PACKAGE_Qt5=TRUE'],
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-            self.assertNotEqual(result.returncode, 0, result.stdout)
-            self.assertIn('REQUIRED', result.stdout)
-            self.assertIn('CMAKE_DISABLE_FIND_PACKAGE_Qt5', result.stdout)
 
-    def test_ubuntu24_full_inventory_tracks_current_suite_plan(self):
-        expected = platform_validation.expected_full_programs(suite, 2)
-        args = SimpleNamespace(profile='full', jobs=2, cmake='cmake', qmake='qmake', make='make')
-        steps = suite.plan(args, Path('/tmp/host-suite-full-plan'))
-        planned = {name for step in steps for name in step['programs']}
-        self.assertEqual(expected, planned)
-        self.assertIn('getdaq-merge', expected)
-        self.assertIn('getdaq-matrix', expected)
 
-    def test_ubuntu24_handoff_runtime_uses_build_receipt_paths(self):
-        work = Path('/tmp/host-suite-full-plan')
-        records = {
-            'getdaq-supervisor': {'path': '/build/current/native/getdaq-supervisor'},
-            'getdaq-receiver': {'path': '/build/current/receiver/getdaq-receiver'},
-            'getdaq-supervisor-query': {'path': '/build/current/bin/getdaq-supervisor-query'},
-        }
-        entry = next(item for item in platform_validation.runtime_plan(work, records)
-                     if item['label'] == 'failed-handoff-window')
-        arguments = entry['arguments']
-        self.assertEqual(arguments[arguments.index('--service') + 1], records['getdaq-supervisor']['path'])
-        self.assertEqual(arguments[arguments.index('--receiver') + 1], records['getdaq-receiver']['path'])
-        self.assertEqual(arguments[arguments.index('--client') + 1], records['getdaq-supervisor-query']['path'])
 
     def test_package_integrity_and_no_overwrite(self):
         with tempfile.TemporaryDirectory(prefix='getdaq-delivery-check-') as temporary:
@@ -215,7 +143,7 @@ class HostSuiteDeliveryTest(unittest.TestCase):
             destination = root / 'package'
             suite.stage(destination, receipt)
             manifest = suite.verify_stage(destination)
-            self.assertIn('share/config/simulation.yml', manifest['files'])
+            self.assertNotIn('share/config/simulation.yml', manifest['files'])
             self.assertEqual(manifest['programs'][program.name]['path'],
                              'bin/' + program.name)
             self.assertFalse(Path(manifest['programs'][program.name]['path']).is_absolute())

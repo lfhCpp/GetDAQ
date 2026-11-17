@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-#include "localdeploymentservices.h"
 #include "offlinedatatoolswindow.h"
 #include "ui_mainwindow.h"
 #include "runcontrol.h"
@@ -11,15 +10,6 @@
 #include <QTextBlock>
 #include <QComboBox>
 #include <QSignalBlocker>
-#include "configwindow.h"
-#include "configurationreadbackwindow.h"
-#include "plantransitionwindow.h"
-#include "cobomaintenancewindow.h"
-#include "hardwarestatewindow.h"
-#include "transferwindow.h"
-#include "coldhandoffwindow.h"
-#include "failedhandoffwindow.h"
-#include "scanplanwindow.h"
 #include <QDialog>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -72,7 +62,7 @@ void MainWindow::InitializePar()
     InitializeRunControl();
     SetConfig(fConfig);
     ShowControlSlot("Disconnected", false, false, false);
-    ShowLogSlot("GetDAQ ready. Simulation is enabled by default. Configure nodes before hardware operation.");
+    ShowLogSlot("GetDAQ ready. Configure the ECC connection and data receiver before connecting.");
     if (!applicationLogOpened) ShowLogSlot("Cannot open application log in user data, cache or temporary directories: " + fLogStore.ErrorString());
     else if (fLogStore.UsedFallbackDirectory())
         ShowLogSlot("Application data directory is not writable; logging to fallback: " + fLogStore.ApplicationLogPath());
@@ -150,28 +140,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (fCanClose) { event->accept(); return; }
     event->ignore();
     if (fClosing) return;
-    if(fExitManaged)return;
-    bool keepConfirmed=false;
-    if(LocalDeploymentServices::IsLocalDeployment(fConfig)) {
-        QMessageBox choice(this);choice.setWindowTitle(tr("Close GetDAQ"));
-        choice.setText(tr("Keep the background services running, or finish acquisition and close the local backend?"));
-        auto *keep=choice.addButton(tr("Close window; keep services"),QMessageBox::AcceptRole);
-        auto *stop=choice.addButton(tr("Finish Run and close services"),QMessageBox::DestructiveRole);
-        choice.addButton(QMessageBox::Cancel);choice.setDefaultButton(QMessageBox::Cancel);choice.exec();
-        if(choice.clickedButton()==stop) {
-            if(fServiceStarting || fBusy){QMessageBox::information(this,tr("Operation in progress"),tr("Wait for the current service or hardware operation to finish before stopping the backend."));return;}
-            if(fRemoteRunning && !fActive){QMessageBox::warning(this,tr("Existing acquisition"),tr("This window does not own the running Run. Recover or stop it through the owning controller first."));return;}
-            fExitManaged=true;fExitClock.start();
-            if(!fServiceExitTimer){fServiceExitTimer=new QTimer(this);fServiceExitTimer->setInterval(250);connect(fServiceExitTimer,&QTimer::timeout,this,&MainWindow::ContinueManagedExit);}
-            fServiceExitTimer->start();
-            emit CancelAutomaticRunSignal(tr("Automatic Run canceled: stopping local backend"));
-            if(fActive){fExitAfterRun=true;emit StopSignal();}else ContinueManagedExit();
-            return;
-        }
-        if(choice.clickedButton()!=keep)return;
-        keepConfirmed=true;
-    }
-    if (!keepConfirmed && (fActive || fBusy || fRemoteRunning)) {
+    if (fActive || fBusy || fRemoteRunning) {
         if (QMessageBox::question(this, tr("Acquisition may still be active"),
             tr("Closing does not stop remote acquisition. An interrupted journal will be kept. Close the controller anyway?"),
             QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) return;

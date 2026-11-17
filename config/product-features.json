@@ -1,0 +1,33 @@
+{
+  "baseline": "original-get-backends-v1",
+  "control": "getEccSoapServer",
+  "managed_receiver": "DataExporter",
+  "external_receivers": [
+    "DataRouter",
+    "DataExporter"
+  ],
+  "monitor": "getdaq-sentry",
+  "keep": [
+    "original cconfiged",
+    "original GetController",
+    "master/slave file distribution and cache",
+    "multiple backend instances",
+    "SOAP lifecycle and pause/resume",
+    "automatic run",
+    "same-run replacement with confirmation",
+    "warnings and run journals",
+    "event/channel waveform viewer",
+    "offline inspect/merge/matrix and optional FITS/ROOT"
+  ],
+  "retired": [
+    "simulation",
+    "rewritten native ECC",
+    "custom live receiver/supervisor",
+    "native MCP controller",
+    "native scans and plan handoff/reconciliation",
+    "rewritten configuration editor",
+    "direct board-control UI",
+    "manual native credentials/snapshot hashes"
+  ],
+  "protected_main_ui_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec"
+}
