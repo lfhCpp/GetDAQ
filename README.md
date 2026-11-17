@@ -37,3 +37,11 @@ GetDAQ 是 GET 采集操作界面。当前固定方案使用原版 **getEccSoapS
 当前可执行的软件测试不能代替实物采集验收；原生 macOS 编译和实机功能仍需对应主机验证。
 
 Configuration and storage paths: [配置文件与数据目录说明](docs/CONFIGURATION_AND_DATA_PATHS.md).
+
+## 按项目目录启动与同步配置
+
+主控选择配置源目录（默认安装目录 `config`），每台执行电脑选择 Project data folder。
+完整配置先分发到从机缓存，再自动同步到其项目目录；原版 SOAP ECC、DataExporter 或
+dataRouter、共享 Sentry 都在这个目录运行。控制 IP 与数据 IP 分开填写。
+Tools → Sync project configuration 可更新选定主机，活动配置先暂存，原始数据保留。
+原日志区域可切换 Event / ECC / 接收器日志。[操作和目录说明](docs/CONFIGURATION_AND_DATA_PATHS.md)。

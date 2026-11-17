@@ -17,7 +17,11 @@
     "same-run replacement with confirmation",
     "warnings and run journals",
     "event/channel waveform viewer",
-    "offline inspect/merge/matrix and optional FITS/ROOT"
+    "offline inspect/merge/matrix and optional FITS/ROOT",
+    "explicit shared project working directories",
+    "whole-folder master/slave configuration synchronization",
+    "one project Sentry with deduplicated archive",
+    "event/ECC/receiver log tabs"
   ],
   "retired": [
     "simulation",
@@ -29,5 +33,9 @@
     "manual native credentials/snapshot hashes",
     "original GetController application"
   ],
-  "protected_main_ui_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec"
+  "protected_main_ui_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec",
+  "managed_receivers": [
+    "DataExporter",
+    "dataRouter"
+  ]
 }

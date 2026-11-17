@@ -3,7 +3,7 @@
 Baseline: `original-get-backends-v1` (2026-11-17).
 
 The product uses original `getEccSoapServer` for electronics control and ATTPC
-`DataExporter` for managed reception. An existing external `DataRouter` or
+`DataExporter` (default) or original `dataRouter` for managed reception. An existing external `DataRouter` or
 `DataExporter` is used directly by selecting its receiver IP / TCP data port in
 the existing-ECC connection. No exporter is required on an external router host.
 

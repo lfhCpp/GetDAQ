@@ -28,6 +28,11 @@ private:
     QJsonObject Execute(const QJsonObject &request,bool *effectStarted);
     void Progress(const QJsonObject &request,const QString &stage);
     QJsonObject Prepare(const QJsonObject &request);
+    bool ProjectCanApply(const QString &) const;
+    void ApplyPendingProjects();
+    void UpdateProjectRegistries();
+    QJsonObject StartProjectMonitor(const QJsonObject &,bool *);
+    QJsonObject ServiceLog(const QString &) const;
     QJsonObject PrepareOriginal(const QJsonObject &,const QJsonObject &,const QMap<QString,QByteArray> &,const QString &);
     QJsonObject OriginalOperation(const QJsonObject &,bool *);
     QJsonObject OriginalStatus(const QJsonObject &) const;

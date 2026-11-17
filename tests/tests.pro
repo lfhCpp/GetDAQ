@@ -17,3 +17,9 @@ include(../apps/envoy/originalservices.pri)
 
 SOURCES += ../apps/envoy/coboconnectionwindow.cpp
 HEADERS += ../apps/envoy/coboconnectionwindow.h
+
+SOURCES += ../apps/envoy/servicelogpanel.cpp
+HEADERS += ../apps/envoy/servicelogpanel.h
+
+SOURCES += ../apps/sentry/sentryservice_status.cpp
+INCLUDEPATH += ../apps/sentry

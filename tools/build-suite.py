@@ -125,7 +125,7 @@ def plan(args, build):
                    '--build-dir', str(directory), '--ice-build', str(ice_build), '--jobs', str(args.jobs)]
         items.append({'component': 'original-backends', 'directory': str(directory),
                       'configure': command + ['--prepare-only'], 'build': command,
-                      'programs': {name: str(directory / 'build' / name) for name in ('getEccSoapServer', 'DataExporter')}})
+                      'programs': {name: str(directory / 'build' / name) for name in ('getEccSoapServer', 'DataExporter', 'dataRouter')}})
     return items
 
 

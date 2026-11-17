@@ -119,10 +119,10 @@ std::string ConfigurationRepository::RegisterDeployment(const std::vector<std::s
         const auto name=Text(file.At("id"));Need(!name.empty() && name.size()<=128 && name.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-")==std::string::npos && name!="." && name!=".." && names.insert(name).second,"Invalid/duplicate portable file identity");
         const auto sha=Text(file.At("sha256"));Digest(sha);const auto &size=file.At("bytes");
         Need(size.type==JsonValue::Number && !size.text.empty() && size.text.find_first_not_of("0123456789")==std::string::npos && size.text.size()<10,"Invalid deployment file size");
-        const auto count=std::stoul(size.text);Need(count>0 && count<=16*1024*1024,"Deployment file exceeds limit");total+=count;Need(total<=64*1024*1024,"Deployment aggregate file budget exceeded");
-        const auto &chunks=file.At("objects");Need(chunks.type==JsonValue::Array && !chunks.items.empty() && chunks.items.size()<=512,"Invalid deployment file chunks");
+        const auto count=std::stoul(size.text);Need(count<=16*1024*1024,"Deployment file exceeds limit");total+=count;Need(total<=64*1024*1024,"Deployment aggregate file budget exceeded");
+        const auto &chunks=file.At("objects");Need(chunks.type==JsonValue::Array && (!chunks.items.empty() || count==0) && chunks.items.size()<=512,"Invalid deployment file chunks");
         std::vector<std::string> parts;for(const auto &chunk:chunks.items)parts.push_back(Text(chunk));
-        Need(ConfigurationSha256(fImpl->Assemble(parts,count,count))==sha,"Deployment file digest differs");
+        Need(ConfigurationSha256(count?fImpl->Assemble(parts,count,count):std::string())==sha && (count || parts.empty()),"Deployment file digest differs");
     }
     const auto id=ConfigurationSha256(bytes),directory=fImpl->root+"/deployments";
     if(!Exists(directory))MakeDirectory(directory);

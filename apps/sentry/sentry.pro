@@ -9,3 +9,6 @@ SOURCES += main.cpp sentryconfig.cpp sentryservice.cpp sentryservice_http.cpp se
 HEADERS += sentryservice.h sentryservice_http_p.h sentrycatalog_p.h
 include(../../common/build-output.pri)
 win32-msvc*: QMAKE_CXXFLAGS += /utf-8
+
+INCLUDEPATH += ../envoy
+SOURCES += ../envoy/localserviceprocesses.cpp

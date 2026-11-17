@@ -1,0 +1,11 @@
+..................s....macOS QtTest cleanup failed: Refusing QtTest cleanup through a symlink or non-directory parent
+......
+----------------------------------------------------------------------
+Ran 29 tests in 1.066s
+
+OK (skipped=1)
+Verified package: /tmp/getdaq-package-test-0s86wu22/.refresh-examples-test-tk4x9gcz/candidate; 3 files
+Verified package: /tmp/getdaq-package-test-0s86wu22/.refresh-examples-test-tk4x9gcz/.candidate.examples-bw3l4lq4; 3 files
+Refreshed 2 packaged examples; programs and other files were preserved: /tmp/getdaq-package-test-0s86wu22/.refresh-examples-test-tk4x9gcz/candidate
+share/config/envoy.example.yml a8cd44afdf38e3637e2b7edf3904aeedd8091834ed7b55b9c04032faecb3b4d1
+share/config/sentry/node.example.json 3378ff77f7fc91222cdfb172dd7a969e02f8cbd7446348fa12f52ca4e4986ab9

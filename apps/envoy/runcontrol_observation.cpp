@@ -53,10 +53,11 @@ void RunControl::SentryReplySlot(int id, bool catalog, NodeStatus status, QStrin
     s.sentryOnline = error.isEmpty() && status.disk != "N/A";
     s.sentryError = error;
     s.rateMB = 0;
-    s.sentryRateKnown=false;
+    s.sentryRateKnown=false;s.projectRateKnown=false;s.projectRateMB=0;
     if (error.isEmpty()) {
         if (!catalog && s.sentryTime >= 0 && status.dataPath == s.dataPath && now > s.sentryTime &&
             now-s.sentryTime<=fConfig.timeoutMs+2*fConfig.pollMs) {
+            if(status.projectFileBytesKnown && s.projectFileBytesKnown && status.projectFileBytes>=s.projectFileBytes){s.projectRateMB=double(status.projectFileBytes-s.projectFileBytes)/(1000.0*double(now-s.sentryTime));s.projectRateKnown=true;}
             if(status.rawFileBytesKnown && s.rawFileBytesKnown && status.rawFileBytes>=s.rawFileBytes) {
                 s.rateMB=double(status.rawFileBytes-s.rawFileBytes)/(1000.0*double(now-s.sentryTime));s.sentryRateKnown=true;
             } else if(!status.rawFileBytesKnown && !s.rawFileBytesKnown && status.writtenGB>=s.writtenGB) {
@@ -65,6 +66,7 @@ void RunControl::SentryReplySlot(int id, bool catalog, NodeStatus status, QStrin
         }
         s.disk = status.disk; s.process = status.process; s.dataPath = status.dataPath;
         s.writtenGB = status.writtenGB; s.files = status.files;
+        s.projectConfigurationPending=status.projectConfigurationPending;s.sentrySourceSpecific=status.sentrySourceSpecific;s.projectFiles=status.projectFiles;s.projectFileBytes=status.projectFileBytes;s.projectFileBytesKnown=status.projectFileBytesKnown;
         s.rawFileBytes=status.rawFileBytes;s.rawFileBytesKnown=status.rawFileBytesKnown;
         s.availableGB = status.availableGB; s.totalGB = status.totalGB; s.sentryTime = now;
     }
@@ -113,3 +115,7 @@ void RunControl::ReplacementFinalizedSlot(int id, QString error)
     if (fAwaitReplacementCleanup.isEmpty()) StartReplacementCleanup();
 }
 
+
+QVector<int> RunControl::MonitorRepresentatives()const{
+ QVector<int> result;QSet<QString> seen;for(const auto &node:fConfig.nodes)if(!node.mutant){const auto key=(node.sentryHost.isEmpty()?node.host:node.sentryHost).toLower()+':'+QString::number(node.sentryPort);if(!seen.contains(key)){seen.insert(key);result.append(node.id);}}return result;
+}

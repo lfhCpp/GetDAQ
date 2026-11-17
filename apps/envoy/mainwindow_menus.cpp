@@ -1,6 +1,9 @@
 #include "coboconnectionwindow.h"
 #include "mainwindow.h"
 #ifdef Q_OS_LINUX
+#include "distributeddeploymentwindow.h"
+#endif
+#ifdef Q_OS_LINUX
 #include "hostrolewindow.h"
 #endif
 #include "ui_mainwindow.h"
@@ -92,6 +95,12 @@ void MainWindow::InitializeMenus()
     connect(toolsMenu,&QMenu::aboutToShow,this,[this]{
         fDataToolsAvailable=OfflineDataToolsWindow::HasAvailableTool();RefreshOfflineToolsGate();
     });
+    auto *syncConfiguration=toolsMenu->addAction(tr("Sync project configuration…"));syncConfiguration->setObjectName("SyncProjectConfigurationTool");
+#ifdef Q_OS_LINUX
+    connect(syncConfiguration,&QAction::triggered,this,[this]{DistributedDeploymentWindow window(fConfig,this);window.show();window.OpenSyncDialog();window.exec();});
+#else
+    syncConfiguration->setEnabled(false);
+#endif
     QMenu *logsMenu=toolsMenu->addMenu(tr("Logs"));
     logsMenu->setObjectName("ToolsLogsMenu");
     QAction *exportLog=logsMenu->addAction(tr("Export visible log…"));

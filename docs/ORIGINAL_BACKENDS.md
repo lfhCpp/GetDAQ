@@ -1,12 +1,13 @@
-# Original SOAP ECC and ATTPC DataExporter
+# Original SOAP ECC, DataExporter and DataRouter
 
-GetDAQ now creates `getEccSoapServer` and `DataExporter` instances. The rewritten
+GetDAQ now creates `getEccSoapServer` and `DataExporter` / `dataRouter` instances. The rewritten
 `getdaq-ecc-server` is retired from normal builds and automatic startup. Existing
 original SOAP ECC connections continue to work. A saved native group must be
 recreated as an original backend group; its old audit and data are retained.
 
 The main Run Control layout is unchanged. Master / Slave manages files and
-processes; it does not implement the electronics control sequence.
+processes; it does not implement the electronics control sequence. Only the
+existing log header gains the approved log-selection buttons.
 
 ## Offline build
 
@@ -16,7 +17,7 @@ gSOAP and Asio are built from project-local sources. No separately installed
 GET software, Boost or Ice is required. The historical `source/` tree is not a
 build input. Operating-system C/C++ runtime libraries remain required.
 
-The normal `scripts/build-ubuntu.sh` / full host-suite build includes both
+The normal `scripts/build-ubuntu.sh` / full host-suite build includes all three
 original programs. To reuse an existing bundled Ice build:
 
 ```sh
@@ -25,7 +26,7 @@ python3 tools/build-original-backends.py \
   --ice-build build-delivery/full/native --jobs 2
 ```
 
-Outputs: `build-original-backends/build/getEccSoapServer` and `DataExporter`.
+Outputs: `build-original-backends/build/getEccSoapServer` and `DataExporter` / `dataRouter`.
 The normal suite stages the executables into `bin/` and format definitions into
 `share/get-bench/format/`.
 
@@ -38,16 +39,18 @@ The normal suite stages the executables into `bin/` and format definitions into
    computer, or add the worker using its pairing code.
 3. Add an ECC group. Select the original XML/XCFG directory and experiment ID.
    For `pedestals`, the repository must contain `describe-pedestals.xcfg`,
-   `prepare-pedestals.xcfg`, and `configure-pedestals.xcfg` (or `.xml`). Describe also automatically accepts `describe-cobo0.xcfg` for CoBo index 0. Include
+   `configure-pedestals.xcfg` (or `.xml`). Describe also automatically accepts `describe-cobo0.xcfg` for CoBo index 0. Include
    their referenced files inside that directory, using relative references.
    Board IPs and electronics settings are those in these original files; use
    the original configuration editor to edit them.
 4. Choose the ECC and data execution hosts. They can be the same computer.
-   Enter the ECC host IP, data receiver IP and ports. The receiver IP must be
+   Choose the project directory on each host. Enter the ECC host IP, receiver
+   control IP, receiver data IP and their separate ports. The receiver IP must be
    a local address on the selected data host, reachable from the CoBo.
 5. Select **Start services and use this configuration**. GetDAQ publishes an
-   immutable release, caches exact configuration bytes on execution hosts,
-   starts DataExporter and Sentry, then starts original SOAP ECC. No hardware
+   immutable release, caches and copies exact bytes into each host's project
+   directory, starts the selected original receiver and SOAP ECC, then checks
+   the shared Sentry. No hardware
    preparation or acquisition occurs during service startup.
 6. In Run Control choose **Connect**, then Describe / Prepare / Configure /
    Start as usual. Stop acquisition before stopping backend services.
@@ -63,8 +66,9 @@ Ports have different purposes:
 | Waveform TCP export | DataExporter sends length-prefixed frames to clients |
 | Sentry monitor | File counts, byte counters and run archiving |
 
-Each group receives its own ports, configuration cache, process identities and
-raw-data directory. Multiple groups may run on one computer. Use different
+Each group receives its own ports and process identities. New groups use the
+explicit project directory on each execution host for configurations and raw data.
+Groups in the same project share one Sentry per host/project folder. Multiple groups may run on one computer. Use different
 ports and assign each board to only one active ECC. Process stops target the
 selected instance, rather than killing all programs by executable name.
 
@@ -117,12 +121,13 @@ The recorded upstream files in `third_party/DataExporter` are now byte-identical
 to the pinned upstream revision. GET hardware control, the state machine, MFM
 parsing, frame storage and DataExporter's TCP server remain upstream code.
 
-Two small, explicit entry-point patches live in `apps/original-backends/` and
+Three small, explicit entry-point patches live in `apps/original-backends/` and
 are applied only to build-directory copies:
 
 | Patch | Changes | Reason |
 |---|---|---|
 | `ecc-entry.patch` | 3 added / 1 removed lines | Initialize the backend after C++ startup; apply the original namespace table with current gSOAP |
+| `datarouter-entry.patch` | Instance metadata and graceful shutdown | Integrate the original router without changing frame storage |
 | `dataexporter-entry.patch` | 22 added / 3 removed lines | Export-port option, resource lookup, instance metadata, and orderly process exit |
 
 The default export port stays 46491. These patches do not change register
@@ -131,3 +136,23 @@ export framing. Build scripts statically compile bundled dependencies. The
 current bundle uses file-based ECC configuration; optional database and extra
 logging plugins are not included. No DataRouter replacement or automatic
 remote DataExporter installation is needed for existing receiver connections.
+
+## Unified project directories and configuration updates
+
+See [Configuration and data paths](CONFIGURATION_AND_DATA_PATHS.md) for the complete
+workflow. The master source directory defaults to `<installation>/config`. Its
+complete relative file tree is delivered to each selected execution host, cached,
+and automatically installed in that host's explicit project data directory.
+Original SOAP ECC, DataExporter / DataRouter and shared Sentry run in that directory.
+Receiver control and data interfaces are separate settings. No per-instance raw
+subdirectory is added for new project groups.
+
+Configuration changes are staged while hardware is not confirmed Idle; they are
+applied after services stop or before the next Describe. Existing raw files, Run
+records and logs remain. Changed configurations are backed up. Tools → Sync project
+configuration supports local, selected remote, or all hosts. Sync can be disabled
+explicitly, in which case configuration backup is marked unverified.
+
+The original main window layout is protected; only the existing log header has
+Event / ECC / receiver buttons and a host/instance selector. Managed process logs
+are authenticated, bounded reads, including the shared Sentry output.

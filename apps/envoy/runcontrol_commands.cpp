@@ -5,12 +5,24 @@
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QUuid>
+#include <QtConcurrent>
+#ifdef Q_OS_LINUX
+#include "deploymentcontroller.h"
+#endif
 
 void RunControl::ProgressSlot(int id)
 {
     if(!fAutomaticDispatch)CancelAutoRun("Automatic Run canceled: manual Progress");
     
     if (!Available() || fActive) return;
+#ifdef Q_OS_LINUX
+    if(!fConfig.deploymentProject.isEmpty() && AllAt(All(),1) && !fProjectConfigurationChecked){
+        fBusy=true;fPhase="Checking project configuration before Describe";Publish();const auto config=fConfig;auto *watcher=new QFutureWatcher<QPair<RunConfig,QString>>(this);
+        connect(watcher,&QFutureWatcher<QPair<RunConfig,QString>>::finished,this,[this,watcher,id]{const auto result=watcher->result();watcher->deleteLater();fBusy=false;if(fShuttingDown)return;if(!result.second.isEmpty()){fPhase="Configuration sync needs attention";ReportLog(result.second,Diagnostics::Warning);Publish();return;}
+            fConfig.configurationBackupWarning=result.first.configurationBackupWarning;fConfig.configurationSnapshot=result.first.configurationSnapshot;emit ConfigurationSnapshotSignal(fConfig.configurationSnapshot);fProjectConfigurationChecked=true;ProgressSlot(id);fProjectConfigurationChecked=false;
+        });watcher->setFuture(QtConcurrent::run([config]{try{Deployment::OperationScope scope({},30000);return qMakePair(Deployment::RefreshProjectRunConfiguration(config),QString());}catch(const std::exception &error){return qMakePair(config,QString::fromUtf8(error.what()));}}));return;
+    }
+#endif
     QVector<Step> plan;
     if (id < 0) {
         if (AllAt(All(), 1)) plan.append({All(), "Describe", 2});
@@ -54,11 +66,12 @@ void RunControl::StartRunSlot(bool replaceCompletedRun, bool acceptExistingIncom
     QJsonArray retainedIncoming;
     for (int id : Cobos()) {
         const auto &status=fStatus[id];
+        if(status.projectConfigurationPending && fConfig.syncConfiguration){ReportLog("Configuration update is pending. Return project ECCs to Idle and sync, or restart the project services before Prepare/Configure; no Run was started.",Diagnostics::Warning);return;}
         if (!status.sentryOnline || status.availableGB <= 0) {
             emit LogSignal("Start requires healthy sentries and available disk space."); return;
         }
-        if(status.files!=0) {
-            retainedIncoming.append(QJsonObject{{"node_id",id},{"data_path",status.dataPath},{"files",status.files},{"data_written_gb",status.writtenGB}});
+        if((status.projectFiles>=0?status.projectFiles:status.files)!=0) {
+            retainedIncoming.append(QJsonObject{{"node_id",id},{"data_path",status.dataPath},{"files",status.projectFiles>=0?status.projectFiles:status.files},{"data_written_gb",status.writtenGB}});
         }
     }
     if (!retainedIncoming.isEmpty() && !replaceCompletedRun && !acceptExistingIncoming) {

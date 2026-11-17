@@ -6,3 +6,6 @@ HEADERS += $$PWD/deploymentcommon.h $$PWD/distributedproject.h
 
 SOURCES += $$PWD/originaldeployment.cpp
 HEADERS += $$PWD/originaldeployment.h
+
+SOURCES += $$PWD/projectworkspace.cpp
+HEADERS += $$PWD/projectworkspace.h

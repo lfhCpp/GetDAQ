@@ -21,6 +21,11 @@
 #ifdef Q_OS_LINUX
 #include "hostrolewindow.h"
 #include "originaldeployment.h"
+#include "projectworkspace.h"
+#include "servicelogpanel.h"
+#include "sentryservice.h"
+#include <QPlainTextEdit>
+#include <QToolButton>
 #include <QComboBox>
 #include <QLabel>
 #endif
@@ -98,6 +103,35 @@ private slots:
     auto config=Deployment::OriginalConsole(master,group,active,base);QCOMPARE(config.outputDir,base.outputDir);
     config.configDir=dir.filePath("local-mirror");config.outputDir=dir.filePath("other-records");QString error;QVERIFY(config.Save(config.filePath,&error));
     auto restored=Deployment::OriginalConsole(master,group,active,base);QCOMPARE(restored.configDir,config.configDir);QCOMPARE(restored.outputDir,config.outputDir);
+ }
+ void unsynchronizedRuntimeBackupIsExplicitlyUnverified(){
+    QTemporaryDir dir;auto config=Config(dir.path());config.configurationBackupWarning="Runtime configuration has not been verified against source";QString error;QVERIFY(RunRecorder::Reserve(config,&error));QCOMPARE(RunRecorder::Finish(config,1.0),QString());QVERIFY(QFileInfo::exists(config.RunDirectory()+"/configuration-backup-warning.json"));QVERIFY(!QFileInfo::exists(config.RunDirectory()+"/backup.complete"));
+ }
+ void configurationSourceDeduplicatesWholeFolderAcrossGroups(){
+    QTemporaryDir dir;for(const auto &name:{"describe-pedestals.xcfg","configure-pedestals.xcfg","resource.dat"}){QFile file(dir.filePath(name));QVERIFY(file.open(QIODevice::WriteOnly));file.write(QByteArray(name).endsWith(".dat")?QByteArray("resource"):QByteArray("<config/>"));}
+    QMap<QString,QByteArray> files;const auto first=Deployment::OriginalRepository(dir.path(),"one",&files);const int count=files.size();const auto second=Deployment::OriginalRepository(dir.path(),"two",&files);QCOMPARE(files.size(),count);QCOMPARE(first,second);
+ }
+ void projectConfigurationSyncPreservesDataAndDefersActiveChanges(){
+    QTemporaryDir dir;const auto project=dir.filePath("project");QVERIFY(QDir().mkpath(project));QVERIFY(QFile::setPermissions(project,QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner|QFile::ReadGroup|QFile::ExeGroup));
+    QFile raw(project+"/keep.graw");QVERIFY(raw.open(QIODevice::WriteOnly));raw.write("raw-data");raw.close();
+    QJsonObject group;QMap<QString,QByteArray> files;auto configure=[&](const QByteArray &value){files["settings"]=value;files["resource"]=QByteArray();group["repository_files"]=QJsonArray{QJsonObject{{"file","settings"},{"path","config.xml"},{"sha256",Deployment::Sha(value)}},QJsonObject{{"file","resource"},{"path","subdir/empty.dat"},{"sha256",Deployment::Sha(QByteArray())}}};};
+    configure("<config old='1'/>");auto result=Deployment::SyncWorkspace(project,group,files,Deployment::Sha("one"),true,true);QCOMPARE(result["state"].toString(),QString("applied"));
+    configure("<config new='2'/>");result=Deployment::SyncWorkspace(project,group,files,Deployment::Sha("two"),true,false);QCOMPARE(result["state"].toString(),QString("pending"));QCOMPARE(Deployment::Read(project+"/config.xml"),QByteArray("<config old='1'/>"));
+    result=Deployment::SyncWorkspace(project,group,files,Deployment::Sha("two"),true,true);QCOMPARE(result["state"].toString(),QString("applied"));QCOMPARE(Deployment::Read(project+"/config.xml"),files["settings"]);QCOMPARE(Deployment::Read(project+"/keep.graw"),QByteArray("raw-data"));QVERIFY(QFileInfo::exists(project+"/subdir/empty.dat"));QVERIFY(!QFileInfo::exists(project+"/.getdaq/pending-configuration.json"));
+    configure("<disabled/>");Deployment::SyncWorkspace(project,group,files,Deployment::Sha("pending-disabled"),true,false);QVERIFY(QFileInfo::exists(project+"/.getdaq/pending-configuration.json"));result=Deployment::SyncWorkspace(project,group,files,Deployment::Sha("three"),false,true);QCOMPARE(result["state"].toString(),QString("disabled"));QVERIFY(!QFileInfo::exists(project+"/.getdaq/pending-configuration.json"));QCOMPARE(Deployment::Read(project+"/config.xml"),QByteArray("<config new='2'/>"));
+ }
+ void sharedSentryArchivesOnceForTwoEccs(){
+    QTemporaryDir dir;auto c=RunConfig::Default();c.nodes={c.nodes[0],c.nodes[1]};c.outputDir=dir.path();c.configDir=dir.filePath("configs");c.pollMs=60;c.timeoutMs=300;c.catalogTimeoutMs=600;c.stepTimeoutMs=2000;c.settleMs=20;AttachMockNodes(c);MakeFiles(c);c.nodes[1].sentryHost=c.nodes[0].host;c.nodes[1].sentryPort=c.nodes[0].sentryPort;
+    RunControl control;QSignalSpy status(&control,&RunControl::StatusSignal),done(&control,&RunControl::RunFinishedSignal);control.ConnectSlot(c);QTRY_VERIFY_WITH_TIMEOUT(At(status,1),3000);for(int state=2;state<=4;++state){control.ProgressSlot();QTRY_VERIFY_WITH_TIMEOUT(At(status,state),3000);}control.StartRunSlot();QTRY_VERIFY_WITH_TIMEOUT(At(status,5),3000);QTest::qWait(100);control.StopRunSlot();QTRY_VERIFY_WITH_TIMEOUT(done.size()==1,7000);
+    int catalogs=0;for(auto *mock:QCoreApplication::instance()->findChildren<GetDAQTestFixtures::MockNode *>())if(mock->serverPort()==c.nodes[0].sentryPort || mock->serverPort()==c.nodes[1].eccPort)catalogs+=mock->catalogCount;QCOMPARE(catalogs,1);control.DisconnectSlot();
+ }
+ void sentryReportsPerBoardAndProjectTotals(){
+    QTemporaryDir dir;auto write=[&](const QString &name,int size){QFile file(dir.filePath(name));QVERIFY(file.open(QIODevice::WriteOnly));file.write(QByteArray(size,'x'));};write("CoBo0_AsAd0_time.graw",100);write("CoBo1_AsAd1_time.graw",200);write("unassigned.graw",50);
+    SentryConfig config;config.dataDir=dir.path();config.checkProcess=false;const auto result=SentryFiles::Status(config);QCOMPARE(result.code,200);QCOMPARE(result.json["data_written_bytes"].toString(),QString("350"));const auto sources=result.json["per_source"].toObject();QCOMPARE(sources["0"].toObject()["data_written_bytes"].toString(),QString("100"));QCOMPARE(sources["1"].toObject()["data_path_files"].toInt(),1);
+ }
+ void serviceLogTabsPreserveEventTextAndHandleRotation(){
+    QPlainTextEdit *events=new QPlainTextEdit;events->appendPlainText("event history");ServiceLogPanel panel(events);QCOMPARE(panel.VisibleText(),QString("event history"));panel.findChild<QToolButton *>("ShowEccLog")->click();QVERIFY(!panel.VisibleText().contains("event history"));panel.findChild<QToolButton *>("ShowEventLog")->click();QCOMPARE(panel.VisibleText(),QString("event history"));
+    QTemporaryDir dir;const auto path=dir.filePath("ecc.log");QFile file(path);QVERIFY(file.open(QIODevice::WriteOnly));file.write("first\n");file.close();auto log=Deployment::ReadServiceLog(path,0,QString());QCOMPARE(log["text"].toString(),QString("first\n"));QVERIFY(file.open(QIODevice::Append));file.write("second\n");file.close();auto next=Deployment::ReadServiceLog(path,qint64(log["offset"].toDouble()),log["generation"].toString());QCOMPARE(next["text"].toString(),QString("second\n"));QVERIFY(QFile::rename(path,path+".old"));QVERIFY(file.open(QIODevice::WriteOnly));file.write("rotated\n");file.close();next=Deployment::ReadServiceLog(path,6,log["generation"].toString());QVERIFY(next["reset"].toBool());QCOMPARE(next["text"].toString(),QString("rotated\n"));
  }
  void slaveRefreshKeepsControlsAndObservedPaths(){
     HostRoleWindow window(RunConfig::Default());auto *role=window.findChild<QComboBox *>("MachineRoleSelector");QVERIFY(role);role->setCurrentIndex(1);

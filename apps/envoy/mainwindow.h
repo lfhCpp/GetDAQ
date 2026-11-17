@@ -7,6 +7,7 @@
 #include <QElapsedTimer>
 #include <QPointer>
 class RunControl;
+class ServiceLogPanel;
 class AutoRunWidget;
 class DiagnosticHighlighter;
 class WidgetPlot2D;
@@ -97,6 +98,7 @@ private:
     void EndConnectionLog(const QString &message);
     int SelectedId() const;
     Ui::MainWindow *ui;
+    ServiceLogPanel *fServiceLogs=nullptr;
     RunConfig fConfig;
     QVector<NodeStatus> fLastNodeStatus;
     QThread fControlThread;

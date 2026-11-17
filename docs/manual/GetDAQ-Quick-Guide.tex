@@ -123,8 +123,8 @@ ECC 端口填\textbf{目标服务实际监听的端口}，并让软件检查服�
 \subsection*{B. 在本机启动原版 SOAP ECC 和 DataExporter}
 \begin{enumerate}
 \item 选择 \ui{Create ECC / data services}，首次设置点 \ui{Use this computer (automatic)}。
-\item 点 \ui{Add boards / ECC…}，选择主控机上的原始 XML/XCFG 配置目录及实验 ID，选择 ECC / Data 执行主机并填写电脑 IP、接收 IP 和端口。
-\item 在原版配置文件中核对 CoBo IP、AsAd 槽位和 AGET 设置，点 \ui{Start services and use this configuration}。软件分发文件，先启动 DataExporter / Sentry，再启动原版 SOAP ECC。
+\item 点 \ui{Add boards / ECC…}，选择主控机上的原始 XML/XCFG 配置目录及实验 ID，选择 ECC / Data 执行主机及各自的项目数据目录，填写控制 IP、接收数据 IP 和端口。
+\item 在原版配置文件中核对 CoBo IP、AsAd 槽位和 AGET 设置，点 \ui{Start services and use this configuration}。软件分发文件，在项目目录启动 DataExporter（也可选 DataRouter）、原版 SOAP ECC 和共享 Sentry。
 \end{enumerate}
 \textbf{A、B 选择一种即可。}使用已有 ECC 时，不必再创建另一套服务来替代它。
 \subsection*{回到主界面后的顺序}
@@ -149,15 +149,20 @@ ECC 端口填\textbf{目标服务实际监听的端口}，并让软件检查服�
 \pagehead{4\quad 多实例、主从机和配置文件}{多实例指多套 ECC / Data 后台，不要求打开多个主界面。}
 \subsection*{同一台电脑可以运行多套后台}
 用“运行主机 + 实例名称 + 服务端口”区分 ECC，例如同一电脑上的 ECC-A、ECC-B。
-不同实例要有不同的端口和独立的会话 / 数据目录，避免争用同一块板卡或接收端口。
+不同实例使用不同服务端口，避免争用同一块板卡。可以共享项目数据目录，同一主机、同一目录只启动一个 Sentry，统一归档。
 端口由软件建议后仍应以实际启动结果为准。
 \subsection*{多主机：从控先启用，主控再配对}
 \par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{25mm}Y@{}}\toprule
 角色 & 最少操作 \\\midrule
-从控 Slave & 选择本机 \ui{Configuration cache} 和 \ui{Data output} 目录；点击 \ui{Enable / check slave}，复制配对码。此时只是启用主机管理，还没有开始采集。\\
+从控 Slave & 选择本机 \ui{Configuration cache} 和 \ui{Project data folder} 目录；点击 \ui{Enable / check slave}，复制配对码。此时只是启用主机管理，还没有开始采集。\\
 主控 Master & 在 Hosts 中用 \ui{Add slave} 加入从控；添加板卡组时选择 ECC host 与 Data receiver host，填写板卡和网络参数；最后点 \ui{Start services and use this configuration}。\\\bottomrule
 \end{tabularx}\par\smallskip
 主控维护实验源文件；从控接收同一版本并缓存到本机。\textbf{不要把主控电脑的绝对路径当作从控本地路径}，也不要在从控另改一份缓存配置。
+项目目录是 ECC、接收器和 Sentry 的实际工作目录，配置直接放在根目录，原始数据也写在这里。
+主控源目录默认安装目录下的 \code{config}，可 Browse 修改；保留 \ui{Sync configuration to project folders} 勾选。
+用 Tools 中的 \ui{Sync project configuration…} 选择本机、从机或全部主机。整目录分发，从机缓存后自动应用；活动配置变化先暂存，Idle / 停服务后应用，旧配置有备份，原始数据不删除。
+Describe ID 为 \code{cobo0} 对应 \code{describe-cobo0}，Prepare / Configure ID 为 \code{pedestals} 都对应 \code{configure-pedestals}。
+原日志区域可切换 Event、ECC、接收器和 Sentry 日志，右侧选择主机 / 实例。
 Linux 主从部署的管理入口常见端口为 24260，配置服务常见端口为 24250；它们都不是采集数据端口。
 \subsection*{哪些文件决定哪些事情}
 \par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{37mm}Y@{}}\toprule
@@ -172,7 +177,6 @@ GetDAQ YAML & 记录节点、ECC / 接收地址、路径、实验与运行设置
 受管主从流程同样使用原版 SOAP ECC，由主控分发原始配置，从机自动缓存，不要求 NFS。自行启动的外部 ECC 使用它所在电脑能访问的配置文件，
 有些实验室通过 NFS 共享；\textbf{连接旧 ECC 不代表 GetDAQ 已自动上传所有配置文件}。
 旧运行的本地配置备份还需要 GUI 能读到对应文件或共享镜像。
-\note{填 Experiment 为 \code{pedestals} 是选择实验标识，不能代替检查节点配置 ID、ECC 可见目录及模板内容。不要随意复制一个名称相似的模板冒充缺失的真实配置。}
 
 \newpage
 % -------------------- 5 --------------------

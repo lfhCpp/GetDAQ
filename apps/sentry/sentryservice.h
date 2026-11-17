@@ -8,6 +8,7 @@ struct SentryConfig
 {
     QString dataDir;
     QString processName;
+    QString processRegistry;
     QString diskName;
     QString bindAddress = "127.0.0.1";
     int port = 8080;

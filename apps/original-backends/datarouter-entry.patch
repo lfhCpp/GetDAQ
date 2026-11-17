@@ -1,0 +1,32 @@
+--- a/dataRouter.cpp
++++ b/dataRouter.cpp
+@@ -43,6 +43,10 @@
+ #include <memory>
+ #include <cstdlib>
+ #include <iostream>
++#include <csignal>
++#include <thread>
++#include <chrono>
++namespace { volatile std::sig_atomic_t stopRequested=0; void requestStop(int){stopRequested=1;} }
+ #include <sstream>
+ 
+ using ::utl::net::SocketAddress;
+@@ -60,6 +64,7 @@
+ 	try
+ 	{
+ 		CmdLineArgs args = CmdLineArgs::build(argc, argv);
++        for(size_t i=5;i<args.size();) { if(args[i]=="--instance"){if(i+1>=args.size())throw std::string("Missing instance value");args.erase(i);args.erase(i);}else ++i; }
+ 
+ 		if (args.size() > 1 and (args [1] == "-h" or args[1] == "--help")) throw usage.str();
+ 
+@@ -99,7 +104,9 @@
+ 		IceUtil::Handle< DataRouter > dataRouter(new DataRouter(flowEndpoint, flowType, processorType));
+ 		server.addServant("DataRouter", dataRouter).start();
+ 		dataRouter->runStart();
+-		server.waitForStop();
++		std::signal(SIGINT,requestStop);std::signal(SIGTERM,requestStop);
++        while(!stopRequested && server.isStarted())std::this_thread::sleep_for(std::chrono::milliseconds(100));
++        dataRouter->runStop();server.stop();
+ 		return EXIT_SUCCESS;
+ 	}
+ 	catch (const std::exception & e) { LOG_FATAL() << e.what(); }

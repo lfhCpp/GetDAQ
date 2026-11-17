@@ -39,6 +39,7 @@ void MainWindow::InitializeRunControl()
     connect(this,&MainWindow::ShutdownSignal,fRunControl,&RunControl::ShutdownSlot);
     connect(this,&MainWindow::PauseSignal,fRunControl,&RunControl::PauseSlot);
     connect(this,&MainWindow::ResumeSignal,fRunControl,&RunControl::ResumeSlot);
+    connect(fRunControl,&RunControl::ConfigurationSnapshotSignal,this,[this](const QString &path){fConfig.configurationSnapshot=path;});
     connect(fRunControl, &RunControl::StatusSignal, this, &MainWindow::ShowStatusSlot);
     connect(fRunControl, &RunControl::ControlSignal, this, &MainWindow::ShowControlSlot);
     connect(fRunControl,&RunControl::LogEntrySignal,this,&MainWindow::ShowLogEntry);

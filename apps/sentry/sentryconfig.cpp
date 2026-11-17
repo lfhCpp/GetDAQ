@@ -34,6 +34,7 @@ bool SentryConfig::Load(const QString &path, SentryConfig *config, QString *erro
     if (o.contains("disk_name") && !o.value("disk_name").isString()) {
         *error = "disk_name must be a string."; return false;
     }
+    c.processRegistry=o.value("process_registry").toString();
     c.processName = o.value("process_name").toString(); c.diskName = o.value("disk_name").toString();
     if (o.contains("bind")) {
         if (!o.value("bind").isString()) { *error = "bind must be a string."; return false; }

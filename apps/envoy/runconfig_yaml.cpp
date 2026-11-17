@@ -37,6 +37,10 @@ bool RunConfig::Load(const QString &path, QString *error)
             if (!settings.IsMap()) throw std::runtime_error("getdaq must be a mapping.");
             if(settings["config_dir"])c.configDir=Resolve(base,Text(settings["config_dir"]));
             if(settings["output_dir"])c.outputDir=Resolve(base,Text(settings["output_dir"]));
+            if(settings["configuration_backup_warning"])c.configurationBackupWarning=Text(settings["configuration_backup_warning"]);
+            if(settings["configuration_snapshot"])c.configurationSnapshot=Resolve(base,Text(settings["configuration_snapshot"]));
+            if(settings["deployment_project"])c.deploymentProject=Resolve(base,Text(settings["deployment_project"]));
+            if(settings["sync_configuration"])c.syncConfiguration=settings["sync_configuration"].as<bool>();
             if(settings["ecc_name"])c.eccName=Text(settings["ecc_name"]);
             if(settings["auto_run"]) {
                 const auto a=settings["auto_run"];
@@ -109,6 +113,10 @@ bool RunConfig::Save(const QString &path, QString *error) const
     automation["maximum_runs"]=autoRun.maximumRuns;
 
     g["config_dir"] = Utf8(configDir);
+    g["sync_configuration"]=syncConfiguration;
+    if(!configurationBackupWarning.isEmpty())g["configuration_backup_warning"]=Utf8(configurationBackupWarning);
+    if(!configurationSnapshot.isEmpty())g["configuration_snapshot"]=Utf8(configurationSnapshot);
+    if(!deploymentProject.isEmpty())g["deployment_project"]=Utf8(deploymentProject);
     g["output_dir"] = Utf8(outputDir);
     g["poll_ms"] = pollMs;
     g["timeout_ms"] = timeoutMs;

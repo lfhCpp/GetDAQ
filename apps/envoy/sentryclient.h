@@ -21,6 +21,7 @@ signals:
     void ReplySignal(int id, bool catalog, NodeStatus status, QString error);
     void ReplacementFinalizedSignal(int id, QString error);
 private:
+    void ParseObservation(const QByteArray &,bool,NodeStatus *,QString *);
     NodeConfig fNode;
     RunConfig fConfig;
     HttpClient *fHttp;

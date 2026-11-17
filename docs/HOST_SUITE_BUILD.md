@@ -15,7 +15,7 @@ python3 tools/build-suite.py --verify-stage /path/to/new-installation
 ```
 
 Use a new staging directory. Normal builds contain the GUI, original cconfiged,
-read-only CoBo information, SOAP ECC, DataExporter, Sentry, node agent, configuration service,
+read-only CoBo information, SOAP ECC, DataExporter, DataRouter, Sentry, node agent, configuration service,
 and offline inspect/merge/matrix programs. Retired receivers/controllers are not
 built or installed. `control` builds the frontend/original tools; `data-host`
 builds an independently managed host; `analysis` adds optional FITS/ROOT tools.
@@ -38,3 +38,5 @@ QT_QPA_PLATFORM=offscreen ./getdaq-tests
 Original process and payload checks are in
 `tests/original_backends_payload_smoke.py` and
 `tests/original_backends_integration.py`.
+
+The full profile currently stages 14 executables, including both original receiver choices.

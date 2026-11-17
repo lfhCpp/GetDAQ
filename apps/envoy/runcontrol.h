@@ -33,6 +33,7 @@ public slots:
     void PauseSlot();
     void ResumeSlot();
 signals:
+    void ConfigurationSnapshotSignal(QString path);
     void IncomingFilesConfirmationSignal(bool replaceCompletedRun, QString summary);
     void StatusSignal(QVector<NodeStatus> status);
     void ControlSignal(QString phase, bool connected, bool busy, bool active);
@@ -49,6 +50,7 @@ private slots:
     void ReplacementFinalizedSlot(int id, QString error);
     void FileFinishedSlot();
 private:
+    bool fProjectConfigurationChecked=false;
     bool fOfflineToolsOpen=false;
     AutoRunPolicy fAutoRun;
     QElapsedTimer fAutoClock;
@@ -90,6 +92,7 @@ private:
     QString fReplacementOperationId;
 
     QVector<int> Cobos() const;
+    QVector<int> MonitorRepresentatives() const;
     QVector<int> All() const;
     bool AllAt(const QVector<int> &ids, int state) const;
     bool Fresh(int id) const;

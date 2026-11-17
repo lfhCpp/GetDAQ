@@ -12,3 +12,5 @@ SOURCES += $$files($$PWD/../../third_party/yaml-cpp/src/*.cpp) $$files($$PWD/../
 HEADERS += nodeagent.h ../../common/http/httpserver.h
 
 SOURCES += nodeagentoriginal.cpp
+
+SOURCES += nodeagentproject.cpp

@@ -37,9 +37,9 @@ class BuildSuitePlanTests(unittest.TestCase):
                 self.assertIn('-DCMAKE_PREFIX_PATH=/opt/qt', command)
             else:
                 self.assertNotIn('-DCMAKE_PREFIX_PATH=/opt/qt', command)
-        mcp = next(step for step in steps if step['component'] == 'mcp')
-        self.assertEqual(mcp['configure'][0], 'qmake')
-        self.assertFalse(any(value.startswith('-D') for value in mcp['configure']))
+        control = next(step for step in steps if step['component'] == 'control')
+        self.assertEqual(control['configure'][0], 'qmake')
+        self.assertFalse(any(value.startswith('-D') for value in control['configure']))
 
 
 if __name__ == '__main__':

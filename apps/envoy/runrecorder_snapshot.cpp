@@ -37,7 +37,7 @@ bool SnapshotConfiguration(const RunConfig &c, QString *error, bool *missingFile
     const QDir run(c.RunDirectory());
     const QString destination = run.filePath("configuration");
     if (!QFileInfo::exists(destination)) {
-        const QDir source(c.configDir);
+        const QDir source(c.configurationSnapshot.isEmpty()?c.configDir:c.configurationSnapshot);
         QMap<QString, QByteArray> contents;
         QJsonArray roots;
         qint64 total = 0;

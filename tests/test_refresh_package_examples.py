@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,8 +20,9 @@ def sha(path):
 
 class RefreshPackageExamplesTest(unittest.TestCase):
     def test_updates_only_packaged_examples_and_keeps_program(self):
-        with tempfile.TemporaryDirectory(prefix='.refresh-examples-test-',
-                                         dir=str(REFRESH.PACKAGES)) as temporary:
+        with tempfile.TemporaryDirectory(prefix='getdaq-package-test-') as parent, \
+             mock.patch.object(REFRESH, 'PACKAGES', Path(parent)), \
+             tempfile.TemporaryDirectory(prefix='.refresh-examples-test-', dir=parent) as temporary:
             candidate = Path(temporary) / 'candidate'
             candidate.mkdir()
             manifest = {'schema': 'getdaq.host-suite:1', 'status': 'complete',

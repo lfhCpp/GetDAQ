@@ -33,7 +33,7 @@ bool SentryClient::Send(bool catalog)
         [this, catalog](const QByteArray &body, const QString &failure) {
             QString error = SentryFailure(body,failure);
             NodeStatus status;
-            if (error.isEmpty()) Protocol::ParseSentry(body, &status, &error);
+            if (error.isEmpty()) ParseObservation(body,catalog,&status,&error);
             (catalog ? fBusy : fStatusBusy) = false;
             if(catalog && error.isEmpty()){fStatusHttp->Cancel();fStatusBusy=false;}
             emit ReplySignal(fNode.id, catalog, status, error);
@@ -58,7 +58,7 @@ bool SentryClient::SendReplacementCatalog(const QString &operationId)
                    fConfig.catalogTimeoutMs, [this](const QByteArray &body, const QString &failure) {
         QString error = SentryFailure(body,failure);
         NodeStatus status;
-        if (error.isEmpty()) Protocol::ParseSentry(body, &status, &error);
+        if (error.isEmpty()) ParseObservation(body,true,&status,&error);
         fBusy = false;
         if(error.isEmpty()){fStatusHttp->Cancel();fStatusBusy=false;}
         emit ReplySignal(fNode.id, true, status, error);
@@ -93,3 +93,11 @@ bool SentryClient::FinalizeReplacement(const QString &operationId)
 }
 
 void SentryClient::Cancel() { if (fHttp) fHttp->Cancel(); if(fStatusHttp)fStatusHttp->Cancel(); fBusy = fStatusBusy = false; }
+
+void SentryClient::ParseObservation(const QByteArray &body,bool catalog,NodeStatus *status,QString *error){
+ auto object=QJsonDocument::fromJson(body).object();const auto aggregate=object;
+ const bool perSource=!catalog && object.contains("per_source");
+ if(perSource){const auto source=object["per_source"].toObject()[QString::number(fNode.id)].toObject();object["data_written_bytes"]=source["data_written_bytes"].toString("0");object["data_written_gb"]=source["data_written_gb"].toDouble();object["data_path_files"]=source["data_path_files"].toInt();}
+ if(!Protocol::ParseSentry(QJsonDocument(object).toJson(),status,error))return;
+ status->projectConfigurationPending=aggregate["configuration_pending"].toBool();status->sentrySourceSpecific=perSource;status->projectFiles=aggregate["data_path_files"].toInt();bool ok=false;status->projectFileBytes=aggregate["data_written_bytes"].toString().toULongLong(&ok);status->projectFileBytesKnown=ok;
+}

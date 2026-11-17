@@ -37,3 +37,6 @@ SOURCES += mainwindow_statemanagement.cpp
 
 SOURCES += coboconnectionwindow.cpp
 HEADERS += coboconnectionwindow.h
+
+SOURCES += servicelogpanel.cpp
+HEADERS += servicelogpanel.h

@@ -1,3 +1,4 @@
+#include "servicelogpanel.h"
 #include "mainwindow.h"
 #include "offlinedatatoolswindow.h"
 #include "ui_mainwindow.h"
@@ -39,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 void MainWindow::InitializePar()
 {
     InitializeMenus();
+    ui->LogPanelLayout->removeWidget(ui->LogTitle);ui->LogTitle->hide();ui->LogPanelLayout->removeWidget(ui->Log);
+    fServiceLogs=new ServiceLogPanel(ui->Log,ui->LogPanel);ui->LogPanelLayout->addWidget(fServiceLogs);
     qRegisterMetaType<RunConfig>(); qRegisterMetaType<NodeStatus>(); qRegisterMetaType<QVector<NodeStatus> >();
     fPlot = new WidgetPlot2D(this); fPlot->setMinimumHeight(132); ui->PlotLayout->addWidget(fPlot);
     ui->StatusTable->setColumnCount(12);
@@ -125,7 +128,7 @@ void MainWindow::ExportVisibleLog()
     if(!output.open(QIODevice::WriteOnly|QIODevice::Text)) {
         ShowLogSlot(tr("Log export failed: %1").arg(output.errorString()));return;
     }
-    const QByteArray content=(ui->Log->toPlainText()+QLatin1Char('\n')).toUtf8();
+    const QByteArray content=(fServiceLogs->VisibleText()+QLatin1Char('\n')).toUtf8();
     if(output.write(content)!=content.size()||!output.commit()) {
         output.cancelWriting();ShowLogSlot(tr("Log export failed: %1").arg(output.errorString()));return;
     }

@@ -35,6 +35,10 @@ struct RunConfig
     QString experiment = "Exp";
     int runNumber = 0;
     QString description;
+    QString configurationBackupWarning;
+    QString configurationSnapshot; // Immutable managed release used for Run backups.
+    QString deploymentProject; // Local managed project.json path; contains endpoint references, not tokens.
+    bool syncConfiguration=true;
     QString eccName; // Friendly connection name, independent of board IDs and fixed service identity.
     QMap<QString, QString> fields;
     QVector<NodeConfig> nodes;
@@ -71,6 +75,13 @@ struct NodeStatus
     QString process;
     QString dataPath;
     int files = 0;
+    bool projectConfigurationPending=false;
+    bool sentrySourceSpecific=false;
+    int projectFiles=-1;
+    quint64 projectFileBytes=0;
+    bool projectFileBytesKnown=false;
+    double projectRateMB=0;
+    bool projectRateKnown=false;
     double writtenGB = 0;
     quint64 rawFileBytes=0;
     bool rawFileBytesKnown=false;

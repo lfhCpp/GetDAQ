@@ -32,7 +32,10 @@ QString RunRecorder::Finish(const RunConfig &c, double seconds)
 {
     const QDir run(c.RunDirectory());
     QString error;
-    if (!c.nativeEcc && !QFileInfo::exists(run.filePath("backup.complete"))) {
+    if(!c.configurationBackupWarning.isEmpty()){
+        const QJsonObject warning{{"status","missing"},{"message",c.configurationBackupWarning},{"configuration_directory",c.configDir}};
+        if(!RunRecorderInternal::WriteRunFile(run.filePath("configuration-backup-warning.json"),QJsonDocument(warning).toJson(),&error))return error;
+    } else if (!c.nativeEcc && !QFileInfo::exists(run.filePath("backup.complete"))) {
         bool missingFile=false;
         if (!RunRecorderInternal::SnapshotConfiguration(c, &error, &missingFile)) {
             if(!missingFile)return error;

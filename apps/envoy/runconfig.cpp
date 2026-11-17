@@ -14,12 +14,8 @@ RunConfig RunConfig::Default()
 {
     RunConfig c;
     const QString root = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
-    c.configDir = QDir(root).filePath("get-configs");
-    const QDir binaries(QCoreApplication::applicationDirPath());
-    for(const QString &candidate : {QString("../config"),QString("../code/config"),QString("../share/config")}) {
-        const QString directory=QDir::cleanPath(binaries.absoluteFilePath(candidate));
-        if(QFileInfo(directory).isDir()){c.configDir=directory;break;}
-    }
+    QDir installation(QCoreApplication::applicationDirPath());installation.cdUp();if(installation.dirName().startsWith("runtime-"))installation.cdUp();
+    c.configDir=installation.filePath("config");
     c.outputDir = QDir(root).filePath("runs");
     const QStringList names = {"Target Gas", "Beam", "Energy (MeV/U)", "Pressure (Torr)",
         "B-Field (T)", "V_THGEM (V)", "V_MM (V)", "V_Cathode (kV)", "E-Drift (V)",

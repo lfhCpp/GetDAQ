@@ -34,6 +34,7 @@ AutoRunObservation RunControl::AutoRunView() const {
     v.canControl=fConnected && !fBusy && !fShuttingDown;
     v.running=AllAt(All(),5);v.paused=AllAt(All(),6);v.ready=AllAt(All(),4);v.prepared=AllAt(All(),3);
     v.healthy=fConnected && !fShuttingDown && !fStatus.isEmpty();v.bytesKnown=true;
+    QMap<QString,qint64> sampledAt;
     const qint64 now=fClock.isValid() ? fClock.elapsed() : 0;
     for(const auto &n:fConfig.nodes) {
         const auto it=fStatus.constFind(n.id);
@@ -42,8 +43,9 @@ AutoRunObservation RunControl::AutoRunView() const {
         if(!it->sentryOnline || now-it->sentryTime>fConfig.timeoutMs+2*fConfig.pollMs || !it->sentryError.isEmpty()) {v.healthy=false;v.bytesKnown=false;continue;}
         if(!it->rawFileBytesKnown || it->dataPath.isEmpty()){v.bytesKnown=false;continue;}
         const QString key=(n.sentryHost.isEmpty() ? n.host : n.sentryHost).toLower()+":"+QString::number(n.sentryPort)+":"+it->dataPath;
-        if(v.fileBytes.contains(key) && v.fileBytes.value(key)!=it->rawFileBytes){v.bytesKnown=false;continue;}
-        v.fileBytes.insert(key,it->rawFileBytes);
+        const auto bytes=it->projectFileBytesKnown?it->projectFileBytes:it->rawFileBytes;
+        if(sampledAt.contains(key) && sampledAt[key]>it->sentryTime)continue;
+        sampledAt[key]=it->sentryTime;v.fileBytes.insert(key,bytes);
     }
     v.bytesKnown=v.bytesKnown && !v.fileBytes.isEmpty();
     return v;

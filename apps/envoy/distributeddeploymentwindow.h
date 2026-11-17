@@ -13,6 +13,7 @@ public:
     explicit DistributedDeploymentWindow(const RunConfig &base,QWidget *parent=nullptr);
     RunConfig Configuration() const{return fSelected;}
     void OpenProject(const QString &directory);
+    void OpenSyncDialog();
     bool Busy() const{return fBusy;}
     void RequestClose();
 protected:
@@ -21,11 +22,11 @@ private:
     RunConfig fBase,fSelected;
     QJsonObject fMaster,fProject,fPreparation,fActivation;
     QMap<QString,QByteArray> fFiles;
-    QLineEdit *fRoot,*fAddress,*fInvitation,*fLocalDataRoot;
+    QLineEdit *fSource,*fRoot,*fAddress,*fInvitation,*fLocalDataRoot;
     QSpinBox *fPort;
     QTableWidget *fHosts,*fGroups;
     QComboBox *fDailyGroups;
-    QCheckBox *fAdvanced;
+    QCheckBox *fAdvanced,*fSync;
     QPlainTextEdit *fLog;
     QWidget *fControls;
     bool fBusy=false;
@@ -37,6 +38,7 @@ private:
     QElapsedTimer fWaitClock;
     std::shared_ptr<std::atomic_bool> fCanceled;
     void SaveProject();
+    void RefreshSourceFiles();
     void RefreshTables();
     void UpdatePathSummary();
     void Async(std::function<QJsonObject()> task,std::function<void(QJsonObject)> done);
@@ -53,6 +55,7 @@ private:
     void ReviewTerminatedGroup();
     void UseSelected();
     void StartAndUse();
+    void StopProjectServices();
     QString SelectedGroup() const;
 };
 #endif

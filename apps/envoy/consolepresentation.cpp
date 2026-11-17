@@ -1,5 +1,6 @@
 #include "consolepresentation.h"
 #include <cmath>
+#include <QSet>
 
 namespace ConsolePresentation {
 QString ElapsedText(qint64 milliseconds) {
@@ -29,7 +30,7 @@ Health NodeHealth(const NodeStatus *s,bool mutant,const RunConfig &config) {
     return Healthy;
 }
 Overview Summarize(const RunConfig &config,const QVector<NodeStatus> &status) {
-    Overview out;QMap<int,NodeStatus> byId;
+    Overview out;QMap<int,NodeStatus> byId;QSet<QString> monitors;
     for(const auto &s:status)byId.insert(s.id,s);
     out.errorsKnown=!config.nodes.isEmpty();out.rateKnown=out.diskKnown=true;
     for(const auto &n:config.nodes) {
@@ -42,7 +43,7 @@ Overview Summarize(const RunConfig &config,const QVector<NodeStatus> &status) {
         const auto &s=found.value();
         if(s.eccOnline && s.state==4 && s.transition==0)++out.ready;
         if(!s.sentryOnline || !std::isfinite(s.rateMB) || s.rateMB<0)out.rateKnown=false;
-        else out.rateMB+=s.rateMB;
+        else {const auto key=(n.sentryHost.isEmpty()?n.host:n.sentryHost).toLower()+':'+QString::number(n.sentryPort);if(s.projectRateKnown){if(!monitors.contains(key))out.rateMB+=s.projectRateMB;}else if(s.sentrySourceSpecific || !monitors.contains(key))out.rateMB+=s.rateMB;monitors.insert(key);}
         if(!s.sentryOnline || !std::isfinite(s.totalGB) || !std::isfinite(s.availableGB) ||
            s.totalGB<=0 || s.availableGB<0 || s.availableGB>s.totalGB)out.diskKnown=false;
         else out.maxDiskPercent=qMax(out.maxDiskPercent,100*(1-s.availableGB/s.totalGB));

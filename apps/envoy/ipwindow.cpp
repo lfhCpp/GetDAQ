@@ -74,8 +74,9 @@ IPWindow::IPWindow(const RunConfig &config, QWidget *parent, const QVector<NodeS
             if(!path.isEmpty())edit->setText(QDir::cleanPath(path));
         });return row;
     };
-    form->addRow(tr("Local XML/XCFG mirror (backup / editor)"), directoryRow(fConfigDir,"BrowseLocalConfigurationDirectory",tr("Choose local XML/XCFG directory")));
+    form->addRow(tr("Configuration source folder (master)"), directoryRow(fConfigDir,"BrowseLocalConfigurationDirectory",tr("Choose local XML/XCFG directory")));
     form->addRow(tr("GUI Run records root (not raw data)"), directoryRow(fOutputDir,"BrowseLocalRunRecordsDirectory",tr("Choose GUI Run records root")));
+    auto *sync=new QCheckBox(tr("Sync configuration to project folders before starting services"),this);sync->setObjectName("SyncConfigurationToProjects");sync->setChecked(config.syncConfiguration);form->addRow(sync);
     auto *pathHelp=new QLabel(tr("Type a path or Browse. Save and apply writes both paths to the current YAML; a new setup gets its own saved YAML automatically. These settings do not move existing files or change an external ECC / receiver directory."),this);
     pathHelp->setWordWrap(true);form->addRow(pathHelp);
     QStringList observedPaths;
@@ -150,6 +151,7 @@ void IPWindow::ApplySlot()
     if(fConfigDir->text().trimmed().isEmpty() || fOutputDir->text().trimmed().isEmpty()) {
         QMessageBox::warning(this,tr("Configuration"),tr("Choose both the local configuration directory and the GUI Run records directory."));return;
     }
+    config.syncConfiguration=findChild<QCheckBox *>("SyncConfigurationToProjects")->isChecked();
     config.pollMs = fPoll->value(); config.timeoutMs = fTimeout->value(); config.stepTimeoutMs = fStepTimeout->value(); config.settleMs = fSettle->value();
     config.catalogTimeoutMs = fCatalogTimeout->value();
     QString error;

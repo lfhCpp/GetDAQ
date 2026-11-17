@@ -45,3 +45,9 @@ __pycache__/
 # Historical source is kept locally and excluded from publication
 /source/
 .svn/
+
+# Native macOS packages and metadata
+/dist-macos*/
+*.app/
+*.dSYM/
+.DS_Store

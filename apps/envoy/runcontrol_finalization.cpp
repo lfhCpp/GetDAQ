@@ -15,7 +15,7 @@ void RunControl::StartCatalog()
     fPhase = "Cataloging"; fBusy = true;
     QJsonObject results = fJournal.value("catalog").toObject();
     fAwaitCatalog.clear();
-    for (int id : Cobos()) {
+    for (int id : MonitorRepresentatives()) {
         const QString result = results.value(QString::number(id)).toString();
         if (result == "complete") continue;
         if (result == "sent" || result == "unknown") {
@@ -103,7 +103,7 @@ void RunControl::StartReplacementCleanup()
     if (fReplacementOperationId.isEmpty()) { CompleteRun(); return; }
     QJsonObject results = fJournal.value("replacement_cleanup").toObject();
     fAwaitReplacementCleanup.clear();
-    for (int id : Cobos()) if (results.value(QString::number(id)).toString() != "complete") fAwaitReplacementCleanup.insert(id);
+    for (int id : MonitorRepresentatives()) if (results.value(QString::number(id)).toString() != "complete") fAwaitReplacementCleanup.insert(id);
     if (fAwaitReplacementCleanup.isEmpty()) {
         if (fDeadline) fDeadline->stop();
         if (fJournal.value("phase").toString() != "Complete" && !Journal("Complete")) {

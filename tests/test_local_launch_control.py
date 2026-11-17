@@ -11,6 +11,8 @@ import time
 import unittest
 
 TOOLS = Path(__file__).resolve().parents[1] / 'tools'
+if not (TOOLS / 'stop-getdaq-services.py').exists():
+    raise unittest.SkipTest('Retired native launcher; current instance lifecycle is covered by product and node-agent integration tests')
 spec = importlib.util.spec_from_file_location('service_stop', TOOLS / 'stop-getdaq-services.py')
 control = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(control)

@@ -16,6 +16,7 @@ void RunControl::ConnectSlot(RunConfig config)
     if (fConnected || fBusy || fActive) return;
     QString error;
     if (!config.Validate(&error)) { emit LogSignal(error); return; }
+    fProjectConfigurationChecked=false;
     fLocalFinalizationFailed=false;
     fCatalogResultUncertain=false;
     fConfig=config;ConfigureAutoRunSlot(config.autoRun);

@@ -25,6 +25,7 @@ def prepare(build,ice):
     spec=importlib.util.spec_from_file_location('entry_patches',ROOT/'tools/original-backend-patches.py');patcher=importlib.util.module_from_spec(spec);spec.loader.exec_module(patcher)
     main=build/'getEccSoapServer.cpp'
     main.write_text(patcher.apply_patch((v/'getbench/src/get/soap/getEccSoapServer.cpp').read_text(),(ROOT/'apps/original-backends/ecc-entry.patch').read_text()))
+    router_main=build/'dataRouter.cpp';router_main.write_text(patcher.apply_patch((v/'getbench/src/main/dataRouter.cpp').read_text(),(ROOT/'apps/original-backends/datarouter-entry.patch').read_text()))
     bindings=build/'bindings';bindings.mkdir(exist_ok=True)
     run([generator,'-z1','-L','-x','-pecc','-n','-d'+str(bindings),v/'getbench/src/get/soap/ecc.hh'])
     # Only interface/compiler adaptation; hardware control sources remain upstream.
@@ -74,6 +75,7 @@ def prepare(build,ice):
     dex=ROOT/'third_party/DataExporter/src'
     dex_main=build/'DataExporter-main.cpp';dex_main.write_text(patcher.apply_patch((dex/'main.cpp').read_text(),(ROOT/'apps/original-backends/dataexporter-entry.patch').read_text()))
     cmake+=['add_executable(DataExporter '+q(dex_main)+' '+ ' '.join(q(dex/p) for p in ['DataRouter.cpp','Exporter.cpp','server/TCPServer.cpp'])+')','target_include_directories(DataExporter PRIVATE '+q(dex)+' '+q(dex/'vendor/asio/asio/include')+')','target_link_libraries(DataExporter PRIVATE original-get)']
+    cmake+=['add_executable(dataRouter '+q(router_main)+' '+q(v/'getbench/src/get/daq/DataRouter.cpp')+')','target_link_libraries(dataRouter PRIVATE original-get)']
     (build/'CMakeLists.txt').write_text('\n'.join(cmake)+'\n')
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--build-dir',type=Path,required=True);p.add_argument('--ice-build',type=Path,required=True);p.add_argument('--jobs',type=int,default=2);p.add_argument('--prepare-only',action='store_true');a=p.parse_args();b=a.build_dir.resolve();prepare(b,a.ice_build.resolve())

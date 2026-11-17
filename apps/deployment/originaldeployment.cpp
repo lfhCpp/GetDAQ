@@ -6,6 +6,7 @@
 #include <QXmlStreamReader>
 #include <QJsonArray>
 #include <QSet>
+#include <QCoreApplication>
 namespace Deployment {
 namespace {
 QString ConfigIdFor(const QJsonObject &group,const QString &kind){
@@ -20,15 +21,23 @@ QString ConfigIdFor(const QJsonObject &group,const QString &kind){
 }
 QJsonArray OriginalRepository(const QString &directory,const QString &group,QMap<QString,QByteArray> *files){
     const QDir root(directory);Require(root.exists(),"Choose the original ECC configuration directory");QJsonArray entries;
-    QDirIterator it(directory,{"*.xcfg","*.xml"},QDir::Files,QDirIterator::Subdirectories);int n=0;
-    while(it.hasNext()){const auto path=it.next();Require(!QFileInfo(path).isSymLink(),"Configuration links must be copied into the master directory: "+path);const auto rel=root.relativeFilePath(path);Require(!rel.startsWith("../") && !rel.contains(':'),"Configuration path escaped the selected directory");const auto bytes=Read(path,16*1024*1024);const auto id=Id(group+"-original-"+QString::number(n++));files->insert(id,bytes);entries.append(QJsonObject{{"file",id},{"path",rel},{"sha256",Sha(bytes)}});}
+    QDirIterator it(directory,QDir::Files|QDir::Hidden,QDirIterator::Subdirectories);Q_UNUSED(group);
+    while(it.hasNext()){const auto path=it.next();Require(!QFileInfo(path).isSymLink(),"Configuration links must be copied into the master directory: "+path);const auto rel=root.relativeFilePath(path);Require(!rel.startsWith("../") && !rel.contains(':'),"Configuration path escaped the selected directory");const auto bytes=Read(path,16*1024*1024);const auto id="cfg-"+Sha(rel.toUtf8()+':'+Sha(bytes).toUtf8());files->insert(id,bytes);entries.append(QJsonObject{{"file",id},{"path",rel},{"sha256",Sha(bytes)}});}
+    bool formats=false;for(const auto &value:entries)formats=formats || value.toObject()["path"]=="CoboFormats.xcfg";
+    if(!formats){
+      const QDir defaults(QCoreApplication::applicationDirPath()+"/../share/get-bench/format");
+      for(const auto &name:defaults.entryList({"*.xcfg"},QDir::Files,QDir::Name)){
+        bool exists=false;for(const auto &value:entries)exists=exists||value.toObject()["path"]==name;if(exists)continue;
+        const auto bytes=Read(defaults.filePath(name),16*1024*1024);const auto id="cfg-"+Sha(name.toUtf8()+':'+Sha(bytes).toUtf8());files->insert(id,bytes);entries.append(QJsonObject{{"file",id},{"path",name},{"sha256",Sha(bytes)}});
+      }
+    }
     Require(!entries.isEmpty(),"The selected directory contains no XML / XCFG files");return entries;
 }
 void ValidateOriginalFiles(const QJsonObject &group,const QMap<QString,QByteArray> &files){
     Require(group["backend"]=="original-soap","Unsupported original backend");QSet<QString> paths;
     for(const auto &v:group["repository_files"].toArray()){const auto f=v.toObject();const auto path=f["path"].toString();Require(!path.isEmpty() && !QDir::isAbsolutePath(path) && QDir::cleanPath(path)==path && !path.startsWith("../") && !path.contains(':') && !paths.contains(path),"Invalid or duplicate original configuration path");paths.insert(path);const auto id=Id(f["file"].toString());Require(files.contains(id) && Sha(files.value(id))==f["sha256"].toString(),"Original configuration content differs");}
     for(const auto &v:group["repository_files"].toArray()){
-        const auto f=v.toObject();QXmlStreamReader xml(files.value(f["file"].toString()));
+        const auto f=v.toObject();if(!f["path"].toString().endsWith(".xml",Qt::CaseInsensitive) && !f["path"].toString().endsWith(".xcfg",Qt::CaseInsensitive))continue;QXmlStreamReader xml(files.value(f["file"].toString()));
         while(!xml.atEnd()){xml.readNext();if(xml.isStartElement() && xml.attributes().hasAttribute("include")){
             const auto include=xml.attributes().value("include").toString();const auto relative=QDir::cleanPath(QFileInfo(f["path"].toString()).path()+'/'+include);
             Require(!QDir::isAbsolutePath(include) && !include.contains(':') && !relative.startsWith("../") && paths.contains(relative),"Copy the referenced XML/XCFG file inside the master configuration directory and use a relative include: "+include);
@@ -44,12 +53,12 @@ int OriginalEccState(const QString &address,int port){
     Require(!xml.hasError() && error==0 && state>=1 && transition==0,"Original ECC is busy or its state is unknown");return state;
 }
 RunConfig OriginalConsole(const QJsonObject &master,const QJsonObject &group,const QJsonObject &active,const RunConfig &base){
-    const auto root=master["root"].toString();const auto directory=root+"/console/"+active["release_id"].toString()+'/'+Id(group["id"].toString());PrivateDirectory(directory);RunConfig c=base;c.simulation=false;c.nativeEcc=false;c.eccName=group["name"].toString();c.experiment=group["experiment"].toString();c.autoRun.enabled=false;c.configDir=group["master_repository"].toString();c.outputDir=base.outputDir;c.filePath=directory+"/envoy.yml";c.stepTimeoutMs=30000;c.nodes.clear();
+    const auto root=master["root"].toString();const auto directory=root+"/console/"+active["release_id"].toString()+'/'+Id(group["id"].toString());PrivateDirectory(directory);RunConfig c=base;c.simulation=false;c.nativeEcc=false;c.eccName=group["name"].toString();c.experiment=group["experiment"].toString();c.autoRun.enabled=false;c.syncConfiguration=group["sync_configuration"].toBool(true);if(group["project_mode"].toBool() && !c.syncConfiguration){c.configurationSnapshot.clear();c.configurationBackupWarning="Configuration synchronization is disabled. The execution host uses its existing project files; their equivalence to the master source was not verified.";}c.configDir=group["master_repository"].toString();c.outputDir=base.outputDir;c.filePath=directory+"/envoy.yml";c.stepTimeoutMs=30000;c.nodes.clear();
     // Reusing an activated group must preserve locally saved folder choices.
     if(QFileInfo::exists(c.filePath)){
         RunConfig saved;QString error;Require(saved.Load(c.filePath,&error),"Cannot reload saved console paths: "+error);
-        c.configDir=saved.configDir;c.outputDir=saved.outputDir;
+        if(!group["project_mode"].toBool())c.configDir=saved.configDir;c.outputDir=saved.outputDir;
     }
-    NodeConfig n;n.id=group["board_index"].toInt();n.name=QString("CoBo %1").arg(n.id);n.describeId=ConfigIdFor(group,"describe");n.prepareId=ConfigIdFor(group,"prepare");n.configureId=ConfigIdFor(group,"configure");n.host=group["ecc"].toObject()["address"].toString();n.eccPort=group["ecc"].toObject()["port"].toInt();n.routerHost=group["receiver_ip"].toString();n.routerPort=group["data_port"].toInt();n.exporterPort=0;n.sentryHost=n.routerHost;n.sentryPort=group["sentry_port"].toInt();c.nodes.append(n);QString error;Require(c.Validate(&error) && c.Save(c.filePath,&error),error);return c;
+    NodeConfig n;n.id=group["board_index"].toInt();n.name=QString("CoBo %1").arg(n.id);n.describeId=ConfigIdFor(group,"describe");n.prepareId=ConfigIdFor(group,"prepare");n.configureId=ConfigIdFor(group,"configure");n.host=group["ecc"].toObject()["address"].toString();n.eccPort=group["ecc"].toObject()["port"].toInt();n.routerHost=group["receiver_ip"].toString();n.routerPort=group["data_port"].toInt();n.exporterPort=0;n.sentryHost=group["sentry_ip"].toString(group["receiver_control_ip"].toString(n.routerHost));n.sentryPort=group["sentry_port"].toInt();c.nodes.append(n);QString error;Require(c.Validate(&error) && c.Save(c.filePath,&error),error);return c;
 }
 }
