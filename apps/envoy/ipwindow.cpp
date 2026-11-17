@@ -18,7 +18,7 @@
 #include <QUuid>
 #include <QScrollArea>
 
-IPWindow::IPWindow(const RunConfig &config, QWidget *parent) : QDialog(parent), fConfig(config)
+IPWindow::IPWindow(const RunConfig &config, QWidget *parent, const QVector<NodeStatus> &status) : QDialog(parent), fConfig(config)
 {
     setWindowTitle(tr("Nodes and paths")); resize(960, 560);
     QVBoxLayout *layout = new QVBoxLayout(this);
@@ -28,12 +28,11 @@ IPWindow::IPWindow(const RunConfig &config, QWidget *parent) : QDialog(parent), 
     layout->addWidget(fLegacyTopologyNote);
     auto *addresses=new QGroupBox(tr("Current hardware network"),this);auto *addressForm=new QFormLayout(addresses);
     auto *boardIp=new QLineEdit(qEnvironmentVariable("GETDAQ_COBO_IPV4","192.168.40.64"),addresses);boardIp->setObjectName("CurrentBoardIPv4");boardIp->setText(tr("See original ECC XML/XCFG files"));boardIp->setReadOnly(true);addressForm->addRow(tr("CoBo IPv4 (from ECC topology)"),boardIp);
-    auto *receiverIp=new QLineEdit(qEnvironmentVariable("GETDAQ_RECEIVER_IPV4","192.168.50.10"),addresses);receiverIp->setObjectName("CurrentReceiverIPv4");receiverIp->setText(config.nodes.isEmpty()?QString():config.nodes[0].routerHost);receiverIp->setReadOnly(true);addressForm->addRow(tr("Receiver IPv4 (this computer)"),receiverIp);
+    auto *receiverIp=new QLineEdit(qEnvironmentVariable("GETDAQ_RECEIVER_IPV4","192.168.50.10"),addresses);receiverIp->setObjectName("CurrentReceiverIPv4");receiverIp->setText(config.nodes.isEmpty()?QString():config.nodes[0].routerHost);receiverIp->setReadOnly(true);addressForm->addRow(tr("Receiver IPv4 (data host)"),receiverIp);
     layout->addWidget(addresses);
-    auto *hardwareSetup=new QPushButton(tr("Set up original SOAP ECC / DataExporter…"),this);
+    auto *hardwareSetup=new QPushButton(tr("Configure and manage ECC / data services…"),this);
     hardwareSetup->setObjectName("OpenHardwareSetup");
     layout->addWidget(hardwareSetup);
-    auto *services=new QPushButton(tr("Start independent ECC / data services…"),this);services->setObjectName("OpenLocalServices");layout->addWidget(services);
     const auto originalServices=[this]{
 #ifdef Q_OS_LINUX
         HostRoleWindow window(fConfig,this);if(window.exec()==QDialog::Accepted){fConfig=window.Configuration();accept();}
@@ -41,7 +40,6 @@ IPWindow::IPWindow(const RunConfig &config, QWidget *parent) : QDialog(parent), 
         QMessageBox::information(this,tr("Original backends"),tr("Start the bundled getEccSoapServer and DataExporter programs, then enter their endpoints below. Automatic host management currently requires Linux."));
 #endif
     };
-    connect(services,&QPushButton::clicked,this,originalServices);
     connect(hardwareSetup,&QPushButton::clicked,this,originalServices);
     fNodes = new QTableWidget(0, 14, this);
     fNodes->setObjectName("NodeSettingsTable");
@@ -61,7 +59,16 @@ IPWindow::IPWindow(const RunConfig &config, QWidget *parent) : QDialog(parent), 
     connect(remove, &QPushButton::clicked, this, &IPWindow::RemoveNodeSlot);
     QFormLayout *form = new QFormLayout;
     fConfigDir = new QLineEdit(config.configDir, this); fOutputDir = new QLineEdit(config.outputDir, this);
-    form->addRow(tr("GET configuration directory"), fConfigDir); form->addRow(tr("Local run records directory"), fOutputDir);
+    fConfigDir->setToolTip(tr("Local files used by the configuration editor and Run backup. Existing remote ECC reads its own --config-repo-url directory / NFS mount; this field does not upload files. Managed services receive a cache from the master."));
+    fOutputDir->setToolTip(tr("Local run.yml, journal.json, CSV and configuration backups. Raw .graw files remain on the receiver host in the directory reported by Sentry."));
+    form->addRow(tr("Local XML/XCFG mirror (backup / editor)"), fConfigDir); form->addRow(tr("GUI Run records root (not raw data)"), fOutputDir);
+    QStringList observedPaths;
+    for(const auto &entry:status)if(!entry.dataPath.isEmpty())
+        observedPaths.append(tr("Node %1: %2%3").arg(entry.id).arg(entry.dataPath,entry.sentryOnline?QString():tr(" (last observed; offline / stale)")));
+    auto *rawPath=new QLabel(observedPaths.isEmpty()?tr("Not observed yet. Connect, then check the receiver Data path column. This folder belongs to the receiver host, not the GUI."):observedPaths.join('\n'),this);
+    rawPath->setObjectName("ObservedReceiverDataPaths");rawPath->setWordWrap(true);rawPath->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    form->addRow(tr("Raw .graw folder (from Sentry)"),rawPath);
+
     auto spin = [this, form](const QString &name, int value, int minimum) {
         QSpinBox *box = new QSpinBox(this); box->setRange(minimum, 3600000); box->setValue(value); box->setSuffix(" ms"); form->addRow(name, box); return box;
     };

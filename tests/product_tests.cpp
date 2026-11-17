@@ -9,12 +9,19 @@
 #include <QSignalSpy>
 #include <QMessageBox>
 #include <QTimer>
+#include <QLabel>
 #include "runconfig.h"
 #include "runcontrol.h"
 #include "runrecorder.h"
 #include "protocol.h"
 #include "mainwindow.h"
 #include "ipwindow.h"
+#ifdef Q_OS_LINUX
+#include "hostrolewindow.h"
+#include "originaldeployment.h"
+#include <QComboBox>
+#include <QLabel>
+#endif
 #include "getdaq_test_support_p.h"
 #include "mocknode_fixture_p.h"
 #include "waveformviewer_tests_p.h"
@@ -67,10 +74,37 @@ private slots:
     QCOMPARE(starts.size(),1);QVERIFY(!QFileInfo::exists(c.RunDirectory()));
     accept=true;window.StartSignal(false,false);QTRY_COMPARE_WITH_TIMEOUT(table->item(0,1)->text(),QString("Running"),3000);
     QCOMPARE(dialogs,2);QCOMPARE(starts.size(),3);QVERIFY(starts.last()[1].toBool());
+    QTRY_VERIFY_WITH_TIMEOUT(window.findChild<QPushButton *>("StopRun")->isEnabled(),3000);
     window.StopSignal();QTRY_COMPARE_WITH_TIMEOUT(table->item(0,1)->text(),QString("Ready"),3000);
     QTRY_VERIFY_WITH_TIMEOUT(QFileInfo::exists(c.RunDirectory()+"/run.csv"),7000);window.DisconnectSignal();
  }
  void originalWindowAndNodeOptions(){MainWindow window;auto *table=window.findChild<QTableWidget *>("StatusTable");QVERIFY(table);QCOMPARE(table->columnCount(),13);for(auto *action:window.findChildren<QAction *>())QVERIFY2(!action->objectName().startsWith("Native"),qPrintable(action->objectName()));auto c=RunConfig::Default();IPWindow nodes(c);auto *settings=nodes.findChild<QTableWidget *>("NodeSettingsTable");QVERIFY(settings);QCOMPARE(settings->columnCount(),14);QVERIFY(!nodes.findChild<QCheckBox *>("UseNativeWholeSystemControl"));for(const auto &name:{"LoadConfig","SaveConfig","Nodes"}){auto *b=window.findChild<QPushButton *>(name);QVERIFY(b);QCOMPARE(b->width(),172);}}
+#ifdef Q_OS_LINUX
+ void managedPrepareUsesConfigureRepositoryFile(){
+    QJsonObject group{{"backend","original-soap"},{"experiment","pedestals"}};QMap<QString,QByteArray> files;QJsonArray entries;
+    auto add=[&](const QString &id,const QString &path){files[id]="<config/>";entries.append(QJsonObject{{"file",id},{"path",path},{"sha256",Deployment::Sha(files[id])}});};
+    add("description","describe-cobo0.xcfg");add("experiment","configure-pedestals.xcfg");group["repository_files"]=entries;
+    Deployment::ValidateOriginalFiles(group,files); // No prepare-pedestals file exists.
+    group["prepare_id"]="alignment";add("alignment","configure-alignment.xml");group["repository_files"]=entries;Deployment::ValidateOriginalFiles(group,files);
+    group["prepare_id"]="missing";QVERIFY_EXCEPTION_THROWN(Deployment::ValidateOriginalFiles(group,files),std::exception);
+ }
+ void slaveRefreshKeepsControlsAndObservedPaths(){
+    HostRoleWindow window(RunConfig::Default());auto *role=window.findChild<QComboBox *>("MachineRoleSelector");QVERIFY(role);role->setCurrentIndex(1);
+    auto *start=window.findChild<QPushButton *>("StartSlaveAgent");auto *table=window.findChild<QTableWidget *>("SlaveCachedInstances");QVERIFY(start);QVERIFY(table);
+    QJsonObject instance{{"instance_id","group-data"},{"role","receiver"},{"phase","stopped"},{"data_directory","/data/group-data"},{"working_directory","/data/group-data"}};
+    QJsonObject node{{"inventory",QJsonObject{{"instances",QJsonArray{instance}}}}};
+    QVERIFY(QMetaObject::invokeMethod(&window,"ShowNode",Qt::DirectConnection,Q_ARG(QJsonObject,node)));QCOMPARE(table->columnCount(),6);
+    auto *item=table->item(0,5);QCOMPARE(item->text(),QString("/data/group-data"));
+    QVERIFY(QMetaObject::invokeMethod(&window,"ShowNode",Qt::DirectConnection,Q_ARG(QJsonObject,node)));QCOMPARE(table->item(0,5),item);
+    QVERIFY(QMetaObject::invokeMethod(&window,"ObserveSlave",Qt::DirectConnection));QVERIFY(role->isEnabled());QVERIFY(start->isEnabled());
+    auto *status=window.findChild<QLabel *>("SlaveAgentStatus");QTRY_VERIFY_WITH_TIMEOUT(status->text().contains("unreachable"),3000);QCOMPARE(table->item(0,5),item);QCOMPARE(item->text(),QString("/data/group-data"));role->setCurrentIndex(0);
+ }
+#endif
+ void nodePathsSeparateRawFromGuiRecords(){
+    auto c=RunConfig::Default();NodeStatus status;status.id=0;status.dataPath="/receiver/raw-folder";status.sentryOnline=true;
+    IPWindow window(c,nullptr,{status});auto *path=window.findChild<QLabel *>("ObservedReceiverDataPaths");QVERIFY(path);QVERIFY(path->text().contains("/receiver/raw-folder"));
+    QVERIFY(!window.findChild<QPushButton *>("OpenLocalServices"));QVERIFY(window.findChild<QPushButton *>("OpenHardwareSetup"));
+ }
  void waveformRawFrames(){GetDAQTestInternal::RunWaveformViewerIndexesRawAndLayeredFrames();}
  void waveformCompactFrames(){GetDAQTestInternal::RunWaveformViewerDecodesCompactCoboFrames();}
  void waveformTruncation(){GetDAQTestInternal::RunWaveformViewerRejectsTruncatedMfmInput();}

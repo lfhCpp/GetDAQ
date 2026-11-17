@@ -21,7 +21,7 @@ private:
     RunConfig fBase,fSelected;
     QJsonObject fMaster,fProject,fPreparation,fActivation;
     QMap<QString,QByteArray> fFiles;
-    QLineEdit *fRoot,*fAddress,*fInvitation;
+    QLineEdit *fRoot,*fAddress,*fInvitation,*fLocalDataRoot;
     QSpinBox *fPort;
     QTableWidget *fHosts,*fGroups;
     QComboBox *fDailyGroups;
@@ -31,12 +31,14 @@ private:
     bool fBusy=false;
     bool fCloseAfterWait=false;
     QLabel *fWaitStatus;
+    QLabel *fPathSummary;
     QPushButton *fStopWaiting;
     QString fWaitStage;
     QElapsedTimer fWaitClock;
     std::shared_ptr<std::atomic_bool> fCanceled;
     void SaveProject();
     void RefreshTables();
+    void UpdatePathSummary();
     void Async(std::function<QJsonObject()> task,std::function<void(QJsonObject)> done);
     Deployment::Logger Logger();
     void StartMaster();

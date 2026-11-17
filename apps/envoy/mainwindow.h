@@ -98,6 +98,7 @@ private:
     int SelectedId() const;
     Ui::MainWindow *ui;
     RunConfig fConfig;
+    QVector<NodeStatus> fLastNodeStatus;
     QThread fControlThread;
     RunControl *fRunControl=nullptr;
     WidgetPlot2D *fPlot;

@@ -12,6 +12,7 @@
 
 void MainWindow::ShowStatusSlot(QVector<NodeStatus> status)
 {
+    fLastNodeStatus=status;
     fObservedEccState=-1;
     if(!status.isEmpty()){int state=status[0].state;bool consistent=true;for(const auto &node:status)consistent=consistent && node.eccOnline && node.transition==0 && node.state==state;if(consistent)fObservedEccState=state;}
     QMap<int,QString> projectedLifecycles;

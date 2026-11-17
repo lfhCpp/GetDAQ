@@ -31,10 +31,12 @@ private:
     QString fRoot;
     QJsonObject fNode;
     bool fBusy=false;
+    bool fObserving=false;
     bool fCloseAfterWait=false;
     std::shared_ptr<std::atomic_bool> fCanceled;
     void SelectRole(int index);
     void StartSlave();
+private slots:
     void ObserveSlave();
     void ShowNode(const QJsonObject &node);
 };

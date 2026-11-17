@@ -202,6 +202,23 @@ def main():
         require(state is not None and state.text=='1','Original SOAP ECC must actually be Idle')
         require(not list((nodes[0]['root']).rglob('prepare.jsonl')), 'Deployment unexpectedly prepared hardware')
         checks.append('actual ECC status Idle; no board preparation or acquisition')
+        for node, role in [(nodes[0], 'ecc'), (nodes[1], 'receiver')]:
+            code, payload = request(node, 'GET', '/v1/inventory', token=node['token'])
+            require(code == 200, 'Inventory unavailable')
+            entries = [entry for entry in json.loads(payload)['instances'] if entry['role'] == role]
+            require(len(entries) == 1, 'Expected one prepared original instance')
+            entry = entries[0]
+            service = json.loads(Path(entry['config_file']).read_text())
+            require(entry['configuration_repository'] == service['repository'], 'ECC cache path differs from actual service')
+            require(entry['working_directory'] == service['working_directory'], 'Reported working directory differs')
+            for pid in entry['actual_pids']:
+                require(os.readlink('/proc/' + str(int(pid)) + '/cwd') == service['working_directory'], 'Process uses another working directory')
+            if role == 'receiver':
+                require(entry['data_directory'] == service['working_directory'], 'Raw data directory differs from working directory')
+                sentry_config = json.loads(Path(service['sentry_config']).read_text())
+                require(sentry_config['data_dir'] == entry['data_directory'], 'Sentry watches another directory')
+        checks.append('reported ECC cache and raw output match service files, process cwd and Sentry directory')
+
         for node, original in [(nodes[0], activate_ecc), (nodes[1], activate_receiver)]:
             stop_request = dict(original, operation_id='stop-' + original['role'], action='stop', ecc_stopped_confirmed=True)
             stopped = terminal(node, stop_request)

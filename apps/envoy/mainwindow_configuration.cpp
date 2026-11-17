@@ -53,7 +53,7 @@ void MainWindow::on_Nodes_clicked()
 {
     if (!ReadConfig()) return;
     if(fConnected || fBusy){ShowLogSlot(tr("Disconnect before changing ECC connection settings."));return;}
-    IPWindow window(fConfig, this);
+    IPWindow window(fConfig, this, fLastNodeStatus);
     if (window.exec() == QDialog::Accepted){if(AdoptConfiguration(window.GetConfig()))RememberStartupConfiguration();}
 }
 

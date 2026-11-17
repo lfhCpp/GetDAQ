@@ -35,3 +35,5 @@ GetDAQ 是 GET 采集操作界面。当前固定方案使用原版 **getEccSoapS
 原版核心源码保持原样，少量入口适配保存在独立补丁中。
 
 当前可执行的软件测试不能代替实物采集验收；原生 macOS 编译和实机功能仍需对应主机验证。
+
+Configuration and storage paths: [配置文件与数据目录说明](docs/CONFIGURATION_AND_DATA_PATHS.md).

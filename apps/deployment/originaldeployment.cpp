@@ -10,11 +10,12 @@ namespace Deployment {
 namespace {
 QString ConfigIdFor(const QJsonObject &group,const QString &kind){
  QSet<QString> paths;for(const auto &v:group["repository_files"].toArray())paths.insert(v.toObject()["path"].toString());
- const auto has=[&](const QString &id){return paths.contains(kind+'-'+id+".xcfg") || paths.contains(kind+'-'+id+".xml");};
+ const auto prefix=kind=="prepare"?QString("configure"):kind;
+ const auto has=[&](const QString &id){return paths.contains(prefix+'-'+id+".xcfg") || paths.contains(prefix+'-'+id+".xml");};
  const auto explicitId=group[kind+"_id"].toString();if(!explicitId.isEmpty()){Id(explicitId);Require(has(explicitId),"Missing original "+kind+" configuration: "+explicitId);return explicitId;}
  const auto experiment=Id(group["experiment"].toString());if(has(experiment))return experiment;
  const auto board="cobo"+QString::number(group["board_index"].toInt());if(kind=="describe" && has(board))return board;
- Require(false,"Missing original ECC configuration: "+kind+'-'+experiment+".xcfg / .xml"+(kind=="describe"?" (also checked "+kind+'-'+board+")":QString()));return {};
+ Require(false,"Missing original ECC configuration for "+kind+": "+prefix+'-'+experiment+".xcfg / .xml"+(kind=="describe"?" (also checked "+kind+'-'+board+")":QString()));return {};
 }
 }
 QJsonArray OriginalRepository(const QString &directory,const QString &group,QMap<QString,QByteArray> *files){

@@ -12,7 +12,7 @@ class IPWindow : public QDialog
 {
     Q_OBJECT
 public:
-    explicit IPWindow(const RunConfig &config, QWidget *parent = nullptr);
+    explicit IPWindow(const RunConfig &config, QWidget *parent = nullptr, const QVector<NodeStatus> &status = {});
     RunConfig GetConfig() const { return fConfig; }
 private slots:
     void ApplySlot();
