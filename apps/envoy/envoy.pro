@@ -40,3 +40,6 @@ HEADERS += coboconnectionwindow.h
 
 SOURCES += servicelogpanel.cpp
 HEADERS += servicelogpanel.h
+
+SOURCES += logtimeline.cpp
+HEADERS += logtimeline.h

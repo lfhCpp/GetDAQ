@@ -46,7 +46,7 @@ QJsonObject ReadServiceLog(const QString &path,qint64 offset,const QString &gene
  QFileInfo info(path);Require(!info.isSymLink(),"Service log cannot be a link");if(!info.exists())return {{"offset",0},{"generation","missing"},{"text",""},{"available",false}};
  QFile file(path);Require(file.open(QIODevice::ReadOnly),"Cannot read service log");
  struct stat st;Require(!::stat(QFile::encodeName(path).constData(),&st),"Cannot inspect service log");const auto current=Sha((info.absoluteFilePath()+':'+QString::number(qulonglong(st.st_dev))+':'+QString::number(qulonglong(st.st_ino))+':'+QString::number(info.birthTime().toMSecsSinceEpoch())).toUtf8());
- const bool reset=generation!=current || offset<0 || offset>file.size();if(reset)offset=qMax<qint64>(0,file.size()-65536);Require(file.seek(offset),"Cannot seek service log");const auto bytes=file.read(65536);
- return {{"offset",double(file.pos())},{"generation",current},{"text",QString::fromUtf8(bytes)},{"reset",reset},{"available",true}};
+ const bool reset=generation!=current || offset<0 || offset>file.size();if(reset)offset=qMax<qint64>(0,file.size()-65536);Require(file.seek(offset),"Cannot seek service log");const auto snapshot=file.size();const auto start=file.pos();const auto bytes=file.read(qMin<qint64>(65536,qMax<qint64>(0,snapshot-start)));
+ return {{"offset",double(file.pos())},{"start_offset",double(start)},{"snapshot_size",double(snapshot)},{"generation",current},{"text",QString::fromUtf8(bytes)},{"reset",reset},{"available",true}};
 }
 }

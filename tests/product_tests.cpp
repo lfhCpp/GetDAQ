@@ -23,6 +23,7 @@
 #include "originaldeployment.h"
 #include "projectworkspace.h"
 #include "servicelogpanel.h"
+#include "logtimeline.h"
 #include "sentryservice.h"
 #include <QPlainTextEdit>
 #include <QToolButton>
@@ -129,6 +130,18 @@ private slots:
     QTemporaryDir dir;auto write=[&](const QString &name,int size){QFile file(dir.filePath(name));QVERIFY(file.open(QIODevice::WriteOnly));file.write(QByteArray(size,'x'));};write("CoBo0_AsAd0_time.graw",100);write("CoBo1_AsAd1_time.graw",200);write("unassigned.graw",50);
     SentryConfig config;config.dataDir=dir.path();config.checkProcess=false;const auto result=SentryFiles::Status(config);QCOMPARE(result.code,200);QCOMPARE(result.json["data_written_bytes"].toString(),QString("350"));const auto sources=result.json["per_source"].toObject();QCOMPARE(sources["0"].toObject()["data_written_bytes"].toString(),QString("100"));QCOMPARE(sources["1"].toObject()["data_path_files"].toInt(),1);
  }
+ void combinedLogSnapshotOrdersChunksAndKeepsClearHistory(){
+    LogTimeline timeline;timeline.Append("EVENT LOG","first event",1000);timeline.AppendChunk("ecc","ECC LOG | host1","partial",false,1000);timeline.AppendChunk("data","DATA LOG | host2","connection established\n",false,1000);timeline.AppendChunk("ecc","ECC LOG | host1"," line\nnext",false,900);
+    const auto before=timeline.ExportText();QVERIFY(before.indexOf("first event")<before.indexOf("connection established"));QVERIFY(before.indexOf("connection established")<before.indexOf("partial line"));QVERIFY(before.contains("partial line at snapshot"));QVERIFY(before.contains("local observation time"));
+    timeline.Append("EVENT LOG","after snapshot",2000);QVERIFY(!before.contains("after snapshot"));QVERIFY(timeline.ExportText().contains("after snapshot"));
+    auto *events=new QPlainTextEdit;events->setPlainText("persistent event history");ServiceLogPanel panel(events);auto *clear=panel.findChild<QToolButton *>("ClearLog");QVERIFY(clear);clear->click();QVERIFY(panel.VisibleText().isEmpty());QVERIFY(panel.CombinedText().contains("persistent event history"));
+    LogTimeline bounded(24);bounded.Append("EVENT LOG","12345678",1);bounded.Append("ECC LOG","abcdefgh",2);QVERIFY(!bounded.ExportText().contains("12345678"));QVERIFY(bounded.ExportText().contains("discarded older records: 1"));
+ }
+ void logCollectorReadsBackendSourcesWhileEventTabIsSelected(){
+    QTemporaryDir dir;const auto path=dir.filePath("project.json");QJsonObject host{{"id","host1"},{"name","Computer"}};
+    QJsonObject group{{"id","group1"},{"name","Boards"},{"ecc",QJsonObject{{"node_id","host1"}}},{"receivers",QJsonArray{QJsonObject{{"id","data"},{"node_id","host1"}}}}};Deployment::Write(path,Deployment::Json({{"nodes",QJsonArray{host}},{"groups",QJsonArray{group}}}));
+    auto *events=new QPlainTextEdit;events->setPlainText("event page stays selected");ServiceLogPanel panel(events);panel.SetProject(path);QVERIFY(QMetaObject::invokeMethod(&panel,"Poll",Qt::DirectConnection));QTRY_VERIFY_WITH_TIMEOUT(panel.CombinedText().contains("ECC LOG"),3000);QTRY_VERIFY_WITH_TIMEOUT(panel.CombinedText().contains("DATA LOG"),3000);QCOMPARE(panel.VisibleText(),QString("event page stays selected"));
+ }
  void serviceLogHeaderFitsTextAndRefreshesNewProjectInstances(){
     auto *events=new QPlainTextEdit;ServiceLogPanel panel(events);auto *button=panel.findChild<QToolButton *>("ShowEventLog");QVERIFY(button);QVERIFY(button->height()>=button->fontMetrics().height()+6);QVERIFY(button->minimumWidth()>=button->fontMetrics().horizontalAdvance(button->text())+24);
     QTemporaryDir dir;const auto path=dir.filePath("project.json");panel.SetProject(path);panel.findChild<QToolButton *>("ShowEccLog")->click();auto *instances=panel.findChild<QComboBox *>("ServiceLogInstance");QCOMPARE(instances->count(),0);
@@ -146,7 +159,7 @@ private slots:
  }
  void serviceLogTabsPreserveEventTextAndHandleRotation(){
     QPlainTextEdit *events=new QPlainTextEdit;events->appendPlainText("event history");ServiceLogPanel panel(events);QCOMPARE(panel.VisibleText(),QString("event history"));panel.findChild<QToolButton *>("ShowEccLog")->click();QVERIFY(!panel.VisibleText().contains("event history"));panel.findChild<QToolButton *>("ShowEventLog")->click();QCOMPARE(panel.VisibleText(),QString("event history"));
-    QTemporaryDir dir;const auto path=dir.filePath("ecc.log");QFile file(path);QVERIFY(file.open(QIODevice::WriteOnly));file.write("first\n");file.close();auto log=Deployment::ReadServiceLog(path,0,QString());QCOMPARE(log["text"].toString(),QString("first\n"));QVERIFY(file.open(QIODevice::Append));file.write("second\n");file.close();auto next=Deployment::ReadServiceLog(path,qint64(log["offset"].toDouble()),log["generation"].toString());QCOMPARE(next["text"].toString(),QString("second\n"));QVERIFY(QFile::rename(path,path+".old"));QVERIFY(file.open(QIODevice::WriteOnly));file.write("rotated\n");file.close();next=Deployment::ReadServiceLog(path,6,log["generation"].toString());QVERIFY(next["reset"].toBool());QCOMPARE(next["text"].toString(),QString("rotated\n"));
+    QTemporaryDir dir;const auto path=dir.filePath("ecc.log");QFile file(path);QVERIFY(file.open(QIODevice::WriteOnly));file.write("first\n");file.close();auto log=Deployment::ReadServiceLog(path,0,QString());QCOMPARE(log["text"].toString(),QString("first\n"));QCOMPARE(log["snapshot_size"].toInt(),6);QVERIFY(log["offset"].toDouble()<=log["snapshot_size"].toDouble());QVERIFY(file.open(QIODevice::Append));file.write("second\n");file.close();auto next=Deployment::ReadServiceLog(path,qint64(log["offset"].toDouble()),log["generation"].toString());QCOMPARE(next["text"].toString(),QString("second\n"));QVERIFY(QFile::rename(path,path+".old"));QVERIFY(file.open(QIODevice::WriteOnly));file.write("rotated\n");file.close();next=Deployment::ReadServiceLog(path,6,log["generation"].toString());QVERIFY(next["reset"].toBool());QCOMPARE(next["text"].toString(),QString("rotated\n"));
  }
  void slaveRefreshKeepsControlsAndObservedPaths(){
     HostRoleWindow window(RunConfig::Default());auto *role=window.findChild<QComboBox *>("MachineRoleSelector");QVERIFY(role);role->setCurrentIndex(1);

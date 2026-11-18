@@ -103,9 +103,9 @@ void MainWindow::InitializeMenus()
 #endif
     QMenu *logsMenu=toolsMenu->addMenu(tr("Logs"));
     logsMenu->setObjectName("ToolsLogsMenu");
-    QAction *exportLog=logsMenu->addAction(tr("Export visible log…"));
+    QAction *exportLog=logsMenu->addAction(tr("Export combined logs…"));
     exportLog->setObjectName("ExportVisibleLog");
-    exportLog->setToolTip(tr("Save the log text currently shown in the operation log panel."));
+    exportLog->setToolTip(tr("Save a chronological snapshot of collected Event, ECC, Data and Sentry logs; clearing the display does not delete export history."));
     connect(exportLog,&QAction::triggered,this,&MainWindow::ExportVisibleLog);
     auto *localServices=toolsMenu->addAction(tr("ECC / data service manager…"));localServices->setObjectName("StartLocalServices");
     connect(localServices,&QAction::triggered,this,manageBackends);

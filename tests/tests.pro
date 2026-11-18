@@ -23,3 +23,6 @@ HEADERS += ../apps/envoy/servicelogpanel.h
 
 SOURCES += ../apps/sentry/sentryservice_status.cpp
 INCLUDEPATH += ../apps/sentry
+
+SOURCES += ../apps/envoy/logtimeline.cpp
+HEADERS += ../apps/envoy/logtimeline.h

@@ -120,7 +120,7 @@ void MainWindow::ResizeStatusTableToContents()
 
 void MainWindow::ExportVisibleLog()
 {
-    const QString path=QFileDialog::getSaveFileName(this,tr("Export visible operation log"),
+    const QString path=QFileDialog::getSaveFileName(this,tr("Export combined logs"),
         QDir::home().filePath(QString("getdaq-log-%1.txt").arg(QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss"))),
         tr("Text files (*.txt);;Log files (*.log);;All files (*)"));
     if(path.isEmpty())return;
@@ -128,11 +128,11 @@ void MainWindow::ExportVisibleLog()
     if(!output.open(QIODevice::WriteOnly|QIODevice::Text)) {
         ShowLogSlot(tr("Log export failed: %1").arg(output.errorString()));return;
     }
-    const QByteArray content=(fServiceLogs->VisibleText()+QLatin1Char('\n')).toUtf8();
+    const QByteArray content=fServiceLogs->CombinedText().toUtf8();
     if(output.write(content)!=content.size()||!output.commit()) {
         output.cancelWriting();ShowLogSlot(tr("Log export failed: %1").arg(output.errorString()));return;
     }
-    ShowLogSlot(tr("Visible log exported to %1").arg(QFileInfo(path).absoluteFilePath()));
+    ShowLogSlot(tr("Combined log snapshot exported to %1").arg(QFileInfo(path).absoluteFilePath()));
 }
 
 

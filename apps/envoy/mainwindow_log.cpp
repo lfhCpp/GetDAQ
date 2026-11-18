@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "diagnostichighlighter.h"
+#include "servicelogpanel.h"
 #include <QDateTime>
 #include <QDir>
 #include <QFileInfo>
@@ -17,6 +18,7 @@ void MainWindow::ShowLogEntry(QString message,int severity)
     }
     const QString line = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz ") + message;
     ui->Log->appendPlainText(line);
+    if(fServiceLogs)fServiceLogs->RecordEvent(line);
     auto block=ui->Log->document()->lastBlock();
     for(int remaining=line.count('\n')+1;remaining>0 && block.isValid();--remaining,block=block.previous()) {
         block.setUserData(new DiagnosticBlockData(severity));fLogHighlighter->rehighlightBlock(block);

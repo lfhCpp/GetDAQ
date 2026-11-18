@@ -17,7 +17,7 @@ def port():
    return value
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('bin',type=Path);p.add_argument('--evidence',type=Path,required=True);p.add_argument('--controller-probe',type=Path);args=p.parse_args();programs=args.bin.resolve();args.evidence.mkdir(parents=True,exist_ok=True);root=Path(tempfile.mkdtemp(prefix='project-',dir=args.evidence.resolve()));children=[];logs=[];checks=[]
+ p=argparse.ArgumentParser();p.add_argument('bin',type=Path);p.add_argument('--evidence',type=Path,required=True);p.add_argument('--controller-probe',type=Path);p.add_argument('--log-panel-probe',type=Path);args=p.parse_args();programs=args.bin.resolve();args.evidence.mkdir(parents=True,exist_ok=True);root=Path(tempfile.mkdtemp(prefix='project-',dir=args.evidence.resolve()));children=[];logs=[];checks=[]
  def run(*cmd):
   result=subprocess.run(list(map(str,cmd)),capture_output=True,timeout=30);require(result.returncode==0,result.stderr.decode(errors='replace'));return result.stdout
  def start(name,*cmd):
@@ -113,6 +113,8 @@ def main():
    old_snapshot=Path(started['snapshot']);require((old_snapshot/'resource.dat').read_bytes()==b'project-resource','Missing initial immutable snapshot')
    (source/'resource.dat').write_bytes(b'updated-while-idle');run(args.controller_probe,'sync',root/'master.json');refreshed=json.loads(run(args.controller_probe,'refresh',root/'master.json'));require((Path(refreshed['snapshot'])/'resource.dat').read_bytes()==b'updated-while-idle','Pre-Describe snapshot did not refresh');require((old_snapshot/'resource.dat').read_bytes()==b'project-resource','Old Run snapshot was modified');checks.append('pre-Describe refresh preserves old snapshot and selects the actually synchronized configuration revision')
    reused=json.loads(run(args.controller_probe,'start',root/'master.json'));before={r['instance_id']:r['processes'][0]['pid'] for r in started['activation']['receipts']};after={r['instance_id']:r['processes'][0]['pid'] for r in reused['activation']['receipts']};require(before==after,'Configuration-only update restarted backends');checks.append('configuration-only updates reuse verified backend processes without duplicate startup')
+  if args.log_panel_probe:
+   os.environ['QT_QPA_PLATFORM']='offscreen';output=root/'combined-logs.txt';run(args.log_panel_probe,root/'project.json',output);combined=output.read_text();require('EVENT LOG' in combined and 'ECC LOG' in combined and 'DATA LOG' in combined,'Combined log lacks source separators');checks.append('real GUI collector reads all authenticated sources on Event tab and exports a stable combined snapshot; Clear preserves history')
   # With a foreign/uninspectable ECC still associated with live receivers, updates stay cached.
   ecc_active=[v for v in activated if v[1]['role']=='ecc'];os.kill(int(ecc_active[0][2]['processes'][0]['pid']),signal.SIGINT);time.sleep(.3)
   (source/'resource.dat').write_bytes(b'updated-resource');next_release=upload(groups)
