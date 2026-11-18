@@ -156,3 +156,25 @@ explicitly, in which case configuration backup is marked unverified.
 The original main window layout is protected; only the existing log header has
 Event / ECC / receiver buttons and a host/instance selector. Managed process logs
 are authenticated, bounded reads, including the shared Sentry output.
+
+## Restart after a software update
+
+A configuration content release is separate from a local runtime preparation.
+Each accepted prepare now stores its immutable runtime recipe under
+`deployments/<release>/<instance>/preparations/<operation>/`; a latest-preparation
+pointer selects it, and current activation requests bind its preparation ID.
+Updating the program directory or preparing unchanged XML again therefore does
+not overwrite the old `service.json`. Old configuration and process audit remain.
+
+If a group was **terminated**, its processes may be absent while the deployment
+remains `terminated-needs-inspection`. Normal Stop cannot query an exited ECC.
+After verifying board acquisition has stopped and raw data is preserved, use
+**Review terminated group**, then **Start project services**. Inspection validates
+that the registered old executable/recipe still matches and matching processes
+are absent, including preserved old runtime directories; it does not require the
+old program to be installed beside the current node agent. Process absence does
+not itself prove the hardware stopped, reset hardware UNKNOWN, or complete a Run.
+
+Do not delete deployment journals to get past an immutable-file or inspection
+error. Unknown original operations remain retained and are not automatically
+replayed. A stale prepared-recipe ID is rejected before starting processes.

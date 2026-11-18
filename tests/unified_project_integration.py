@@ -2,7 +2,7 @@
 """Project-folder distribution, two original receivers, shared Sentry and remote logs.
 All nodes and hardware frames are loopback/software-only; never contacts boards.
 """
-import argparse,hashlib,json,os,signal,socket,ssl,subprocess,tempfile,time,urllib.request
+import argparse,hashlib,json,os,signal,socket,ssl,subprocess,tempfile,time,urllib.request,shutil
 from pathlib import Path
 from original_backends_integration import request,port as available_port,require,wait,sha
 
@@ -131,6 +131,25 @@ def main():
   # Release the externally stopped ECC record via explicit repair; no process remains.
   terminal(nodes[0],dict(schema=1,operation_id='repair-ecc',action='terminate',release_id=release,group_id='group1',role='ecc',accepted_repair=True))
   applied=terminal(nodes[1],dict(schema=1,operation_id='apply-after-stop',action='sync',release_id=next_release,group_id='group1',role='ecc'));require(applied['configuration_sync']['state']=='applied','Stopped project update did not apply');require((data_folder/'resource.dat').read_bytes()==b'updated-resource','Wrong updated configuration');require((data_folder/'preserve.graw').read_bytes()==b'old-raw','Raw file changed during update');checks.append('stopped project applies staged update with backups; raw files preserved and shared monitor released')
+  # Simulate a software update while keeping the original instance audit.
+  # No boards exist in this fixture; its explicit inspection confirmation is real.
+  variant=root/'runtime-upgrade/bin';variant.mkdir(parents=True)
+  for name in ['getEccSoapServer','DataExporter','dataRouter','getdaq-sentry']:shutil.copy2(programs/name,variant/name)
+  children[0].terminate();children[0].wait(timeout=10)
+  cfg=nodes[0]['root']/'node.json';settings=json.loads(cfg.read_text());settings['program_directory']=str(variant);cfg.write_text(json.dumps(settings));cfg.chmod(0o600)
+  start('node-0-upgraded',programs/'getdaq-node-agent','--config',cfg);wait(lambda:ready(nodes[0]))
+  released=terminal(nodes[0],dict(schema=1,operation_id='inspect-old-installation',action='release-terminated',release_id=release,group_id='group1',role='ecc',accepted_repair=True));require(released['phase']=='released-after-inspection','Old runtime could not be inspected after manager update');checks.append('inspected terminated original ECC can be released after agent runtime-directory change; prior executable hash and process absence remain verified')
+  prepare=dict(schema=1,operation_id='same-release-prepare-a',action='prepare',release_id=next_release,group_id='group1',role='ecc')
+  first=terminal(nodes[0],prepare);first_bytes=Path(first['config_file']).read_bytes();second=terminal(nodes[0],dict(prepare,operation_id='same-release-prepare-b'))
+  require(first['config_file']!=second['config_file'] and Path(first['config_file']).read_bytes()==first_bytes,'Repeated preparation rewrote an immutable runtime artifact');checks.append('same experiment release prepares repeatedly after update with separate immutable runtime recipes and unchanged prior audit')
+  stale=dict(schema=1,operation_id='stale-runtime-recipe',action='activate',release_id=next_release,group_id='group1',role='ecc',expected_previous=release,preparation_id=first['preparation_id'])
+  code,body=request(nodes[0],'POST','/v1/operations',stale,nodes[0]['token']);require(code==202,'Stale recipe request not journaled')
+  def rejected():
+   code,body=request(nodes[0],'GET','/v1/operations/stale-runtime-recipe',token=nodes[0]['token']);value=json.loads(body);return value if value.get('phase') not in ['accepted','running'] else None
+  rejection=wait(rejected);require(rejection['phase']=='failed' and 'recipe changed' in rejection.get('message',''),'Stale prepared recipe was activated')
+  active=terminal(nodes[0],dict(stale,operation_id='restart-new-runtime',preparation_id=second['preparation_id']));require(active['program'].startswith(str(variant)),'Restart used old installation')
+  terminal(nodes[0],dict(schema=1,operation_id='stop-restarted-ecc',action='stop',release_id=next_release,group_id='group1',role='ecc'))
+  third=terminal(nodes[0],dict(prepare,operation_id='same-release-prepare-c'));terminal(nodes[0],dict(stale,operation_id='restart-same-release-again',expected_previous=next_release,preparation_id=third['preparation_id']));terminal(nodes[0],dict(schema=1,operation_id='stop-again',action='stop',release_id=next_release,group_id='group1',role='ecc'));checks.append('stale activation recipe is rejected; original ECC starts, normally stops and restarts with the same release in the new runtime')
   for group in groups:group['sync_configuration']=False
   (source/'resource.dat').write_bytes(b'cached-only');disabled_release=upload(groups)
   disabled=terminal(nodes[1],dict(schema=1,operation_id='sync-disabled',action='sync',release_id=disabled_release,group_id='group1',role='ecc'));require(disabled['configuration_sync']['state']=='disabled','Sync checkbox was ignored');require((data_folder/'resource.dat').read_bytes()==b'updated-resource','Disabled synchronization replaced project files');checks.append('disabled synchronization caches delivery without replacing project files')
@@ -140,7 +159,7 @@ def main():
    if not entry.name.isdigit():continue
    try:
     executable=(entry/'exe').resolve(strict=True);cmd=(entry/'cmdline').read_bytes()
-    if executable.parent==programs and str(root).encode() in cmd and executable.name in ['getEccSoapServer','DataExporter','dataRouter','getdaq-sentry']:os.kill(int(entry.name),signal.SIGTERM)
+    if executable.parent in [programs,root/'runtime-upgrade/bin'] and str(root).encode() in cmd and executable.name in ['getEccSoapServer','DataExporter','dataRouter','getdaq-sentry']:os.kill(int(entry.name),signal.SIGTERM)
    except (OSError,RuntimeError):pass
   for child in reversed(children):
    if child.poll() is None:child.terminate()

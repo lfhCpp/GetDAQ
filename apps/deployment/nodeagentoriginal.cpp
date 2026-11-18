@@ -22,7 +22,12 @@ QString Executable(const QString &programs,const QString &name){const auto path=
 void Free(const QString &ip,int port){QTcpServer probe;Require(probe.listen(QHostAddress(Address(ip,true)),quint16(Port(port))),QString("Port is already in use: %1:%2").arg(ip).arg(port));}
 void Exit(const QJsonArray &ps,int signal,bool *effects){for(const auto &v:ps){const auto p=P(v.toObject());if(SameLocalServiceProcess(p)){*effects=true;Require(::kill(p.pid,signal)==0,"Cannot signal selected original backend");}}QElapsedTimer timer;timer.start();while(timer.elapsed()<10000){bool running=false;for(const auto &v:ps)running=running||SameLocalServiceProcess(P(v.toObject()));if(!running)return;QThread::msleep(100);}Require(false,"Original backend has not exited; no unscoped process kill was used");}
 }
-QJsonObject NodeAgent::PrepareOriginal(const QJsonObject &request,const QJsonObject &group,const QMap<QString,QByteArray> &files,const QString &directory){
+QJsonObject NodeAgent::PrepareOriginal(const QJsonObject &request,const QJsonObject &group,const QMap<QString,QByteArray> &files,const QString &baseDirectory){
+ // Experiment content releases are immutable, but runtime installation paths and
+ // preparation observations can change without changing the experiment files.
+ // Keep each accepted preparation and its audit artifacts in a separate recipe.
+ const auto preparationId=Id(request["operation_id"].toString());
+ const auto directory=baseDirectory+"/preparations/"+preparationId;PrivateDirectory(directory);
  const auto role=request["role"].toString(),instance=Instance(request);const auto ecc=group["ecc"].toObject();const auto receivers=group["receivers"].toArray();Require(receivers.size()==1,"One receiver assignment is required per ECC group");const auto rx=receivers[0].toObject();const bool syncOnly=request["action"]=="sync";
  Require(syncOnly || (role=="ecc"?ecc["node_id"]:rx["node_id"])==fNode,"Service is assigned to another execution host");
  ValidateOriginalFiles(group,files);PrivateDirectory(directory+"/repository");QJsonObject checked;
@@ -57,16 +62,18 @@ QJsonObject NodeAgent::PrepareOriginal(const QJsonObject &request,const QJsonObj
  }
  QJsonObject recipe{{"program_sha256",Sha(Read(program,256*1024*1024))},{"working_directory",work},{"role",role},{"ports",endpoints}};QStringList stableArgs=arguments;if(markerArg=="--instance"){const int position=stableArgs.indexOf(markerArg);if(position>=0){stableArgs.removeAt(position);stableArgs.removeAt(position);}}QJsonArray stable;for(const auto &value:stableArgs)stable.append(value);recipe["arguments"]=stable;if(projectMode && role=="receiver"){service["formats_fingerprint"]=FormatFingerprint(work);recipe["formats"]=service["formats_fingerprint"];recipe["sentry_configuration"]=Parse(Read(service["sentry_config"].toString()));}service["runtime_recipe"]=Sha(Json(recipe));
  const auto configFile=directory+"/service.json";Write(configFile,Json(service),true);checked[configFile]=Sha(Read(configFile));
- QJsonObject result{{"backend","original-soap"},{"schema",1},{"node_id",fNode},{"release_id",request["release_id"]},{"group_id",group["id"]},{"group_sha256",GroupDigest(group)},{"receiver_id",request["receiver_id"]},{"role",role},{"instance_id",instance},{"config_file",configFile},{"program",program},{"program_sha256",Sha(Read(program,256*1024*1024))},{"runtime_recipe",service["runtime_recipe"]},{"checked_files",checked},{"phase","prepared"},{"project_directory",work},{"configuration_sync",sync}};
+ QJsonObject result{{"backend","original-soap"},{"preparation_id",preparationId},{"schema",1},{"node_id",fNode},{"release_id",request["release_id"]},{"group_id",group["id"]},{"group_sha256",GroupDigest(group)},{"receiver_id",request["receiver_id"]},{"role",role},{"instance_id",instance},{"config_file",configFile},{"program",program},{"program_sha256",Sha(Read(program,256*1024*1024))},{"runtime_recipe",service["runtime_recipe"]},{"checked_files",checked},{"phase","prepared"},{"project_directory",work},{"configuration_sync",sync}};
  auto quote=[](QString text){text.replace("'","'\\''");return "'"+text+"'";};QStringList command{quote(program)};for(const auto &arg:arguments)command.append(quote(arg));result["startup_preview"]="cd -- "+quote(work)+"\n"+command.join(' ');result["arguments"]=args;result["working_directory"]=work;
- Write(directory+"/prepared.json",Json(result),true);result.remove("checked_files");return result;
+ Write(directory+"/prepared.json",Json(result),true);Write(baseDirectory+"/prepared.json",Json(result));result.remove("checked_files");return result;
 }
 QJsonObject NodeAgent::OriginalOperation(const QJsonObject &request,bool *effects){
  const auto instance=Instance(request),selectedFile=fRoot+"/instances/"+instance+".json",directory=fRoot+"/deployments/"+Digest(request["release_id"].toString())+'/'+instance;const auto action=request["action"].toString();
  auto selected=Parse(Read(action=="activate"?directory+"/prepared.json":selectedFile));Require(selected["backend"]=="original-soap" && selected["release_id"]==request["release_id"],"Original deployment identity differs");const auto config=Parse(Read(selected["config_file"].toString()));
+ if(action=="activate" && request.contains("preparation_id"))Require(selected["preparation_id"]==request["preparation_id"],"Prepared runtime recipe changed; prepare this group again before starting");
  if(action!="activate"){
   if(action=="stop"){
    if(selected["phase"]=="stopped")return selected;
+   Require(selected["phase"]!="terminated-needs-inspection","Backend already terminated. Use Review terminated group after confirming boards stopped and data preserved; normal Stop cannot query an exited ECC");
    if(selected["role"]=="ecc"){const auto ecc=config["group"].toObject()["ecc"].toObject();const int state=OriginalEccState(ecc["address"].toString(),ecc["port"].toInt());Require(state!=5 && state!=6,"Stop acquisition in Run Control before closing original ECC");}
    else Require(request["ecc_stopped_confirmed"].toBool(),"Stop this group's ECC normally before closing DataExporter");
   }else Require(request["accepted_repair"].toBool(),"Confirm selected-instance termination first");
