@@ -129,6 +129,12 @@ private slots:
     QTemporaryDir dir;auto write=[&](const QString &name,int size){QFile file(dir.filePath(name));QVERIFY(file.open(QIODevice::WriteOnly));file.write(QByteArray(size,'x'));};write("CoBo0_AsAd0_time.graw",100);write("CoBo1_AsAd1_time.graw",200);write("unassigned.graw",50);
     SentryConfig config;config.dataDir=dir.path();config.checkProcess=false;const auto result=SentryFiles::Status(config);QCOMPARE(result.code,200);QCOMPARE(result.json["data_written_bytes"].toString(),QString("350"));const auto sources=result.json["per_source"].toObject();QCOMPARE(sources["0"].toObject()["data_written_bytes"].toString(),QString("100"));QCOMPARE(sources["1"].toObject()["data_path_files"].toInt(),1);
  }
+ void serviceLogHeaderFitsTextAndRefreshesNewProjectInstances(){
+    auto *events=new QPlainTextEdit;ServiceLogPanel panel(events);auto *button=panel.findChild<QToolButton *>("ShowEventLog");QVERIFY(button);QVERIFY(button->height()>=button->fontMetrics().height()+6);QVERIFY(button->minimumWidth()>=button->fontMetrics().horizontalAdvance(button->text())+24);
+    QTemporaryDir dir;const auto path=dir.filePath("project.json");panel.SetProject(path);panel.findChild<QToolButton *>("ShowEccLog")->click();auto *instances=panel.findChild<QComboBox *>("ServiceLogInstance");QCOMPARE(instances->count(),0);
+    QJsonObject host{{"id","host1"},{"name","Computer"}};QJsonObject group{{"id","group1"},{"name","Boards"},{"ecc",QJsonObject{{"node_id","host1"}}}};
+    Deployment::Write(path,Deployment::Json({{"nodes",QJsonArray{host}},{"groups",QJsonArray{group}}}));QVERIFY(QMetaObject::invokeMethod(&panel,"Poll",Qt::DirectConnection));QCOMPARE(instances->count(),1);QCOMPARE(instances->currentData().toJsonObject()["instance_id"].toString(),QString("group1-ecc"));
+ }
  void receiverWaitingSpinnerIsCompactWithoutHidingErrors(){
     const QString waiting=" Waiting for client connection .       \r Waiting for client connection ..        \r";
     const QString error="ERROR: disconnected\n";

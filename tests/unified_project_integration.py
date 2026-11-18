@@ -105,7 +105,8 @@ def main():
    return value if value.get('data_path_files')==3 else None
   status=wait(stats);require(set(status['per_source'])=={'0','1'},'Per-board counters missing');require(status['data_path']==str(data_folder),'Monitor uses another data folder');checks.append('real synthetic MFM frames received by both backends in shared folder; per-board statistics and project total agree')
   require(request(nodes[0],'GET','/v1/instances/group1-ecc/logs/ecc?offset=0')[0]==401,'Logs must require authentication')
-  code,body=request(nodes[0],'GET','/v1/instances/group1-ecc/logs/ecc?offset=0',token=nodes[0]['token']);require(code==200 and json.loads(body)['available'],'ECC log unavailable')
+  code,body=request(nodes[0],'GET','/v1/instances/group1-ecc/logs/ecc?offset=0',token=nodes[0]['token']);require(code==200 and json.loads(body)['available'],'ECC log unavailable');require('Starting Electronics Control Core SOAP server' in json.loads(body)['text'],'Original ECC INFO logs were disabled')
+  code,body=request(nodes[1],'GET','/v1/instances/group1-data/logs/receiver?offset=0',token=nodes[1]['token']);require(code==200 and 'Connection established' in json.loads(body)['text'],'Receiver connection INFO log did not reach authenticated stream')
   code,body=request(nodes[1],'GET','/v1/instances/group1-data/logs/sentry?offset=0',token=nodes[1]['token']);require(code==200 and 'listening' in json.loads(body)['text'],'Sentry output unavailable')
   require(request(nodes[1],'GET','/v1/instances/group1-data/logs/../../agent.token?offset=0',token=nodes[1]['token'])[0]!=200,'Log path escaped instance');checks.append('authenticated incremental ECC/Sentry log reads; unauthorized and arbitrary-path requests rejected')
   if args.controller_probe:

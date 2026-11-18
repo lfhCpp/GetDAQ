@@ -13,8 +13,11 @@ public:
  static QString PresentLog(QString text);
 private:
  QPlainTextEdit *fEvents,*fService;QStackedWidget *fPages;QComboBox *fInstances;QToolButton *fData;
- QString fProject,fSelection,fLastError;int fKind=0;bool fBusy=false;
+ QString fProject,fProjectRevision,fSelection,fLastError;int fKind=0;bool fBusy=false;
  QMap<QString,QJsonObject> fCursors;QMap<QString,QString> fBuffers;
- void Select(int kind);void ReloadInstances();void Poll();
+ QString ProjectFile()const;
+ void Select(int kind);void ReloadInstances();
+private slots:
+ void Poll();
 };
 #endif
