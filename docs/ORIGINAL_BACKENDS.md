@@ -162,7 +162,7 @@ are authenticated, bounded reads, including the shared Sentry output.
 A configuration content release is separate from a local runtime preparation.
 Each accepted prepare now stores its immutable runtime recipe under
 `deployments/<release>/<instance>/preparations/<operation>/`; a latest-preparation
-pointer selects it, and current activation requests bind its preparation ID.
+pointer `current-preparation.json` selects it, and current activation requests bind its preparation ID. The legacy `prepared.json` may be read-only (0400); it is retained unchanged and is only a fallback when no new selector exists.
 Updating the program directory or preparing unchanged XML again therefore does
 not overwrite the old `service.json`. Old configuration and process audit remain.
 

@@ -64,11 +64,12 @@ QJsonObject NodeAgent::PrepareOriginal(const QJsonObject &request,const QJsonObj
  const auto configFile=directory+"/service.json";Write(configFile,Json(service),true);checked[configFile]=Sha(Read(configFile));
  QJsonObject result{{"backend","original-soap"},{"preparation_id",preparationId},{"schema",1},{"node_id",fNode},{"release_id",request["release_id"]},{"group_id",group["id"]},{"group_sha256",GroupDigest(group)},{"receiver_id",request["receiver_id"]},{"role",role},{"instance_id",instance},{"config_file",configFile},{"program",program},{"program_sha256",Sha(Read(program,256*1024*1024))},{"runtime_recipe",service["runtime_recipe"]},{"checked_files",checked},{"phase","prepared"},{"project_directory",work},{"configuration_sync",sync}};
  auto quote=[](QString text){text.replace("'","'\\''");return "'"+text+"'";};QStringList command{quote(program)};for(const auto &arg:arguments)command.append(quote(arg));result["startup_preview"]="cd -- "+quote(work)+"\n"+command.join(' ');result["arguments"]=args;result["working_directory"]=work;
- Write(directory+"/prepared.json",Json(result),true);Write(baseDirectory+"/prepared.json",Json(result));result.remove("checked_files");return result;
+ Write(directory+"/prepared.json",Json(result),true);Write(baseDirectory+"/current-preparation.json",Json(result));result.remove("checked_files");return result;
 }
 QJsonObject NodeAgent::OriginalOperation(const QJsonObject &request,bool *effects){
  const auto instance=Instance(request),selectedFile=fRoot+"/instances/"+instance+".json",directory=fRoot+"/deployments/"+Digest(request["release_id"].toString())+'/'+instance;const auto action=request["action"].toString();
- auto selected=Parse(Read(action=="activate"?directory+"/prepared.json":selectedFile));Require(selected["backend"]=="original-soap" && selected["release_id"]==request["release_id"],"Original deployment identity differs");const auto config=Parse(Read(selected["config_file"].toString()));
+ const auto preparedFile=QFile::exists(directory+"/current-preparation.json")?directory+"/current-preparation.json":directory+"/prepared.json";
+ auto selected=Parse(Read(action=="activate"?preparedFile:selectedFile));Require(selected["backend"]=="original-soap" && selected["release_id"]==request["release_id"],"Original deployment identity differs");const auto config=Parse(Read(selected["config_file"].toString()));
  if(action=="activate" && request.contains("preparation_id"))Require(selected["preparation_id"]==request["preparation_id"],"Prepared runtime recipe changed; prepare this group again before starting");
  if(action!="activate"){
   if(action=="stop"){

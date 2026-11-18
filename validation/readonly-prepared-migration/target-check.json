@@ -1,0 +1,7 @@
+{
+  "original_0400_prepared_files_unchanged": true,
+  "original_ecc_service_state": "Idle",
+  "receiver_state": "listening",
+  "sentry_http_status": 200,
+  "hardware_describe_prepare_configure_start_sent": false
+}
