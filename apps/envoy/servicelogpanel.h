@@ -10,6 +10,7 @@ public:
  explicit ServiceLogPanel(QPlainTextEdit *events,QWidget *parent=nullptr);
  void SetProject(const QString &path);
  QString VisibleText()const;
+ static QString PresentLog(QString text);
 private:
  QPlainTextEdit *fEvents,*fService;QStackedWidget *fPages;QComboBox *fInstances;QToolButton *fData;
  QString fProject,fSelection,fLastError;int fKind=0;bool fBusy=false;

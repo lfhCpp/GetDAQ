@@ -14,6 +14,7 @@
 #include <QSettings>
 #include <QScrollBar>
 #include <QUrlQuery>
+#include <QRegularExpression>
 #include <QtConcurrent>
 #include "applicationinstance.h"
 #ifdef Q_OS_LINUX
@@ -27,6 +28,12 @@ ServiceLogPanel::ServiceLogPanel(QPlainTextEdit *events,QWidget *parent):QWidget
  connect(fInstances,QOverload<int>::of(&QComboBox::currentIndexChanged),this,[this]{fSelection.clear();fLastError.clear();Poll();});auto *timer=new QTimer(this);timer->setInterval(2000);connect(timer,&QTimer::timeout,this,&ServiceLogPanel::Poll);timer->start();
 }
 void ServiceLogPanel::SetProject(const QString &path){fProject=path;fSelection.clear();if(fKind)ReloadInstances();}
+QString ServiceLogPanel::PresentLog(QString text){
+ // The original receiver prints a carriage-return spinner, not new log events.
+ // Collapse only consecutive complete spinner records; retain other output verbatim.
+ static const QRegularExpression waiting("(?:^|(?<=[\\r\\n]))(?:[ \\t]*Waiting for client connection[ .]*[\\r\\n]+)+");
+ return text.replace(waiting,QStringLiteral("Waiting for incoming data connection (receiver listening).\n"));
+}
 QString ServiceLogPanel::VisibleText()const{return fKind?fService->toPlainText():fEvents->toPlainText();}
 void ServiceLogPanel::Select(int kind){fKind=kind;fPages->setCurrentIndex(kind?1:0);fInstances->setVisible(kind!=0);fSelection.clear();fLastError.clear();if(kind){ReloadInstances();Poll();}}
 void ServiceLogPanel::ReloadInstances(){
@@ -46,13 +53,13 @@ void ServiceLogPanel::ReloadInstances(){
 }
 void ServiceLogPanel::Poll(){
  if(!fKind || fBusy || fInstances->currentIndex()<0)return;const auto entry=fInstances->currentData().toJsonObject();const auto key=entry["id"].toString()+'/'+entry["instance_id"].toString()+'/'+entry["component"].toString();
- fData->setText(entry["receiver_backend"]=="dataRouter"?tr("DataRouter log"):tr("DataExporter log"));if(fSelection!=key){fSelection=key;fService->setPlainText(fBuffers.value(key));}
+ fData->setText(entry["receiver_backend"]=="dataRouter"?tr("DataRouter log"):tr("DataExporter log"));if(fSelection!=key){fSelection=key;fService->setPlainText(PresentLog(fBuffers.value(key)));}
 #ifdef Q_OS_LINUX
  fBusy=true;const auto cursor=fCursors.value(key);auto *watcher=new QFutureWatcher<QPair<QJsonObject,QString>>(this);
  connect(watcher,&QFutureWatcher<QPair<QJsonObject,QString>>::finished,this,[this,watcher,key]{const auto result=watcher->result();watcher->deleteLater();fBusy=false;
   if(!result.second.isEmpty()){if(fSelection==key && fLastError!=result.second){fService->appendPlainText(tr("Log stream unavailable: %1").arg(result.second));fLastError=result.second;}return;}
   fLastError.clear();const auto observation=result.first;auto &buffer=fBuffers[key];if(observation["reset"].toBool())buffer.clear();buffer+=observation["text"].toString();if(buffer.size()>256*1024)buffer=buffer.right(256*1024);fCursors[key]=observation;
-  if(fSelection==key){if(!observation["available"].toBool() && buffer.isEmpty())fService->setPlainText(tr("The service has not produced a log yet."));else if(fService->toPlainText()!=buffer){const bool follow=fService->verticalScrollBar()->value()>=fService->verticalScrollBar()->maximum()-2;fService->setPlainText(buffer);if(follow)fService->verticalScrollBar()->setValue(fService->verticalScrollBar()->maximum());}}
+  if(fSelection==key){if(!observation["available"].toBool() && buffer.isEmpty())fService->setPlainText(tr("The service has not produced a log yet."));else if(fService->toPlainText()!=PresentLog(buffer)){const bool follow=fService->verticalScrollBar()->value()>=fService->verticalScrollBar()->maximum()-2;fService->setPlainText(PresentLog(buffer));if(follow)fService->verticalScrollBar()->setValue(fService->verticalScrollBar()->maximum());}}
  });
  watcher->setFuture(QtConcurrent::run([entry,cursor]{try{Deployment::OperationScope scope({},4000);const auto endpoint=Deployment::NodeEndpoint(entry);const auto url="/v1/instances/"+entry["instance_id"].toString()+"/logs/"+entry["component"].toString()+"?offset="+QString::number(qint64(cursor["offset"].toDouble()))+"&generation="+cursor["generation"].toString();return qMakePair(Deployment::Get(endpoint,url),QString());}catch(const std::exception &e){return qMakePair(QJsonObject(),QString::fromUtf8(e.what()));}}));
 #else
