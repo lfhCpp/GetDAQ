@@ -1,0 +1,7 @@
+{
+  "old_binary_fails_with_delayed_startup": true,
+  "fixed_binary_passes": true,
+  "startup_delay_ms": 300,
+  "unified_project_checks": 16,
+  "real_hardware": false
+}

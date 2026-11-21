@@ -17,11 +17,14 @@ def port():
    return value
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('bin',type=Path);p.add_argument('--evidence',type=Path,required=True);p.add_argument('--controller-probe',type=Path);p.add_argument('--log-panel-probe',type=Path);args=p.parse_args();programs=args.bin.resolve();args.evidence.mkdir(parents=True,exist_ok=True);root=Path(tempfile.mkdtemp(prefix='project-',dir=args.evidence.resolve()));children=[];logs=[];checks=[]
+ p=argparse.ArgumentParser();p.add_argument('bin',type=Path);p.add_argument('--evidence',type=Path,required=True);p.add_argument('--controller-probe',type=Path);p.add_argument('--log-panel-probe',type=Path);p.add_argument('--slow-sentry-startup',action='store_true');args=p.parse_args();programs=args.bin.resolve();args.evidence.mkdir(parents=True,exist_ok=True);root=Path(tempfile.mkdtemp(prefix='project-',dir=args.evidence.resolve()));children=[];logs=[];checks=[]
  def run(*cmd):
   result=subprocess.run(list(map(str,cmd)),capture_output=True,timeout=30);require(result.returncode==0,result.stderr.decode(errors='replace'));return result.stdout
+ child_env=os.environ.copy()
+ if args.slow_sentry_startup:
+  library=root/"sentry-startup-delay.so";subprocess.run(["cc","-shared","-fPIC",str(Path(__file__).with_name("sentry_startup_delay.c")),"-o",str(library)],check=True);child_env["LD_PRELOAD"]=str(library)
  def start(name,*cmd):
-  log=(root/(name+'.log')).open('wb');logs.append(log);child=subprocess.Popen(list(map(str,cmd)),stdout=log,stderr=subprocess.STDOUT,start_new_session=True);children.append(child)
+  log=(root/(name+'.log')).open('wb');logs.append(log);child=subprocess.Popen(list(map(str,cmd)),stdout=log,stderr=subprocess.STDOUT,start_new_session=True,env=child_env);children.append(child)
  def terminal(node,body):
   code,value=request(node,'POST','/v1/operations',body,node['token']);require(code==202,value.decode(errors='replace'))
   def observe():

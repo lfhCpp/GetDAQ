@@ -29,7 +29,7 @@ jobs:
       - name: Build log panel probe
         run: mkdir -p build-log-probe && cd build-log-probe && qmake ../tests/log_panel_probe.pro && make -j2
       - name: Test project directories, configuration delivery and shared monitoring
-        run: python3 tests/unified_project_integration.py dist/bin --controller-probe build-project-probe/unified-project-controller-probe --log-panel-probe build-log-probe/log-panel-probe --evidence build-ci/project-evidence
+        run: python3 tests/unified_project_integration.py dist/bin --controller-probe build-project-probe/unified-project-controller-probe --log-panel-probe build-log-probe/log-panel-probe --slow-sentry-startup --evidence build-ci/project-evidence
       - name: Test read-only CoBo information window
         env:
           QT_QPA_PLATFORM: offscreen

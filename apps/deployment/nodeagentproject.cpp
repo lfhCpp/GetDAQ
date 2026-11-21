@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QProcess>
 #include <QThread>
+#include <QElapsedTimer>
 #include <QTcpSocket>
 #include <QUrl>
 #include <QUrlQuery>
@@ -46,7 +47,18 @@ QJsonObject NodeAgent::StartProjectMonitor(const QJsonObject &request,bool *effe
  if(QFile::exists(record) && SameLocalServiceProcess(Process(Parse(Read(record)))))return selected;
  QProcess process;process.setProgram(executable);process.setArguments({"--config",config["sentry_config"].toString()});process.setWorkingDirectory(config["working_directory"].toString());process.setStandardOutputFile(root+"/sentry.log",QIODevice::Append);process.setStandardErrorFile(root+"/sentry.log",QIODevice::Append);qint64 pid=0;*effects=true;Require(process.startDetached(&pid),"Cannot start project Sentry");
  bool found=false;for(int i=0;i<30;++i){for(const auto &p:FindLocalServiceProcesses(executable,config["sentry_config"].toString()))if(p.pid==pid){Write(record,Json(Wire(p)));found=true;}if(found)break;QThread::msleep(100);}Require(found,"Project Sentry exited; inspect its log");
- const auto settings=Parse(Read(config["sentry_config"].toString()));QTcpSocket socket;socket.connectToHost(settings["bind"].toString(),quint16(settings["port"].toInt()));for(int i=0;i<20 && !socket.waitForConnected(100);++i){socket.abort();socket.connectToHost(settings["bind"].toString(),quint16(settings["port"].toInt()));}Require(socket.state()==QAbstractSocket::ConnectedState,"Project Sentry listener unavailable");return selected;
+ const auto settings=Parse(Read(config["sentry_config"].toString()));QTcpSocket socket;QElapsedTimer startup;startup.start();
+ while(startup.elapsed()<5000){
+  socket.connectToHost(settings["bind"].toString(),quint16(settings["port"].toInt()));
+  if(socket.waitForConnected(100))return selected;
+  socket.abort();
+  // ConnectionRefused may return immediately. Bound startup by elapsed time,
+  // not by a retry count that can expire before Sentry reaches main().
+  if(!SameLocalServiceProcess(Process(Parse(Read(record)))))break;
+  QThread::msleep(50);
+ }
+ QFile output(root+"/sentry.log");QString detail;if(output.open(QIODevice::ReadOnly)){output.seek(qMax<qint64>(0,output.size()-2048));detail=QString::fromUtf8(output.readAll()).trimmed();}
+ Require(false,"Project Sentry listener unavailable after startup wait. "+detail);return selected;
 }
 QJsonObject NodeAgent::ServiceLog(const QString &path)const{
  const QUrl url(path);const auto pieces=url.path().split('/',QString::SkipEmptyParts);Require(pieces.size()==5 && pieces[0]=="v1" && pieces[1]=="instances" && pieces[3]=="logs","Invalid service log request");
