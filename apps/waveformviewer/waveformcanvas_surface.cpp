@@ -45,6 +45,9 @@ void WaveformCanvas::DrawSurface(QPainter &painter)
         endDepth=project(511,fDepthMaximum,0),endAmplitude=project(0,fDepthMinimum,1);
     QPolygonF floor;floor<<origin<<endTime<<endDepth<<project(0,fDepthMaximum,0);
     painter.setBrush(QColor(246,249,252));painter.setPen(Qt::NoPen);painter.drawPolygon(floor);
+    // Only the shared reference floor is filled. Open waveform paths must not
+    // inherit its brush, which implicitly closes and fills every channel.
+    painter.setBrush(Qt::NoBrush);
     painter.setPen(QPen(QColor(218,225,233),1,Qt::DashLine));
     for(int bucket:{0,128,256,384,511})painter.drawLine(project(bucket,fDepthMinimum,0),project(bucket,fDepthMaximum,0));
     std::sort(traces.begin(),traces.end(),[](const WaveformPlotTrace &a,const WaveformPlotTrace &b){return a.channel>b.channel;});
@@ -57,9 +60,6 @@ void WaveformCanvas::DrawSurface(QPainter &painter)
             if(!connected || sample.x()-previous>1.5)path.moveTo(point);else path.lineTo(point);
             previous=sample.x();connected=true;
         }
-        // A thin white halo distinguishes crossings without inventing a surface
-        // or zero samples for channels that were not selected/read.
-        painter.setPen(QPen(Qt::white,4.2));painter.drawPath(path);
         painter.setPen(QPen(ChannelColor(trace.channel),1.7));painter.drawPath(path);
     }
     const QColor ink(37,54,72);painter.setPen(QPen(ink,1.4));

@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "product_tests": 52,
+  "checks": [
+    "3D pulse interiors remain white above the shared reference floor; no channel fill or white halo",
+    "1000 events retain only the latest 100",
+    "4097 frames in one event trigger whole-event eviction at the 4096 frame budget",
+    "640 MiB cumulative synthetic input retains 256 MiB and 64 frames; oldest retained event 96",
+    "Reset empties retained events, frames and payload bytes while the cumulative received counter is retained",
+    "Guide rebuilt with 20 pages and verified body bounds"
+  ],
+  "cache_limits": {
+    "events": 100,
+    "frames": 4096,
+    "payload_bytes": 268435456
+  },
+  "total_process_memory_is_not_the_cache_counter": true,
+  "synthetic_frames": true,
+  "real_hardware": false
+}

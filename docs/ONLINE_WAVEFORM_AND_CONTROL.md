@@ -32,10 +32,18 @@
 从 **DataExporter** 下拉框选择当前配置中的接收器，或选择 All configured DataExporters。受管项目自动读取实际 TCP export 端口；界面不再要求填写地址。Refresh choices 刷新列表，Pause preview 仅暂停预览连接。外部 DataExporter 可在连接设置中选择 Receiver type / TCP preview export port，或在 Nodes / Paths 设置 Preview host / Preview TCP port；识别到运行中的 DataExporter 时也可使用默认导出端口。旧 DataRouter 只有在确实提供相同的长度前缀 TCP 导出协议时才能在线查看；仅接收落盘的 DataRouter 不因此自动具备导出功能。
 
 1. 选择实例后自动连接预览，选 Source、CoBo、AsAd、AGET。
-2. Channels… 勾选通道，复用离线查看器的横轴 Bucket 和纵轴 ADC、3D、PNG / CSV 导出。3D 纵深为实际通道号，通道曲线独立、背景为白色，不填未选通道；Ctrl+滚轮调间距，普通滚轮滚动长图，拖动调深度角，双击重置。
+2. Channels… 勾选通道，复用离线查看器的横轴 Bucket 和纵轴 ADC、3D、PNG / CSV 导出。3D 纵深为实际通道号，通道曲线只描线、不填充脉冲下方区域，也不加遮挡后方通道的白色描边；全局背景为白色，不填未选通道；Ctrl+滚轮调间距，普通滚轮滚动长图，拖动调深度角，双击重置。
 3. Follow latest 跟随最新缓存事件。取消后选择事件，或输入 Event ID 点 Go；暂停显示期间仍继续接收预览。
 4. 缓存仅保留最近 100 个事件、4096 帧且原始帧不超过 256 MiB。冻结选择可额外保留至多一个缓存事件，最坏另占 256 MiB；解码与渲染另有少量工作内存。更老的事件用离线文件查看。
 5. New session 清空预览会话。旧流没有 Run ID：重连、事件计数回退或同来源时间戳冲突会保守清缓存，乱序也可能触发清理。跨来源不承诺完整物理事件重建。没有 pad 映射，事件一直标为可能不完整的预览。
+
+## Cache 与 Received total 的含义
+
+- **Cache** 是此刻缓存的原始帧有效字节，显示为当前值 / 256 MiB。达到 100 个事件、4096 帧或 256 MiB 中任意一项，自动移除最旧事件并释放对应帧引用；不是永久保存每一帧。
+- **Received total** 是本次查看器进程累计接收的字节计数。它会一直增加，但只占一个整数，不会把累计收到的数据全部保留。例如 Cache 5.3 MiB / Received total 234.4 MiB 表示累计收过 234.4 MiB，当前帧缓存约 5.3 MiB。
+- Cache 不等于查看器全部内存：固定事件的冻结副本、解码波形、接收组包和 Qt 绘图有额外开销。取消 Follow latest 后可额外保留一个已选事件，即使它已从滚动缓存淘汰；切换事件、New session 或关闭查看器会释放相应旧引用。
+- **New session** 清除预览帧及冻结选择，累计接收计数仍保留；输入流继续运行时会立即建立新的少量缓存。关闭查看器结束独立进程，其内存由系统回收，DataExporter 落盘继续。
+- 分配器可能保留已释放空间用于复用，所以任务管理器里的进程内存不一定在清空缓存后立刻下降。它不应随 Received total 等比例持续增长；仅凭累计计数增加不能判断泄漏。
 
 ## 并发与落盘保护
 

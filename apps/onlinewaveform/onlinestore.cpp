@@ -4,7 +4,7 @@
 namespace GetDAQ {
 void OnlineStore::Reset(){QMutexLocker lock(&mutex);events.clear();lastEvent.clear();cachedBytes=0;cachedFrames=0;++epoch;}
 QVector<OnlineEvent> OnlineStore::Snapshot()const{QMutexLocker lock(&mutex);return events;}
-QString OnlineStore::Statistics()const{QMutexLocker lock(&mutex);QStringList state;for(auto it=links.begin();it!=links.end();++it)state<<it.key()+": "+it.value();return QString("Frames %1 | Preview discarded %2 | Errors %3 | Cache %4 MiB | Received %5 MiB | %6").arg(received).arg(dropped).arg(errors).arg(cachedBytes/1048576.0,0,'f',1).arg(bytes/1048576.0,0,'f',1).arg(state.join("; "));}
+QString OnlineStore::Statistics()const{QMutexLocker lock(&mutex);QStringList state;for(auto it=links.begin();it!=links.end();++it)state<<it.key()+": "+it.value();return QString("Frames %1 | Preview discarded %2 | Errors %3 | Cache %4 / 256 MiB | Received total %5 MiB | %6").arg(received).arg(dropped).arg(errors).arg(cachedBytes/1048576.0,0,'f',1).arg(bytes/1048576.0,0,'f',1).arg(state.join("; "));}
 void OnlineStore::Insert(const QString &source,const QByteArray &body){
  const auto index=GrawFrameReader::BuildIndex(body,nullptr,4096);QMutexLocker lock(&mutex);bytes+=body.size();if(!index.error.isEmpty()){++errors;return;}
  for(auto record:index.frames){
