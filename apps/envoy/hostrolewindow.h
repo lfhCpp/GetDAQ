@@ -27,7 +27,7 @@ private:
     QLineEdit *fAddress,*fData,*fCache,*fInvitation;
     QSpinBox *fPort;
     QTableWidget *fInstances;
-    QPushButton *fStart,*fCopy;
+    QPushButton *fStart,*fCopy,*fRemoveEntry;
     QString fRoot;
     QJsonObject fNode;
     bool fBusy=false;

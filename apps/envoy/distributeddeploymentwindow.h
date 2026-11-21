@@ -58,5 +58,6 @@ private:
     void StartAndUse();
     void StopProjectServices();
     QString SelectedGroup() const;
+    QSet<QString> SelectedGroups() const;
 };
 #endif

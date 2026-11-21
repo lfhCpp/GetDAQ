@@ -38,7 +38,7 @@ IPWindow::IPWindow(const RunConfig &config, QWidget *parent, const QVector<NodeS
     layout->addWidget(hardwareSetup);
     const auto originalServices=[this]{
 #ifdef Q_OS_LINUX
-        HostRoleWindow window(fConfig,this);if(window.exec()==QDialog::Accepted){fConfig=window.Configuration();accept();}
+        HostRoleWindow window(fConfig,this);if(window.exec()==QDialog::Accepted){fConfig=window.Configuration();setProperty("BackendServicesReady",true);accept();}
 #else
         QMessageBox::information(this,tr("Original backends"),tr("Start the bundled getEccSoapServer and DataExporter programs, then enter their endpoints below. Automatic host management currently requires Linux."));
 #endif

@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "product_tests": 50,
+  "unified_project_integration_checks": 17,
+  "mcp_checks": 8,
+  "guide_pages": 8,
+  "main_ui_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec",
+  "real_hardware": false,
+  "physical_multi_host": false,
+  "checks": [
+    "Ctrl and Shift row selection enabled; first-time setup defaults to expanded",
+    "Selected groups alone are prepared, started and bound to Run Setup",
+    "Duplicate GUI node IDs are reassigned while remote CoBo indices and YAML round-trip stay intact",
+    "Pre-Describe configuration refresh ignores unselected unavailable groups",
+    "Current explicit GUI record path takes precedence over cached prior path",
+    "Inactive slave entries can be hidden; live processes always remain visible"
+  ],
+  "integration": [
+    "one selected ECC prepares, starts and binds without activating unrelated draft groups",
+    "master controller sync/start creates a two-ECC Run and immutable local configuration snapshot",
+    "two original receiver backends and ECCs share explicit project directories, dual IP arguments and exactly one Sentry record",
+    "real synthetic MFM frames received by both backends in shared folder; per-board statistics and project total agree",
+    "authenticated incremental ECC/Sentry log reads; unauthorized and arbitrary-path requests rejected",
+    "pre-Describe refresh preserves old snapshot and selects the actually synchronized configuration revision",
+    "configuration-only updates reuse verified backend processes without duplicate startup",
+    "real GUI collector skips previous-session tails, collects new authenticated output on Event tab and exports a stable snapshot; Clear preserves this session history",
+    "uninspectable live project caches changed configuration without replacing active project files",
+    "shared Sentry verifies exact receiver process identities and reports a missing receiver",
+    "stopped project applies staged update with backups; raw files preserved and shared monitor released",
+    "inspected terminated original ECC can be released after agent runtime-directory change; prior executable hash and process absence remain verified",
+    "same experiment release prepares repeatedly after update with separate immutable runtime recipes and unchanged prior audit",
+    "stale activation recipe is rejected; original ECC starts, normally stops and restarts with the same release in the new runtime",
+    "disabled synchronization caches delivery without replacing project files",
+    "Ready and Running accept acknowledged file synchronization without Idle or hardware transitions",
+    "explicit slave re-pair revokes consumed credentials, enrolls with a fresh code, and retains backend/raw records"
+  ]
+}

@@ -36,7 +36,7 @@ QString NodeConfig::ConfigId(const QString &kind, const QString &experiment) con
 {
     const QString explicitId = kind == "describe" ? describeId : (kind == "prepare" ? prepareId : configureId);
     if (!explicitId.isEmpty()) return explicitId;
-    return kind == "describe" && !mutant ? QString("cobo%1").arg(id) : experiment;
+    return kind == "describe" && !mutant ? QString("cobo%1").arg(boardIndex>=0?boardIndex:id) : experiment;
 }
 
 bool RunConfig::Validate(QString *error) const
@@ -66,7 +66,7 @@ bool RunConfig::Validate(QString *error) const
     for (const NodeConfig &n : nodes) {
         if (n.mutant) ++mutants;
         const QString endpoint = n.host.toLower() + ":" + QString::number(n.eccPort);
-        if (n.id < 0 || ids.contains(n.id) || (endpoints.contains(endpoint))) problem = "Duplicate/invalid node ID or ECC endpoint.";
+        if (n.id < 0 || n.boardIndex < -1 || n.boardIndex>255 || ids.contains(n.id) || (endpoints.contains(endpoint))) problem = "Duplicate/invalid node ID or ECC endpoint.";
         if ((n.host.trimmed().isEmpty() || n.host.contains('/') || n.host.contains(' '))) problem = "Use a hostname or IP address without an URL scheme.";
 
         if(n.soapNamespace!="urn:ecc" && n.soapNamespace!="urn:http://localhost:8083/") problem="Unsupported ECC SOAP namespace.";

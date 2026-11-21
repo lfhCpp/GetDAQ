@@ -41,7 +41,7 @@ QByteArray Protocol::EccRequest(const NodeConfig &n, const QString &experiment, 
             const QString host = i == 0 ? n.routerHost : n.exporterHost;
             links.writeStartElement("DataLink");
             links.writeEmptyElement("DataSender");
-            links.writeAttribute("id", n.mutant ? "Mutant[master]" : QString("CoBo[%1]").arg(n.id));
+            links.writeAttribute("id", n.mutant ? "Mutant[master]" : QString("CoBo[%1]").arg(n.boardIndex>=0?n.boardIndex:n.id));
             links.writeEmptyElement("DataRouter");
             links.writeAttribute("ipAddress", host.isEmpty() ? n.host : host);
             links.writeAttribute("name", QString(i == 0 ? "data%1" : "exporter%1").arg(n.id));

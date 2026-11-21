@@ -40,7 +40,7 @@ void MainWindow::InitializeMenus()
 #ifdef Q_OS_LINUX
         if(fConnected || fBusy){ShowLogSlot(tr("Disconnect before changing backend service groups."));return;}
         HostRoleWindow window(fConfig,this);
-        if(window.exec()==QDialog::Accepted && AdoptConfiguration(window.Configuration()))RememberStartupConfiguration();
+        if(window.exec()==QDialog::Accepted && AdoptConfiguration(window.Configuration())){RememberStartupConfiguration();QTimer::singleShot(0,this,[this]{if(!fConnected && !fBusy)on_Connect_clicked();});}
 #else
         QMessageBox::information(this,tr("Original backends"),tr("Use the bundled getEccSoapServer and DataExporter programs, then configure their endpoints in Nodes / Paths. Automatic Master / Slave service management currently requires Linux."));
 #endif
@@ -51,7 +51,7 @@ void MainWindow::InitializeMenus()
     const auto openHostRole=[this]{
         if(fConnected || fBusy){ShowLogSlot(tr("Disconnect before changing this computer's role or active ECC group."));return;}
         HostRoleWindow window(fConfig,this);
-        if(window.exec()==QDialog::Accepted && AdoptConfiguration(window.Configuration()))RememberStartupConfiguration();
+        if(window.exec()==QDialog::Accepted && AdoptConfiguration(window.Configuration())){RememberStartupConfiguration();QTimer::singleShot(0,this,[this]{if(!fConnected && !fBusy)on_Connect_clicked();});}
         if(auto *button=findChild<QPushButton *>("MachineRoleButton"))button->setText(HostRoleWindow::ButtonText());
     };
 

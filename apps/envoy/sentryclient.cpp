@@ -97,7 +97,7 @@ void SentryClient::Cancel() { if (fHttp) fHttp->Cancel(); if(fStatusHttp)fStatus
 void SentryClient::ParseObservation(const QByteArray &body,bool catalog,NodeStatus *status,QString *error){
  auto object=QJsonDocument::fromJson(body).object();const auto aggregate=object;
  const bool perSource=!catalog && object.contains("per_source");
- if(perSource){const auto source=object["per_source"].toObject()[QString::number(fNode.id)].toObject();object["data_written_bytes"]=source["data_written_bytes"].toString("0");object["data_written_gb"]=source["data_written_gb"].toDouble();object["data_path_files"]=source["data_path_files"].toInt();}
+ if(perSource){const auto source=object["per_source"].toObject()[QString::number(fNode.boardIndex>=0?fNode.boardIndex:fNode.id)].toObject();object["data_written_bytes"]=source["data_written_bytes"].toString("0");object["data_written_gb"]=source["data_written_gb"].toDouble();object["data_path_files"]=source["data_path_files"].toInt();}
  if(!Protocol::ParseSentry(QJsonDocument(object).toJson(),status,error))return;
  status->projectConfigurationPending=aggregate["configuration_pending"].toBool();status->sentrySourceSpecific=perSource;status->projectFiles=aggregate["data_path_files"].toInt();bool ok=false;status->projectFileBytes=aggregate["data_written_bytes"].toString().toULongLong(&ok);status->projectFileBytesKnown=ok;
 }

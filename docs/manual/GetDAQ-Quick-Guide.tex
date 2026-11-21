@@ -189,12 +189,13 @@ Router host 填接收数据网卡，Router port 填\textbf{数据端口}，Sentr
 \item 选择 Slave，设置本机 \ui{Configuration cache} 与 \ui{Project data folder}。前者是软件缓存；后者是后台工作目录和原始数据目录。
 \item 点击 \ui{Enable / check slave}，软件启用节点管理服务。
 \item 点 \ui{Copy pairing code}，到主控的 \ui{Add slave} 粘贴。邀请码有有效期，配对后即消费，不需反复复制。
-\item 主控不可达时保留配对。需要更换主控，用 \ui{Renew / re-pair…} 明确确认；旧管理凭据失效，后台、数据和审计记录保留。
+\item 主控不可达时保留配对。需要更换主控，用 \ui{Remove master connection…} 明确确认；旧管理凭据失效，后台、数据和审计记录保留。
 \end{enumerate}
 \subsection*{主控 Master 的设置}
 添加从机后，创建板卡组时选择 ECC host、Data receiver host；同一组的两类服务可以在不同电脑。
 各执行电脑使用\textbf{本机} Project data folder，不能把主机绝对路径直接当作从机目录。
 同机多开后台时，以主机、组名称、端口和实例身份区分，不共享同一块板卡的控制权。
+首次设置默认展开。在 ECC and boards 表中用 Ctrl / Shift 多选组，点 \ui{Start selected groups and use}；只启动所选组，并自动带入 Run Setup 连接查询，不启动采集。各 ECC 的 CoBo 索引独立保留。从机的 \ui{Remove selected inactive entry} 仅隐藏无进程的历史项，保留数据与审计。
 \subsection*{配置文件从哪里来、到哪里去}
 \note{主控 Configuration source 整目录 $\rightarrow$ 不可变配置版本 $\rightarrow$ 本机 / 从机缓存
 $\rightarrow$ 该执行主机的 Project data folder。资源保持相对路径；原始数据不随配置分发传输。}

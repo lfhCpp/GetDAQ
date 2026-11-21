@@ -1,3 +1,4 @@
+#include <QTimer>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "autorunwidget.h"
@@ -54,7 +55,7 @@ void MainWindow::on_Nodes_clicked()
     if (!ReadConfig()) return;
     if(fConnected || fBusy){ShowLogSlot(tr("Disconnect before changing ECC connection settings."));return;}
     IPWindow window(fConfig, this, fLastNodeStatus);
-    if (window.exec() == QDialog::Accepted){if(AdoptConfiguration(window.GetConfig())){RememberStartupConfiguration();ShowLogSlot(tr("Nodes / Paths saved: %1").arg(fConfig.filePath));}}
+    if (window.exec() == QDialog::Accepted){if(AdoptConfiguration(window.GetConfig())){RememberStartupConfiguration();ShowLogSlot(tr("Nodes / Paths saved: %1").arg(fConfig.filePath));if(window.property("BackendServicesReady").toBool())QTimer::singleShot(0,this,[this]{if(!fConnected && !fBusy)on_Connect_clicked();});}}
 }
 
 void MainWindow::on_AddField_clicked()

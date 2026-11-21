@@ -39,6 +39,7 @@ bool RunConfig::Load(const QString &path, QString *error)
             if(settings["output_dir"])c.outputDir=Resolve(base,Text(settings["output_dir"]));
             if(settings["configuration_backup_warning"])c.configurationBackupWarning=Text(settings["configuration_backup_warning"]);
             if(settings["configuration_snapshot"])c.configurationSnapshot=Resolve(base,Text(settings["configuration_snapshot"]));
+            if(settings["deployment_groups"]){if(!settings["deployment_groups"].IsSequence())throw std::runtime_error("deployment_groups must be a sequence");for(const auto &group:settings["deployment_groups"])c.deploymentGroups.append(Text(group));}
             if(settings["deployment_project"])c.deploymentProject=Resolve(base,Text(settings["deployment_project"]));
             if(settings["sync_configuration"])c.syncConfiguration=settings["sync_configuration"].as<bool>();
             if(settings["ecc_name"])c.eccName=Text(settings["ecc_name"]);
@@ -66,6 +67,7 @@ bool RunConfig::Load(const QString &path, QString *error)
                 for (const auto &item : settings["nodes"]) {
                     NodeConfig n;
                     n.id = item["id"].as<int>();
+                    if(item["board_index"])n.boardIndex=item["board_index"].as<int>();
                     const QString role = Text(item["role"]);
                     if (role != "mutant" && role != "cobo") throw std::runtime_error("role must be mutant or cobo.");
                     n.mutant = role == "mutant";
@@ -118,6 +120,7 @@ bool RunConfig::Save(const QString &path, QString *error) const
     g["sync_configuration"]=syncConfiguration;
     if(!configurationBackupWarning.isEmpty())g["configuration_backup_warning"]=Utf8(configurationBackupWarning);
     if(!configurationSnapshot.isEmpty())g["configuration_snapshot"]=Utf8(configurationSnapshot);
+    if(!deploymentGroups.isEmpty()){for(const auto &group:deploymentGroups)g["deployment_groups"].push_back(Utf8(group));}
     if(!deploymentProject.isEmpty())g["deployment_project"]=Utf8(deploymentProject);
     g["output_dir"] = Utf8(outputDir);
     g["poll_ms"] = pollMs;
@@ -133,6 +136,7 @@ bool RunConfig::Save(const QString &path, QString *error) const
         item["host"] = Utf8(n.host);
         item["ecc_port"] = n.eccPort;
         item["sentry_port"] = n.sentryPort;
+        if(n.boardIndex>=0)item["board_index"]=n.boardIndex;
         item["router_port"] = n.routerPort;
         item["exporter_port"] = n.exporterPort;
         item["preview_port"]=n.previewPort;item["preview_host"]=Utf8(n.previewHost);

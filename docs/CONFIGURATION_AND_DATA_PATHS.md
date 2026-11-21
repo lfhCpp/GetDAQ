@@ -28,8 +28,8 @@
 2. 主控选择 Configuration source folder，保留 **Sync configuration to project folders** 勾选。
 3. 添加 ECC / board group，选择 ECC 与接收执行主机、项目目录、接收器类型。
 4. 填 ECC 电脑控制 IP / SOAP 端口、接收电脑控制 IP / 管理端口、接收数据 IP / TCP 数据端口。CoBo 地址和电子学设置仍在原始 XML/XCFG 中。
-5. 点 **Start services and use this configuration**。软件先分发完整配置，再在指定项目目录启动后端和共享 Sentry；日志显示实际 `cd` 路径及命令。不执行硬件 Prepare 或 Start。
-6. 回主界面 Connect → Progress（Describe / Prepare / Configure）→ Ready → Run start；Run stop 后确认所有 ECC Ready，再看归档结果。
+5. 在 **ECC and boards** 表格中选组；按 Ctrl 逐个多选、Shift 连选，再点 **Start selected groups and use**（上方 **Start project services** 使用相同选择）。只准备、启动选中的组及其接收器、共享 Sentry，其他组不参与本次 Run。
+6. 服务就绪后自动带入 Run Setup 并连接查询状态，不执行硬件 Prepare 或 Start。随后 Progress（Describe / Prepare / Configure）→ Ready → Run start；Run stop 后确认所有 ECC Ready，再看归档结果。
 
 同一主机多个实例用不同 ECC / 接收端口区分，可共享同一项目目录。一个项目内的板卡组使用同一 Experiment，统一 Start / Stop。
 每个主机、每个项目目录只有一个 Sentry；状态按板卡显示，项目总速率、文件大小和归档不重复累计。
@@ -133,3 +133,5 @@ GUI records root 显示当前 GUI 设置，不再被上次准备生成的 YAML �
 
 已保存 ECC 连接的下拉框旁有 **Remove saved connection**，用于移除历史条目。
 不会删除配置文件或停止后台；重新明确保存该配置可再次加入列表。
+
+首次打开主控设置时默认展开 **First-time setup / edit hosts and boards**。多个 ECC 可以各自控制 `CoBo[0]`；GUI 使用不同节点编号，发送到 ECC 的板卡索引保持各组设置。从机可用 **Remove master connection…** 解除旧配对，或 **Remove selected inactive entry** 隐藏无进程的历史实例；运行中的实例、原始数据与审计记录保留。

@@ -4,6 +4,7 @@
 #include <QMap>
 #include <QMetaType>
 #include <QString>
+#include <QStringList>
 #include <QVector>
 
 #include "autorun.h"
@@ -11,6 +12,7 @@
 struct NodeConfig
 {
     int id = 0;
+    int boardIndex = -1; // Remote CoBo index; GUI id may differ across ECC instances.
     bool mutant = false;
     QString name;
     QString host;
@@ -39,6 +41,7 @@ struct RunConfig
     QString description;
     QString configurationBackupWarning;
     QString configurationSnapshot; // Immutable managed release used for Run backups.
+    QStringList deploymentGroups;
     QString deploymentProject; // Local managed project.json path; contains endpoint references, not tokens.
     bool syncConfiguration=true;
     QString eccName; // Friendly connection name, independent of board IDs and fixed service identity.
