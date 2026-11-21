@@ -26,12 +26,12 @@
 
 ```sh
 ./bin/getdaq-online-waveform-viewer --endpoint 192.168.50.16:46491
-# 多来源可重复 --endpoint；也可在查看器里每行填写一个地址。
+# 独立命令行仍可重复 --endpoint；GUI 使用当前配置的实例选择框。
 ```
 
-填写 **DataExporter TCP export** 地址，非 SOAP 端口、数据接收端口或 Sentry 端口。旧 DataRouter 只有在确实提供相同的长度前缀 TCP 导出协议时才能在线查看；仅接收落盘的 DataRouter 不因此自动具备导出功能。
+从 **DataExporter** 下拉框选择当前配置中的接收器，或选择 All configured DataExporters。受管项目自动读取实际 TCP export 端口；界面不再要求填写地址。Refresh choices 刷新列表，Pause preview 仅暂停预览连接。外部 DataExporter 可在连接设置中选择 Receiver type / TCP preview export port，或在 Nodes / Paths 设置 Preview host / Preview TCP port；识别到运行中的 DataExporter 时也可使用默认导出端口。旧 DataRouter 只有在确实提供相同的长度前缀 TCP 导出协议时才能在线查看；仅接收落盘的 DataRouter 不因此自动具备导出功能。
 
-1. Connect 后选 Source、CoBo、AsAd、AGET。
+1. 选择实例后自动连接预览，选 Source、CoBo、AsAd、AGET。
 2. Channels… 勾选通道，复用离线查看器的横轴 Bucket 和纵轴 ADC、3D、PNG / CSV 导出。3D 纵深为实际通道号，通道曲线独立、背景为白色，不填未选通道；Ctrl+滚轮调间距，普通滚轮滚动长图，拖动调深度角，双击重置。
 3. Follow latest 跟随最新缓存事件。取消后选择事件，或输入 Event ID 点 Go；暂停显示期间仍继续接收预览。
 4. 缓存仅保留最近 100 个事件、4096 帧且原始帧不超过 256 MiB。冻结选择可额外保留至多一个缓存事件，最坏另占 256 MiB；解码与渲染另有少量工作内存。更老的事件用离线文件查看。

@@ -1,3 +1,8 @@
+#include "exportersources.h"
+#include "deploymentpaths.h"
+#include "existingeccconnection.h"
+#include "unifiedeccwindow.h"
+#include "consolelogstore.h"
 #include <cmath>
 #include "waveformcanvas.h"
 #include <QWheelEvent>
@@ -53,6 +58,25 @@ private slots:
     GetDAQ::WaveformCanvas canvas;canvas.resize(900,600);QVector<GetDAQ::WaveformPlotTrace> traces;
     for(int channel:{2,7,22}){GetDAQ::WaveformPlotTrace trace;trace.channel=channel;for(int i=0;i<512;++i)trace.samples<<QPointF(i,1000+channel+40*std::sin(i/30.0));traces<<trace;}canvas.SetTraces(traces,1);canvas.SetSurface(true);canvas.show();QTest::qWait(20);const auto image=canvas.grab().toImage();QVERIFY(!image.isNull());const auto text=canvas.accessibleDescription();QVERIFY(text.contains("Time: sample bucket"));QVERIFY(text.contains("Amplitude: ADC"));QVERIFY(text.contains("Depth: channel number 2 to 22"));QVERIFY(text.contains("3 selected traces; no interpolated channels"));QVERIFY(!text.contains("ADC 0 to"));
     const int before=canvas.minimumHeight();QWheelEvent wheel(QPointF(200,200),QPointF(200,200),QPoint(),QPoint(0,120),Qt::NoButton,Qt::ControlModifier,Qt::NoScrollPhase,false);QApplication::sendEvent(&canvas,&wheel);QVERIFY(canvas.minimumHeight()>before);canvas.SetSurface(false);QCOMPARE(canvas.minimumHeight(),360);canvas.Clear();canvas.SetSurface(true);QVERIFY(!canvas.grab().isNull());
+ }
+ void previewSourcesUseTheActualExportPortAndRoundTrip(){
+    QTemporaryDir dir;auto c=Config(dir.path());c.nodes[0].previewHost="192.0.2.50";c.nodes[0].previewPort=46492;QString error;QVERIFY(c.Save(dir.filePath("preview.yml"),&error));RunConfig loaded;QVERIFY(loaded.Load(dir.filePath("preview.yml"),&error));QCOMPARE(loaded.nodes[0].previewPort,46492);QCOMPARE(loaded.nodes[0].previewHost,QString("192.0.2.50"));QVERIFY(ExporterSources(loaded)[0].toObject()["endpoint"]=="192.0.2.50:46492");
+    QJsonObject group{{"id","group"},{"name","Board"},{"receiver_backend","DataExporter"},{"receiver_ip","198.51.100.50"},{"export_port",46500},{"ecc",QJsonObject{{"address",c.nodes[0].host},{"port",c.nodes[0].eccPort}}},{"receivers",QJsonArray{QJsonObject{{"id","data"},{"node_id","host"},{"address","192.0.2.1"}}}}};Deployment::Write(dir.filePath("project.json"),Deployment::Json({{"groups",QJsonArray{group}}}));c.deploymentProject=dir.filePath("project.json");auto sources=ExporterSources(c);QCOMPARE(sources.first().toObject()["endpoint"].toString(),QString("198.51.100.50:46500"));QVERIFY(!sources.first().toObject()["endpoint"].toString().endsWith(":46005"));
+ }
+ void editedPathsShowCurrentSettingsBeforeOldPreparedPaths(){
+    QJsonObject group{{"id","g"},{"experiment","pedestals"},{"project_mode",true},{"project_directories",QJsonObject{{"host","/new-data"}}},{"ecc",QJsonObject{{"node_id","host"}}},{"receivers",QJsonArray{QJsonObject{{"node_id","host"},{"id","data"}}}}};QJsonObject instance{{"group_id","g"},{"role","receiver"},{"receiver_id","data"},{"data_directory","/old-data"},{"actual_pids",QJsonArray{123}}};QJsonArray hosts{QJsonObject{{"id","host"},{"name","This computer"},{"inventory",QJsonObject{{"instances",QJsonArray{instance}},{"data_directory","/old-data"}}}}};const auto text=DeploymentPathSummary(group,hosts,"/new-source","/new-records");QVERIFY(text.contains("current setting): /new-data"));QVERIFY(text.contains("/new-data/pedestals/run_NNNN"));QVERIFY(text.contains("master, current setting): /new-source"));QVERIFY(text.contains("Folder change pending"));QVERIFY(text.contains("running folder on This computer: /old-data"));QVERIFY(text.endsWith("/new-records"));
+ }
+ void forgottenConnectionsStayRemovedWithoutDeletingFiles(){
+    QTemporaryDir dir;auto c=Config(dir.path());QString error;QVERIFY(c.Save(dir.filePath("saved.yml"),&error));const auto path=dir.filePath("saved.yml");RememberEccConnection(path);QVERIFY(KnownEccConnectionProfiles().contains(path));ForgetEccConnection(path);QVERIFY(!KnownEccConnectionProfiles().contains(path));QVERIFY(ForgottenEccConnection(path));QVERIFY(QFileInfo::exists(path));RememberEccConnection(path);QVERIFY(KnownEccConnectionProfiles().contains(path));ForgetEccConnection(path);
+ }
+ void applicationLogsAreSeparateForEachGuiLaunch(){
+    QTemporaryDir dir;const auto previous=qgetenv("XDG_DATA_HOME");const bool wasSet=qEnvironmentVariableIsSet("XDG_DATA_HOME");std::unique_ptr<int,std::function<void(int *)>> restore(new int,[=](int *p){if(wasSet)qputenv("XDG_DATA_HOME",previous);else qunsetenv("XDG_DATA_HOME");delete p;});qputenv("XDG_DATA_HOME",dir.path().toUtf8());ConsoleLogStore first,second;QVERIFY(first.OpenApplicationLog());first.Append("OLD GUI\n");QVERIFY(second.OpenApplicationLog());second.Append("NEW GUI\n");QVERIFY(first.ApplicationLogPath()!=second.ApplicationLogPath());QVERIFY(second.ApplicationLogPath().contains("/sessions/"));QFile current(second.ApplicationLogPath());QVERIFY(current.open(QIODevice::ReadOnly));QCOMPARE(current.readAll(),QByteArray("NEW GUI\n"));
+ }
+ void savedConnectionRemovalButtonForgetsTheSelectedEntry(){
+    QTemporaryDir dir;auto c=Config(dir.path());QString error;const auto path=dir.filePath("saved.yml");QVERIFY(c.Save(path,&error));RememberEccConnection(path);c.filePath=path;UnifiedEccWindow window(c);auto *saved=window.findChild<QComboBox *>("SavedEccConnections");auto *remove=window.findChild<QPushButton *>("RemoveSavedEccConnection");QVERIFY(saved && remove);QVERIFY(saved->findData(path)>0);remove->click();QVERIFY(saved->findData(path)<0);QVERIFY(!KnownEccConnectionProfiles().contains(path));QVERIFY(QFileInfo::exists(path));
+ }
+ void restartedLogCollectionSkipsExistingOutput(){
+    QTemporaryDir dir;const auto path=dir.filePath("backend.log");QFile file(path);QVERIFY(file.open(QIODevice::WriteOnly));file.write("OLD SESSION\n");file.close();const auto baseline=Deployment::ReadServiceLog(path,0,{},true);QVERIFY(baseline["text"].toString().isEmpty());QVERIFY(file.open(QIODevice::Append));file.write("CURRENT SESSION\n");file.close();const auto fresh=Deployment::ReadServiceLog(path,qint64(baseline["offset"].toDouble()),baseline["generation"].toString());QCOMPARE(fresh["text"].toString(),QString("CURRENT SESSION\n"));const auto reopened=Deployment::ReadServiceLog(path,0,{},true);QVERIFY(reopened["text"].toString().isEmpty());
  }
  void controlsRemainAvailableDuringLocalBookkeeping(){
     MainWindow window;QVERIFY(QMetaObject::invokeMethod(&window,"ShowControlSlot",Qt::DirectConnection,Q_ARG(QString,QString("Settling")),Q_ARG(bool,true),Q_ARG(bool,true),Q_ARG(bool,true)));for(const auto &name:{"StartRun","StopRun","Disconnect"}){auto *button=window.findChild<QPushButton *>(name);QVERIFY(button);QVERIFY(button->isEnabled());}
@@ -134,7 +158,7 @@ private slots:
     window.StopSignal();QTRY_COMPARE_WITH_TIMEOUT(table->item(0,1)->text(),QString("Ready"),3000);
     QTRY_VERIFY_WITH_TIMEOUT(QFileInfo::exists(c.RunDirectory()+"/run.csv"),7000);window.DisconnectSignal();
  }
- void originalWindowAndNodeOptions(){MainWindow window;QVERIFY(!window.findChild<QAction *>("OriginalGetController"));QVERIFY(window.findChild<QAction *>("DirectCoBoInformation"));auto *table=window.findChild<QTableWidget *>("StatusTable");QVERIFY(table);QCOMPARE(table->columnCount(),13);for(auto *action:window.findChildren<QAction *>())QVERIFY2(!action->objectName().startsWith("Native"),qPrintable(action->objectName()));auto c=RunConfig::Default();IPWindow nodes(c);auto *settings=nodes.findChild<QTableWidget *>("NodeSettingsTable");QVERIFY(settings);QCOMPARE(settings->columnCount(),14);QVERIFY(!nodes.findChild<QCheckBox *>("UseNativeWholeSystemControl"));for(const auto &name:{"LoadConfig","SaveConfig","Nodes"}){auto *b=window.findChild<QPushButton *>(name);QVERIFY(b);QCOMPARE(b->width(),172);}}
+ void originalWindowAndNodeOptions(){MainWindow window;QVERIFY(!window.findChild<QAction *>("OriginalGetController"));QVERIFY(window.findChild<QAction *>("DirectCoBoInformation"));auto *table=window.findChild<QTableWidget *>("StatusTable");QVERIFY(table);QCOMPARE(table->columnCount(),13);for(auto *action:window.findChildren<QAction *>())QVERIFY2(!action->objectName().startsWith("Native"),qPrintable(action->objectName()));auto c=RunConfig::Default();IPWindow nodes(c);auto *settings=nodes.findChild<QTableWidget *>("NodeSettingsTable");QVERIFY(settings);QCOMPARE(settings->columnCount(),16);QVERIFY(!nodes.findChild<QCheckBox *>("UseNativeWholeSystemControl"));for(const auto &name:{"LoadConfig","SaveConfig","Nodes"}){auto *b=window.findChild<QPushButton *>(name);QVERIFY(b);QCOMPARE(b->width(),172);}}
 #ifdef Q_OS_LINUX
  void managedPrepareUsesConfigureRepositoryFile(){
     QJsonObject group{{"backend","original-soap"},{"experiment","pedestals"}};QMap<QString,QByteArray> files;QJsonArray entries;

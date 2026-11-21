@@ -18,6 +18,8 @@ struct NodeConfig
     int sentryPort = 8080;
     int routerPort = 46005;
     int exporterPort = 0; // 新的单入口接收/导出部署不再让板端建立第二条原始数据链路；显式端口仍兼容旧目标。
+    int previewPort = 0; // TCP preview export, separate from board data links.
+    QString previewHost;
     QString routerHost;      // 留空表示沿用 ECC 主机；端口 0 表示关闭该数据目标。
     QString exporterHost;
     QString sentryHost;      // 数据盘所在机器的代理，允许与 ECC 主机分开。

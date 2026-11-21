@@ -6,5 +6,7 @@ struct ExistingEccResult {RunConfig configuration;QString protocol,status,detail
 // Read-only discovery: passive Ice greeting, HTTP identity/status and SOAP queries.
 ExistingEccResult CheckExistingEcc(const QString &name,const QString &address,int port,const RunConfig &base,const QStringList &profiles={},const QString &explicitProfile=QString());
 QStringList KnownEccConnectionProfiles();
+void ForgetEccConnection(const QString &path);
+bool ForgottenEccConnection(const QString &path);
 void RememberEccConnection(const QString &path);
 #endif

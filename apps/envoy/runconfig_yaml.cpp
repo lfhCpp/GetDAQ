@@ -74,6 +74,8 @@ bool RunConfig::Load(const QString &path, QString *error)
                     if (item["ecc_port"]) n.eccPort = item["ecc_port"].as<int>();
                     if (item["sentry_port"]) n.sentryPort = item["sentry_port"].as<int>();
                     if (item["router_port"]) n.routerPort = item["router_port"].as<int>();
+                    if(item["preview_port"])n.previewPort=item["preview_port"].as<int>();
+                    if(item["preview_host"])n.previewHost=Text(item["preview_host"]);
                     if (item["exporter_port"]) n.exporterPort = item["exporter_port"].as<int>();
                     if (item["router_host"]) n.routerHost = Text(item["router_host"]);
                     if (item["exporter_host"]) n.exporterHost = Text(item["exporter_host"]);
@@ -133,6 +135,7 @@ bool RunConfig::Save(const QString &path, QString *error) const
         item["sentry_port"] = n.sentryPort;
         item["router_port"] = n.routerPort;
         item["exporter_port"] = n.exporterPort;
+        item["preview_port"]=n.previewPort;item["preview_host"]=Utf8(n.previewHost);
         item["router_host"] = Utf8(n.routerHost);
         item["exporter_host"] = Utf8(n.exporterHost);
         item["sentry_host"] = Utf8(n.sentryHost);

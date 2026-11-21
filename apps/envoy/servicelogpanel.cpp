@@ -86,14 +86,16 @@ void ServiceLogPanel::Poll(){
 void ServiceLogPanel::ReadStream(const QJsonObject &entry){
  const auto key=StreamKey(entry);if(fInFlight.contains(key) || fInFlight.size()>=4)return;
 #ifdef Q_OS_LINUX
- fInFlight.insert(key);const auto cursor=fCursors.value(key);const int clearEpoch=fClearEpoch.value(key);auto *watcher=new QFutureWatcher<QPair<QJsonObject,QString>>(this);
- connect(watcher,&QFutureWatcher<QPair<QJsonObject,QString>>::finished,this,[this,watcher,key,entry,clearEpoch]{
+ fInFlight.insert(key);const auto cursor=fCursors.value(key);const bool baseline=!fCursors.contains(key);const int clearEpoch=fClearEpoch.value(key);auto *watcher=new QFutureWatcher<QPair<QJsonObject,QString>>(this);
+ connect(watcher,&QFutureWatcher<QPair<QJsonObject,QString>>::finished,this,[this,watcher,key,entry,clearEpoch,baseline]{
   const auto result=watcher->result();watcher->deleteLater();fInFlight.remove(key);
   if(!result.second.isEmpty()){
    if(fErrors.value(key)!=result.second){fErrors[key]=result.second;fTimeline.Append(entry["source_label"].toString()+" [collector]",tr("Log read unavailable: %1").arg(result.second));if(fSelection==key && clearEpoch==fClearEpoch.value(key))fService->appendPlainText(tr("Log stream unavailable: %1").arg(result.second));}return;
   }
-  fErrors.remove(key);const auto observation=result.first;const auto text=observation["text"].toString();
-  QString snapshotNote;if(observation["reset"].toBool() && observation["available"].toBool())snapshotNote=QString("[Initial tail or log file reset; byte range %1..%2; file-size boundary %3]\n").arg(observation["start_offset"].toDouble()).arg(observation["offset"].toDouble()).arg(observation.contains("snapshot_size")?QString::number(qint64(observation["snapshot_size"].toDouble())):QString("not reported"));
+  fErrors.remove(key);auto observation=result.first;
+  if(baseline){if(observation.contains("snapshot_size"))observation["offset"]=observation["snapshot_size"];observation["text"]="";fCursors[key]=observation;fBuffers[key].clear();if(fSelection==key)fService->setPlainText(tr("Collecting new output for this GUI session; previous output was skipped."));return;}
+  const auto text=observation["text"].toString();
+  QString snapshotNote;if(observation["reset"].toBool() && observation["available"].toBool())snapshotNote=QString("[Log file reset during this GUI session; byte range %1..%2; file-size boundary %3]\n").arg(observation["start_offset"].toDouble()).arg(observation["offset"].toDouble()).arg(observation.contains("snapshot_size")?QString::number(qint64(observation["snapshot_size"].toDouble())):QString("not reported"));
   fTimeline.AppendChunk(key,entry["source_label"].toString(),snapshotNote+text,observation["reset"].toBool());
   // Clear cannot be undone by a response that was already in flight. Its cursor
   // and export history still advance so the old bytes will not be read again.
@@ -104,7 +106,7 @@ void ServiceLogPanel::ReadStream(const QJsonObject &entry){
    else if(fService->toPlainText()!=PresentLog(buffer)){const bool follow=fService->verticalScrollBar()->value()>=fService->verticalScrollBar()->maximum()-2;fService->setPlainText(PresentLog(buffer));if(follow)fService->verticalScrollBar()->setValue(fService->verticalScrollBar()->maximum());}
   }
  });
- watcher->setFuture(QtConcurrent::run([entry,cursor]{try{Deployment::OperationScope scope({},4000);const auto endpoint=Deployment::NodeEndpoint(entry);const auto url="/v1/instances/"+entry["instance_id"].toString()+"/logs/"+entry["component"].toString()+"?offset="+QString::number(qint64(cursor["offset"].toDouble()))+"&generation="+cursor["generation"].toString();return qMakePair(Deployment::Get(endpoint,url),QString());}catch(const std::exception &e){return qMakePair(QJsonObject(),QString::fromUtf8(e.what()));}}));
+ watcher->setFuture(QtConcurrent::run([entry,cursor,baseline]{try{Deployment::OperationScope scope({},4000);const auto endpoint=Deployment::NodeEndpoint(entry);const auto url="/v1/instances/"+entry["instance_id"].toString()+"/logs/"+entry["component"].toString()+"?offset="+QString::number(qint64(cursor["offset"].toDouble()))+"&generation="+cursor["generation"].toString()+(baseline?QString("&start=now"):QString());return qMakePair(Deployment::Get(endpoint,url),QString());}catch(const std::exception &e){return qMakePair(QJsonObject(),QString::fromUtf8(e.what()));}}));
 #else
  Q_UNUSED(entry);if(fKind)fService->setPlainText(tr("Managed log streaming requires the Linux host manager."));
 #endif

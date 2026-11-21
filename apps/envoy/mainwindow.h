@@ -101,6 +101,8 @@ private:
     int SelectedId() const;
     Ui::MainWindow *ui;
     ServiceLogPanel *fServiceLogs=nullptr;
+    QString fOnlineSourcesPath;
+    QString OnlineSourcesFile();
     RunConfig fConfig;
     QVector<NodeStatus> fLastNodeStatus;
     QThread fControlThread;

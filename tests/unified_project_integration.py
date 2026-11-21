@@ -2,7 +2,7 @@
 """Project-folder distribution, two original receivers, shared Sentry and remote logs.
 All nodes and hardware frames are loopback/software-only; never contacts boards.
 """
-import argparse,hashlib,json,os,signal,socket,ssl,subprocess,tempfile,time,urllib.request,shutil
+import argparse,hashlib,json,os,signal,socket,ssl,subprocess,tempfile,time,urllib.request,shutil,random
 from pathlib import Path
 from original_backends_integration import request,port as available_port,require,wait,sha
 
@@ -11,7 +11,12 @@ from original_backends_integration import request,port as available_port,require
 _allocated_ports=set()
 def port():
  while True:
-  value=available_port()
+  # Keep planned listeners outside Linux's usual outgoing ephemeral range.
+  # TLS calls during preparation must not claim a reserved future listener port.
+  value=random.randrange(12000,30000)
+  try:
+   with socket.socket() as probe:probe.bind(('127.0.0.1',value))
+  except OSError:continue
   if value not in _allocated_ports:
    _allocated_ports.add(value)
    return value
@@ -117,7 +122,12 @@ def main():
    (source/'resource.dat').write_bytes(b'updated-while-idle');run(args.controller_probe,'sync',root/'master.json');refreshed=json.loads(run(args.controller_probe,'refresh',root/'master.json'));require((Path(refreshed['snapshot'])/'resource.dat').read_bytes()==b'updated-while-idle','Pre-Describe snapshot did not refresh');require((old_snapshot/'resource.dat').read_bytes()==b'project-resource','Old Run snapshot was modified');checks.append('pre-Describe refresh preserves old snapshot and selects the actually synchronized configuration revision')
    reused=json.loads(run(args.controller_probe,'start',root/'master.json'));before={r['instance_id']:r['processes'][0]['pid'] for r in started['activation']['receipts']};after={r['instance_id']:r['processes'][0]['pid'] for r in reused['activation']['receipts']};require(before==after,'Configuration-only update restarted backends');checks.append('configuration-only updates reuse verified backend processes without duplicate startup')
   if args.log_panel_probe:
-   os.environ['QT_QPA_PLATFORM']='offscreen';output=root/'combined-logs.txt';run(args.log_panel_probe,root/'project.json',output);combined=output.read_text();require('EVENT LOG' in combined and 'ECC LOG' in combined and 'DATA LOG' in combined,'Combined log lacks source separators');checks.append('real GUI collector reads all authenticated sources on Event tab and exports a stable combined snapshot; Clear preserves history')
+
+   for node in nodes:node['inventory']=json.loads(request(node,'GET','/v1/inventory',token=node['token'])[1])
+   # Write only public node fields; keep fixture Path objects out of JSON.
+   project['nodes']=[dict(id=n['id'],name='Node '+str(i),url='https://127.0.0.1:'+str(n['port']),certificate_sha256=n['pin'],credential_file=str(n['root']/'agent.token'),inventory=n['inventory']) for i,n in enumerate(nodes)]
+   (root/'project.json').write_text(json.dumps(project))
+   os.environ['QT_QPA_PLATFORM']='offscreen';output=root/'combined-logs.txt';run(args.log_panel_probe,root/'project.json',output);combined=output.read_text();require('EVENT LOG' in combined and 'ECC LOG' in combined and 'DATA LOG' in combined,'Combined log lacks source separators');checks.append('real GUI collector skips previous-session tails, collects new authenticated output on Event tab and exports a stable snapshot; Clear preserves this session history')
   # With a foreign/uninspectable ECC still associated with live receivers, updates stay cached.
   ecc_active=[v for v in activated if v[1]['role']=='ecc'];os.kill(int(ecc_active[0][2]['processes'][0]['pid']),signal.SIGINT);time.sleep(.3)
   (source/'resource.dat').write_bytes(b'updated-resource');next_release=upload(groups)

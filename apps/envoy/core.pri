@@ -11,3 +11,6 @@ SOURCES += $$PWD/runconfig.cpp $$PWD/runconfig_yaml.cpp $$PWD/protocol.cpp $$PWD
 HEADERS += $$PWD/runconfig.h $$PWD/protocol.h $$PWD/httpclient.h $$PWD/eccclient.h $$PWD/sentryclient.h \
  $$PWD/runcontrol.h $$PWD/runrecorder.h $$PWD/runrecorder_p.h $$PWD/autorun.h $$PWD/diagnostics.h
 SOURCES += $$files($$PWD/../../third_party/yaml-cpp/src/*.cpp) $$files($$PWD/../../third_party/yaml-cpp/src/contrib/*.cpp)
+
+SOURCES += $$PWD/exportersources.cpp
+HEADERS += $$PWD/exportersources.h

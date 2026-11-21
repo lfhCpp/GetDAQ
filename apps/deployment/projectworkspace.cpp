@@ -42,10 +42,11 @@ QJsonObject SyncWorkspace(const QString &project,const QJsonObject &group,const 
  const auto old=previous["files"].toObject();for(auto it=old.begin();it!=old.end();++it)if(!hashes.contains(it.key())){const auto target=project+'/'+it.key();if(QFileInfo::exists(target) && !QFileInfo(target).isSymLink() && Sha(Read(target,16*1024*1024))==it.value().toString()){Write(backup+'/'+it.key(),Read(target,16*1024*1024));Require(QFile::remove(target),"Cannot retire old managed configuration");}}
  result["state"]="applied";result["changed"]=changed;Write(record,Json(result));QFile::remove(meta+"/pending-configuration.json");return result;
 }
-QJsonObject ReadServiceLog(const QString &path,qint64 offset,const QString &generation){
+QJsonObject ReadServiceLog(const QString &path,qint64 offset,const QString &generation,bool fromEnd){
  QFileInfo info(path);Require(!info.isSymLink(),"Service log cannot be a link");if(!info.exists())return {{"offset",0},{"generation","missing"},{"text",""},{"available",false}};
  QFile file(path);Require(file.open(QIODevice::ReadOnly),"Cannot read service log");
  struct stat st;Require(!::stat(QFile::encodeName(path).constData(),&st),"Cannot inspect service log");const auto current=Sha((info.absoluteFilePath()+':'+QString::number(qulonglong(st.st_dev))+':'+QString::number(qulonglong(st.st_ino))+':'+QString::number(info.birthTime().toMSecsSinceEpoch())).toUtf8());
+ if(fromEnd){const auto boundary=file.size();return {{"offset",double(boundary)},{"start_offset",double(boundary)},{"snapshot_size",double(boundary)},{"generation",current},{"text",""},{"reset",true},{"available",true},{"session_boundary",true}};}
  const bool reset=generation!=current || offset<0 || offset>file.size();if(reset)offset=qMax<qint64>(0,file.size()-65536);Require(file.seek(offset),"Cannot seek service log");const auto snapshot=file.size();const auto start=file.pos();const auto bytes=file.read(qMin<qint64>(65536,qMax<qint64>(0,snapshot-start)));
  return {{"offset",double(file.pos())},{"start_offset",double(start)},{"snapshot_size",double(snapshot)},{"generation",current},{"text",QString::fromUtf8(bytes)},{"reset",reset},{"available",true}};
 }

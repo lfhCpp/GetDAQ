@@ -18,7 +18,7 @@ void MainWindow::SetConfig(const RunConfig &config)
 {
     fAutoRunWidget->SetSettings(config.autoRun);
     ui->ResumeCatalogReplacement->hide();ui->CatalogRecoveryReason->hide();
-    fConfig=config;if(fServiceLogs)fServiceLogs->SetProject(config.deploymentProject);statusBar()->hide();
+    fLastNodeStatus.clear();fConfig=config;if(!fOnlineSourcesPath.isEmpty())OnlineSourcesFile();if(fServiceLogs)fServiceLogs->SetProject(config.deploymentProject);statusBar()->hide();
     fPlot->setVisible(true);
     ui->PlotPanel->setVisible(true);
     ui->BottomPanels->setSizes({1000,1000});

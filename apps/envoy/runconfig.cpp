@@ -72,9 +72,9 @@ bool RunConfig::Validate(QString *error) const
         if(n.soapNamespace!="urn:ecc" && n.soapNamespace!="urn:http://localhost:8083/") problem="Unsupported ECC SOAP namespace.";
         for (int p : {n.eccPort, n.sentryPort})
             if (p < 1 || p > 65535) problem = "Ports must be in 1–65535.";
-        for (int p : {n.routerPort, n.exporterPort})
+        for (int p : {n.routerPort, n.exporterPort, n.previewPort})
             if (p < 0 || p > 65535) problem = "Data ports must be 0 (disabled) or 1–65535.";
-        for (const QString &host : {n.routerHost, n.exporterHost, n.sentryHost})
+        for (const QString &host : {n.routerHost, n.exporterHost, n.sentryHost, n.previewHost})
             if (host.contains('/') || host.contains(QRegularExpression("\\s"))) problem = "Invalid data receiver hostname.";
         ids.insert(n.id);
         endpoints.insert(endpoint);

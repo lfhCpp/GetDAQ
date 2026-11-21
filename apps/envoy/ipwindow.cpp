@@ -44,9 +44,9 @@ IPWindow::IPWindow(const RunConfig &config, QWidget *parent, const QVector<NodeS
 #endif
     };
     connect(hardwareSetup,&QPushButton::clicked,this,originalServices);
-    fNodes = new QTableWidget(0, 14, this);
+    fNodes = new QTableWidget(0, 16, this);
     fNodes->setObjectName("NodeSettingsTable");
-    fNodes->setHorizontalHeaderLabels({"ID", "Role (cobo/mutant)", "Name", "ECC host", "ECC port", "Sentry port", "Router port (0=off)", "Legacy ECC target port (0=off)", "Router host", "Legacy ECC target host", "Describe ID", "Prepare ID", "Configure ID", "Sentry host"});
+    fNodes->setHorizontalHeaderLabels({"ID", "Role (cobo/mutant)", "Name", "ECC host", "ECC port", "Sentry port", "Router port (0=off)", "Legacy ECC target port (0=off)", "Router host", "Legacy ECC target host", "Describe ID", "Prepare ID", "Configure ID", "Sentry host", "Preview host", "Preview TCP port (0=off)"});
     fNodes->horizontalHeaderItem(6)->setToolTip(tr("Primary board-to-receiver data connection. The receiver may separately provide a downstream --export-port for analysis clients."));
     fNodes->horizontalHeaderItem(7)->setToolTip(tr("Optional second board-to-target data connection from legacy ECC configurations. Leave 0 for the normal single-ingress setup; this is not the receiver's downstream --export-port."));
     fNodes->horizontalHeaderItem(8)->setToolTip(tr("Optional host override for the primary board-to-receiver connection; blank uses ECC host."));
@@ -110,7 +110,7 @@ void IPWindow::AddRow(const NodeConfig &n)
     const int row = fNodes->rowCount(); fNodes->insertRow(row);
     const QStringList text = {QString::number(n.id), n.mutant ? "mutant" : "cobo", n.name, n.host,
         QString::number(n.eccPort), QString::number(n.sentryPort), QString::number(n.routerPort), QString::number(n.exporterPort),
-        n.routerHost, n.exporterHost, n.describeId, n.prepareId, n.configureId, n.sentryHost};
+        n.routerHost, n.exporterHost, n.describeId, n.prepareId, n.configureId, n.sentryHost, n.previewHost,QString::number(n.previewPort)};
     for (int i = 0; i < text.size(); ++i) fNodes->setItem(row, i, new QTableWidgetItem(text[i]));
 }
 void IPWindow::AddNodeSlot()
@@ -142,7 +142,7 @@ void IPWindow::ApplySlot()
         }
         n.routerHost = text(8); n.exporterHost = text(9);
         n.describeId = text(10); n.prepareId = text(11); n.configureId = text(12);
-        n.sentryHost = text(13);
+        n.sentryHost = text(13);n.previewHost=text(14);n.previewPort=text(15).toInt(&ok);if(!ok){QMessageBox::warning(this,tr("Configuration"),tr("Preview port must be an integer."));return;}
         config.nodes.append(n);
     }
     const QDir base(fConfig.filePath.isEmpty()?QDir::currentPath():QFileInfo(fConfig.filePath).absolutePath());

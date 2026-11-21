@@ -5,6 +5,6 @@ namespace Deployment {
 QString FormatFingerprint(const QString &project);
 QString ProjectPath(const QJsonObject &group,const QString &node,const QString &fallback);
 QJsonObject SyncWorkspace(const QString &project,const QJsonObject &group,const QMap<QString,QByteArray> &files,const QString &release,bool enabled,bool canApply);
-QJsonObject ReadServiceLog(const QString &path,qint64 offset,const QString &generation);
+QJsonObject ReadServiceLog(const QString &path,qint64 offset,const QString &generation,bool fromEnd=false);
 }
 #endif

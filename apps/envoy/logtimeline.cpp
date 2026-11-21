@@ -46,7 +46,7 @@ QString LogTimeline::ExportText(int pendingReads) const {
     QString result="GetDAQ combined log snapshot\nSnapshot UTC: "+QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs)+
         "\nOrder: local observation time (UTC), then serialized sequence. Native source text is retained.\n"
         "Backend lines without timestamps use the time received by this GUI; this is not cross-host hardware event time.\n"
-        "Scope: this GUI session's collected Event / ECC / Data / Sentry logs. Initial backend reads contain recent tails.\n"
+        "Scope: this GUI session's collected Event / ECC / Data / Sentry logs. Backend streams start at a fresh end-of-file boundary; output from before attachment is excluded.\n"
         "Each read uses a fixed file-size boundary. Reads already in flight are not part of this snapshot.\n"
         "Clear affects the display only. Original files and collected export history are retained.\n";
     result+="Pending reads: "+QString::number(pendingReads)+"; history budget: "+QString::number(fBudget)+" bytes; discarded older records: "+QString::number(fDropped)+"\n";

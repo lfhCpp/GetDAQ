@@ -33,11 +33,12 @@ bool ConsoleLogStore::OpenApplicationLog()
     const QString temporaryDirectory=TemporaryLogDirectory();
     if(!directories.contains(temporaryDirectory))directories.append(temporaryDirectory);
 
-    const QString name=QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss-zzz")+
-        QString("-%1.log").arg(QCoreApplication::applicationPid());
+    const QString session=QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss-zzz")+QString("-%1-").arg(QCoreApplication::applicationPid())+QUuid::createUuid().toString(QUuid::WithoutBraces);
+    const QString name="application.log";
     for(const QString &directory:directories) {
-        if(OpenAppend(fApplication,directory,name)) {
-            fApplicationDirectory=directory;
+        const auto sessionDirectory=QDir(directory).filePath("sessions/"+session);
+        if(OpenAppend(fApplication,sessionDirectory,name)) {
+            fApplicationDirectory=sessionDirectory;
             fUsedFallback=(directory!=preferredDirectory);
             fError.clear();
             return true;

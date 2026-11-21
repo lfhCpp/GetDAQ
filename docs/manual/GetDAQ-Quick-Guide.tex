@@ -212,7 +212,7 @@ Experiment & Run 名称及缺省 ID；节点明确填写的 ID 优先。\\\botto
 \item 活动实例需确认警告；稳定 Ready / Running 也可同步，不强制退回 Idle。已观察到硬件命令仍在转换时暂缓替换文件，未知状态需明确确认。
 \item 同步只改变磁盘文件。板卡仍用上次加载的参数；通过相应 ECC Configure 才更新硬件。
 \end{enumerate}
-Nodes / Paths 的 Save and apply 主要保存连接 YAML，不等于立刻发布 XML/XCFG。
+已保存连接可用 Remove saved connection 从历史列表移除。路径摘要即时显示当前设置，旧运行目录另列提示，正常重启后台后应用新工作目录。Nodes / Paths 的 Save and apply 主要保存连接 YAML，不等于立刻发布 XML/XCFG。
 后台启动和项目发布也会检查源目录；外部未托管 ECC 的 NFS / 仓库不被擅自覆盖。
 被替换配置保存在项目目录的备份中，不删除原始数据。
 
@@ -243,7 +243,7 @@ Start / Stop / Disconnect & 连接后保持可用；正在执行的硬件命令�
 断开可在确认后脱离未完成工作，不停止远端采集。
 \subsection*{查看、清屏和导出日志}
 原 Event log 区域切换 \ui{Event log / ECC log / DataExporter log / DataRouter log}，右侧选择主机和实例；也可选择共享 Sentry。
-Data log 右侧 Clear 清显示，不删后台日志或已收集历史。
+每次重新打开 GUI，新日志会话从空白开始，不加载之前的输出；首次附着后台日志后只收集新内容。Data log 右侧 Clear 清显示，导出仅含本次会话。
 Tools $\rightarrow$ Logs $\rightarrow$ \ui{Export combined logs…} 导出 TXT，按 GUI 接收时间与顺序号合并，分隔来源；远端原文时间保留，不能冒充完全同步的跨主机事件时钟。
 \note{关闭 GUI、Disconnect、Stop acquisition、Stop backend services 是四件事。需要关闭后台时使用实例管理，并先核对采集状态。}
 
@@ -253,8 +253,7 @@ Tools $\rightarrow$ Logs $\rightarrow$ \ui{Export combined logs…} 导出 TXT�
 Tools 中打开波形查看器，Open waveform 选文件；用 Event ID / Go to event 选事件，Frame 选该事件的帧，AGET 选芯片，Channels… 勾选通道。
 \code{.gmat} 没有真实事件号，用帧号选择。PNG / CSV 从 \ui{Export plot/data…} 导出。
 \subsection*{在线：独立连接 DataExporter}
-Tools $\rightarrow$ \ui{Online waveform viewer…}。地址区每行一个\textbf{DataExporter IP:export port}，默认 46491；不是 8083、46003 或 46005。
-Connect 后选 Source、CoBo、AsAd、AGET 与通道。\par
+Tools $\rightarrow$ \ui{Online waveform viewer…}。直接从 \ui{DataExporter} 选择框选择当前配置中的实例或全部实例，软件自动使用受管项目的导出地址，不再手填 IP。外部接收器在连接配置中选择 DataExporter 和预览端口（常见 46491），也可在 Nodes / Paths 设置 Preview host / Preview TCP port。选择后自动连接，再选 Source、CoBo、AsAd、AGET 与通道。\par
 Follow latest 跟随最新事件；取消后可选缓存事件或输入 Event ID 点 Go。最近缓存最多 100 事件 / 4096 帧 / 256 MiB；更老事件读离线文件。
 预览允许丢帧，正常落盘优先。关闭查看器不停止后台。
 旧 DataRouter 必须确实提供相同 TCP 导出协议才能在线预览，普通接收服务不会自动具备该功能。

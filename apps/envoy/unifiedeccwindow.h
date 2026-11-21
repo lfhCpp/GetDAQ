@@ -18,9 +18,10 @@ private:
     RunConfig fBase,fConnectionBase,fSelected;
     ExistingEccResult fChecked;
     QLineEdit *fName,*fAddress,*fReceiver,*fOutput;
-    QSpinBox *fPort,*fDataPort;
+    QSpinBox *fPort,*fDataPort,*fPreviewPort;
+    QComboBox *fReceiverType;
     QLabel *fStatus;
-    QPushButton *fCheck,*fUse,*fCancel;
+    QPushButton *fCheck,*fUse=nullptr,*fCancel;
     QTabWidget *fTabs;
     QCheckBox *fAdvanced;
     DistributedDeploymentWindow *fManaged;

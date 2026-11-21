@@ -62,9 +62,9 @@ QJsonObject NodeAgent::StartProjectMonitor(const QJsonObject &request,bool *effe
 }
 QJsonObject NodeAgent::ServiceLog(const QString &path)const{
  const QUrl url(path);const auto pieces=url.path().split('/',QString::SkipEmptyParts);Require(pieces.size()==5 && pieces[0]=="v1" && pieces[1]=="instances" && pieces[3]=="logs","Invalid service log request");
- const auto instance=Id(pieces[2]),component=pieces[4];Require(component=="ecc" || component=="receiver" || component=="sentry","Unknown log component");const auto selected=Parse(Read(fRoot+"/instances/"+instance+".json"));Require(selected["backend"]=="original-soap","Logs are available only for registered original services");const auto config=Parse(Read(selected["config_file"].toString()));
+ const auto instance=Id(pieces[2]),component=pieces[4];Require(component=="ecc" || component=="receiver" || component=="sentry","Unknown log component");if(!QFile::exists(fRoot+"/instances/"+instance+".json"))return {{"offset",0},{"generation","missing"},{"text",""},{"available",false}};const auto selected=Parse(Read(fRoot+"/instances/"+instance+".json"));Require(selected["backend"]=="original-soap","Logs are available only for registered original services");const auto config=Parse(Read(selected["config_file"].toString()));
  Require(component=="sentry"?selected["role"]=="receiver":selected["role"]==component,"Log does not belong to this instance");
  const auto log=component=="sentry" && config["project_mode"].toBool()?config["sentry_root"].toString()+"/sentry.log":config["log_directory"].toString(QFileInfo(selected["config_file"].toString()).absolutePath()+"/logs")+'/'+component+".log";
- const QUrlQuery query(url);bool ok=false;const auto offset=query.queryItemValue("offset").toLongLong(&ok);Require(ok || !query.hasQueryItem("offset"),"Invalid log cursor");auto result=ReadServiceLog(log,ok?offset:0,query.queryItemValue("generation"));result["instance_id"]=instance;result["component"]=component;return result;
+ const QUrlQuery query(url);bool ok=false;const auto offset=query.queryItemValue("offset").toLongLong(&ok);Require(ok || !query.hasQueryItem("offset"),"Invalid log cursor");auto result=ReadServiceLog(log,ok?offset:0,query.queryItemValue("generation"),query.queryItemValue("start")=="now");result["instance_id"]=instance;result["component"]=component;return result;
 }
 }

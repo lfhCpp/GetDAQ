@@ -1,3 +1,11 @@
+#include "exportersources.h"
+#include <QDir>
+#include <QSaveFile>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QStandardPaths>
+#include <QUuid>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "waveformwindow.h"
@@ -47,4 +55,9 @@ void MainWindow::RefreshOfflineToolsGate() {
         tr("Stopping the offline tool process; this menu item will be available after it exits."):
         tr("Inspect, merge and convert completed files; optional FITS / ROOT tools require installation."));
     ui->StartRun->setToolTip(tr("Start remains available; warnings require confirmation."));
+}
+
+QString MainWindow::OnlineSourcesFile(){
+ if(fOnlineSourcesPath.isEmpty()){const auto directory=QStandardPaths::writableLocation(QStandardPaths::CacheLocation)+"/online-waveform";QDir().mkpath(directory);fOnlineSourcesPath=directory+'/'+QUuid::createUuid().toString(QUuid::WithoutBraces)+".json";}
+ const auto bytes=QJsonDocument(QJsonObject{{"sources",ExporterSources(fConfig,fLastNodeStatus)}}).toJson(QJsonDocument::Compact);QFile previous(fOnlineSourcesPath);if(previous.open(QIODevice::ReadOnly) && previous.readAll()==bytes)return fOnlineSourcesPath;previous.close();QSaveFile file(fOnlineSourcesPath);if(!file.open(QIODevice::WriteOnly))return {};file.setPermissions(QFile::ReadOwner|QFile::WriteOwner);if(file.write(bytes)!=bytes.size() || !file.commit())return {};return fOnlineSourcesPath;
 }
