@@ -38,6 +38,9 @@ void WaveformCanvas::Clear()
 void WaveformCanvas::SetSurface(bool enabled)
 { fSurface = enabled; UpdateSurfaceSize();update(); }
 
+void WaveformCanvas::SetBaselineAlignment(bool enabled)
+{ fAlignBaselines = enabled; update(); }
+
 const QVector<GetDAQ::WaveformPlotTrace> &WaveformCanvas::Traces() const
 { return fTraces; }
 

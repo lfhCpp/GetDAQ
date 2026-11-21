@@ -62,6 +62,7 @@ WaveformWindow::WaveformWindow(QWidget *parent) : QMainWindow(parent,Qt::Window)
         controls->addWidget(new QLabel(tr("Period")));
         controls->addWidget(fScanPeriod);
         controls->addWidget(fSurfaceToggle);
+        auto *align=new QCheckBox(tr("Align baselines"),central);align->setObjectName("WaveformAlignBaselines");align->setChecked(true);align->setEnabled(false);align->setToolTip(tr("3D only: subtract each channel's median baseline for evenly spaced zero references. The amplitude axis becomes delta ADC; 2D and CSV keep raw ADC values. Uncheck for absolute ADC."));controls->addWidget(align);connect(fSurfaceToggle,&QCheckBox::toggled,align,&QWidget::setEnabled);connect(align,&QCheckBox::toggled,fCanvas,[this](bool enabled){fCanvas->SetBaselineAlignment(enabled);});
         fExport->setEnabled(false);
         controls->addWidget(fExport);
         controls->addStretch(1);

@@ -56,17 +56,24 @@ class ProductTests:public QObject {Q_OBJECT
 private slots:
  void initTestCase(){QCoreApplication::setOrganizationName("GetDAQ-Product-Tests");QCoreApplication::setApplicationName("OriginalBackendBaseline");qRegisterMetaType<QVector<NodeStatus>>();}
  void threeDimensionalWaveformsHaveAxesAndSeparation(){
-    GetDAQ::WaveformCanvas canvas;canvas.resize(900,600);QVector<GetDAQ::WaveformPlotTrace> traces;
+    GetDAQ::WaveformCanvas canvas;canvas.SetBaselineAlignment(false);canvas.resize(900,600);QVector<GetDAQ::WaveformPlotTrace> traces;
     for(int channel:{2,7,22}){GetDAQ::WaveformPlotTrace trace;trace.channel=channel;for(int i=0;i<512;++i)trace.samples<<QPointF(i,1000+channel+40*std::sin(i/30.0));traces<<trace;}canvas.SetTraces(traces,1);canvas.SetSurface(true);canvas.show();QTest::qWait(20);const auto image=canvas.grab().toImage();QVERIFY(!image.isNull());const auto text=canvas.accessibleDescription();QVERIFY(text.contains("Time: sample bucket"));QVERIFY(text.contains("Amplitude: ADC"));QVERIFY(text.contains("Depth: channel number 2 to 22"));QVERIFY(text.contains("3 selected traces; no interpolated channels"));QVERIFY(!text.contains("ADC 0 to"));
     const int before=canvas.minimumHeight();QWheelEvent wheel(QPointF(200,200),QPointF(200,200),QPoint(),QPoint(0,120),Qt::NoButton,Qt::ControlModifier,Qt::NoScrollPhase,false);QApplication::sendEvent(&canvas,&wheel);QVERIFY(canvas.minimumHeight()>before);canvas.SetSurface(false);QCOMPARE(canvas.minimumHeight(),360);canvas.Clear();canvas.SetSurface(true);QVERIFY(!canvas.grab().isNull());
  }
  void threeDimensionalChannelPathsDoNotFillTheirInteriors(){
-    GetDAQ::WaveformCanvas canvas;canvas.resize(900,600);QVector<GetDAQ::WaveformPlotTrace> traces;
+    GetDAQ::WaveformCanvas canvas;canvas.SetBaselineAlignment(false);canvas.resize(900,600);QVector<GetDAQ::WaveformPlotTrace> traces;
     for(int channel:{0,1}){GetDAQ::WaveformPlotTrace trace;trace.channel=channel;for(int bucket=0;bucket<512;++bucket)trace.samples<<QPointF(bucket,1000+(channel==1?400*(1-std::abs(bucket-256)/256.0):0));traces<<trace;}
     canvas.SetTraces(traces,0);canvas.SetSurface(true);canvas.show();QTest::qWait(20);const auto image=canvas.grab().toImage();
     // This region is inside the far channel's pulse but above the shared floor.
     // It must remain background, rather than an opaque sheet hiding other traces.
     for(int y=185;y<=195;++y)for(int x=485;x<=495;++x){const auto pixel=image.pixelColor(x,y);QVERIFY(pixel.red()>252 && pixel.green()>252 && pixel.blue()>252);}
+ }
+ void threeDimensionalBaselinesAlignDespiteDifferentPedestalsAndPreserveRawAdc(){
+    GetDAQ::WaveformCanvas canvas;canvas.resize(900,600);QVector<GetDAQ::WaveformPlotTrace> raw,equal;
+    const QVector<int> pedestals{400,650,530,1200};for(int channel=0;channel<4;++channel){GetDAQ::WaveformPlotTrace a,b;a.channel=b.channel=channel;for(int bucket=0;bucket<512;++bucket){const int pulse=qMax(0,30-std::abs(bucket-240));a.samples<<QPointF(bucket,pedestals[channel]+pulse);b.samples<<QPointF(bucket,700+pulse);}raw<<a;equal<<b;}
+    canvas.SetTraces(raw,0);canvas.SetSurface(true);canvas.show();QTest::qWait(20);const auto aligned=canvas.grab().toImage();QVERIFY(canvas.accessibleDescription().contains("delta ADC"));QVERIFY(canvas.accessibleDescription().contains("median baseline aligned to zero"));QCOMPARE(canvas.Traces()[1].samples[240].y(),680.0);
+    canvas.SetTraces(equal,0);QCOMPARE(canvas.grab().toImage(),aligned);canvas.SetTraces(raw,0);canvas.SetBaselineAlignment(false);QVERIFY(canvas.grab().toImage()!=aligned);QVERIFY(canvas.accessibleDescription().contains("Absolute ADC"));QCOMPARE(canvas.Traces()[1].samples[240].y(),680.0);
+    canvas.SetSurface(false);const auto absolute2D=canvas.grab().toImage();canvas.SetBaselineAlignment(true);QCOMPARE(canvas.grab().toImage(),absolute2D);
  }
  void previewSourcesUseTheActualExportPortAndRoundTrip(){
     QTemporaryDir dir;auto c=Config(dir.path());c.nodes[0].previewHost="192.0.2.50";c.nodes[0].previewPort=46492;QString error;QVERIFY(c.Save(dir.filePath("preview.yml"),&error));RunConfig loaded;QVERIFY(loaded.Load(dir.filePath("preview.yml"),&error));QCOMPARE(loaded.nodes[0].previewPort,46492);QCOMPARE(loaded.nodes[0].previewHost,QString("192.0.2.50"));QVERIFY(ExporterSources(loaded)[0].toObject()["endpoint"]=="192.0.2.50:46492");

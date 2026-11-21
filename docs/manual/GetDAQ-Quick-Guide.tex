@@ -263,12 +263,12 @@ Follow latest 跟随最新事件；取消后选缓存事件或用 Event ID / Go�
 \par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{34mm}Y@{}}\toprule
 轴 / 操作 & 含义 \\\midrule
 Time (sample bucket) & 时间方向显示采样桶 0--511；未核对采样频率时不直接标为 ns。\\
-Amplitude (ADC) & 幅度轴，共用真实样本范围，不把基线强行补为零。\\
+Amplitude ($\Delta$ADC / ADC) & 默认 Align baselines 减去各通道中位数基线，零参考等距；取消后显示绝对 ADC。共用幅度尺度，原始值保留。\\
 Channel number & 纵深轴，标注实际选中通道号；通道之间独立，不插值成曲面。\\
 拖动 / 滚动 & 左键拖动调纵深角度；普通滚轮滚动多通道图；Ctrl+滚轮调通道间距；双击重置。\\\bottomrule
 \end{tabularx}\par\smallskip
 \begin{center}\includegraphics[width=0.92\linewidth,height=65mm,keepaspectratio]{../waveform-3d-example.png}\end{center}
-{\footnotesize\color{muted}图示为 8 通道合成脉冲，仅演示坐标与通道分离，不是实板采集结果。}
+{\footnotesize\color{muted}图示为 8 通道不同基线的合成脉冲，开启基线对齐，仅演示显示效果，不是实板采集结果。}
 \note{白色背景、浅色参考底面、独立彩色曲线；曲线下方不填充，也无白色遮挡描边。通道多时绘图区域可滚动，不把 68 条线强压在一屏。离线工具打开不再锁死 Run start；避免修改正在采集的文件。}
 
 \newpage

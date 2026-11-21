@@ -23,6 +23,7 @@ public:
     void SetTraces(const QVector<WaveformPlotTrace> &traces, int aget);
     void Clear();
     void SetSurface(bool enabled);
+    void SetBaselineAlignment(bool enabled);
     const QVector<WaveformPlotTrace> &Traces() const;
     bool SavePng(const QString &path, QString *error);
 
@@ -45,6 +46,7 @@ private:
     int fAget;
     bool fHasData;
     bool fSurface;
+    bool fAlignBaselines = true;
     double fDepthMinimum=0, fDepthMaximum=67;
     int fChannelGap=16;
     double fYaw;
