@@ -135,3 +135,11 @@ GUI records root 显示当前 GUI 设置，不再被上次准备生成的 YAML �
 不会删除配置文件或停止后台；重新明确保存该配置可再次加入列表。
 
 首次打开主控设置时默认展开 **First-time setup / edit hosts and boards**。多个 ECC 可以各自控制 `CoBo[0]`；GUI 使用不同节点编号，发送到 ECC 的板卡索引保持各组设置。从机可用 **Remove master connection…** 解除旧配对，或 **Remove selected inactive entry** 隐藏无进程的历史实例；运行中的实例、原始数据与审计记录保留。
+
+## 启动第二组时出现 Node authentication required（401）
+
+这属于主控到节点管理服务的认证，不是 SOAP ECC 或 CoBo 拒绝。已保存的项目凭据可能在从机解除配对后过期。
+
+启动托管组前会核对所选执行主机。对已验证为当前电脑的本机节点，软件检查节点身份、TLS 证书与本机私有配置；若仍属于同一项目，更新过期的项目凭据；若本机已经解除配对，使用本机邀请码重新加入当前项目。它不停止现有后台，也不发送硬件命令。已配对其他主控的节点不会被自动改配。
+
+远端从机不能用本机权限恢复：在从机 Enable / check slave，必要时明确解除旧主控配对并生成新码，再由主控 Add slave。相同节点重新配对会更新原主机条目，板卡组引用保留。也可手动点击 Use this computer (automatic) 检查本机配对。401 信息会显示具体主机名与管理地址。

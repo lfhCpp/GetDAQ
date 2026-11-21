@@ -10,6 +10,7 @@ QJsonObject EnsureMaster(const QString &root,const QString &programs,const QStri
 void StopMaster(const QJsonObject &master);
 QJsonObject EnsureLocalNode(const QString &root,const QString &programs,const QString &address,int port,const QString &dataDirectory);
 QJsonObject PairNode(const QJsonObject &master,const QString &invitation);
+QJsonObject JoinLocalNodeToProject(const QJsonObject &master,const QJsonObject &local);
 Endpoint NodeEndpoint(const QJsonObject &node);
 QJsonObject NodeInventory(const QJsonObject &node);
 QJsonObject PrepareProject(const QJsonObject &master,const QJsonArray &nodes,const Bundle &bundle,const Logger &log={},const QString &selectedGroup=QString(),bool acceptConfigurationWarning=false,const QSet<QString> &selectedGroups={});

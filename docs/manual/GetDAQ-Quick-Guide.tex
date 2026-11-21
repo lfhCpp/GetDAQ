@@ -303,6 +303,7 @@ args 为 \code{["--config", "/absolute/path/to/mcp.json"]}。macOS 位于
 \par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{39mm}Y@{}}\toprule
 现象 & 先查什么 \\\midrule
 Connection refused & 对应电脑 IP、服务端口、后台是否真实监听；别混用 SOAP / 数据 / export 端口。\\
+Node authentication required (401) & 节点管理凭据失效。启动会检查本机配对并恢复当前项目凭据；远端从机需重新配对并 Add slave 更新原条目，不必删除板卡组。\\
 Prepare timed out & 可能远端已执行。先查询状态和 ECC log，不因超时自动重复发命令。\\
 Unknown & 当前没有可信状态；重启 GUI 不等于复位。核对服务输出、地址和连接。\\
 无数据率 / 无波形 & 确认实际项目目录文件增长；再查 Sentry 监控目录、Data IP、数据端口及 export 端口。\\
