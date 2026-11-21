@@ -36,8 +36,9 @@
 \newcommand{\ui}[1]{\textbf{#1}}
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\note}[1]{\begin{tcolorbox}[colback=light,colframe=accent!40,boxrule=0.5pt,arc=2mm,left=8pt,right=8pt,top=5pt,bottom=5pt]#1\end{tcolorbox}}
-\newcommand{\pagehead}[2]{\section*{#1}\textcolor{muted}{#2}\par\vspace{3pt}}
+\newcommand{\pagehead}[2]{\pdfbookmark[1]{#1}{getdaq-guide-\thepage}\section*{#1}\textcolor{muted}{#2}\par\vspace{3pt}}
 \begin{document}
+\pdfbookmark[0]{GetDAQ 安装、配置与按钮说明}{getdaq-guide}
 \fontsize{10.1}{15.0}\selectfont
 {\fontsize{29}{34}\selectfont\bfseries\color{navy}GetDAQ}\par
 {\fontsize{17}{23}\selectfont 安装、配置与采集操作指南}\par
@@ -74,7 +75,7 @@ $\rightarrow$ Connect $\rightarrow$ Progress 至 Ready $\rightarrow$ Run start $
 \textbf{ECC、接收器、GUI 可以同机或分布在多台电脑。多实例指多套后台，不要求多开主界面。}
 \subsection*{本文覆盖}
 第 2 页：Ubuntu 安装；第 3 页：macOS 与 IP / 端口；第 4 页：单机设置；
-第 5 页：主从与文件同步；第 6 页：采集与日志；第 7 页：离线 / 在线 / 3D 波形；第 8 页：MCP 与排错。
+第 5 页：主从与文件同步；第 6 页：采集与日志；第 7 页：离线 / 在线 / 3D 波形；第 8 页：MCP 与排错。第 9--20 页逐项解释界面按钮与配置字段，其中第 11--18 页集中说明配置。
 \note{GET、Ice、Boost、CompoundConfig、gSOAP、MFM 等必需源码已内置。仍需基础编译工具和 Qt 5；不是“无需任何系统依赖”。历史 \code{source/} 不参与构建。}
 
 \newpage
@@ -166,7 +167,7 @@ GUI Run records root & 例如 \code{/home/user/DAQ/run-records}。GUI YAML、jou
 \item 首次使用点 \ui{Use this computer (automatic)}，添加执行主机。
 \item 点 \ui{Add boards / ECC…}，选择 Configuration source、Experiment ID，并指定 ECC host / Data receiver host 及该主机的 Project data folder。
 \item 填接收电脑的 Control IP、Data IP、Router control/data 端口、ECC SOAP 端口；核对 AsAd、AGET 和 CoBo 拓扑文件。
-\item 保留 \ui{Sync configuration to project folders}，点击 \ui{Start services and use this configuration}。软件先分发配置，再在项目目录启动原版后台和共享 Sentry。
+\item 保留 \ui{Sync configuration to project folders}，点击 \ui{Start project services}。软件先分发配置，再在项目目录启动原版后台和共享 Sentry。
 \end{enumerate}
 下面只是对应关系示意，受管模式会生成实际参数：
 \begin{verbatim}
@@ -310,5 +311,6 @@ Unknown & 当前没有可信状态；重启 GUI 不等于复位。核对服务�
 \end{tabularx}\par\smallskip
 \vfill
 {\footnotesize\color{muted}依据当前源码与配置 / 在线波形 / MCP 说明整理。软件回归不能替代实板接线、数据质量和原生 macOS 验收。}
+\input{GetDAQ-Button-Reference.tex}
 \label{guide-last}
 \end{document}
