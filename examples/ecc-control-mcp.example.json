@@ -1,9 +1,6 @@
 {
-  "schema": 1,
-  "base_url": "http://127.0.0.1:19090",
-  "credential_file": "/home/daq/getdaq-credentials/ecc-main.token",
-  "client_epoch_file": "/home/daq/getdaq-credentials/getdaq-mcp-client.epoch",
-  "client_id": "operator-console",
-  "request_timeout_ms": 5000,
-  "allow_control": false
+  "schema": 2,
+  "run_config": "../config/envoy.example.yml",
+  "allow_control": false,
+  "request_timeout_ms": 30000
 }

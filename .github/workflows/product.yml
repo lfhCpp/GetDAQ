@@ -43,3 +43,9 @@ jobs:
         run: mkdir -p build-online-probe && cd build-online-probe && qmake ../tests/online_waveform_probe.pro && make -j2
       - name: Test bounded DataExporter preview with a stalled client
         run: python3 tests/preview_backpressure.py dist/bin --viewer-probe build-online-probe/online-waveform-probe --evidence build-ci/preview-evidence
+      - name: Test original SOAP MCP and no-replay receipts
+        run: python3 tests/ecc_mcp_test.py dist/bin/getdaq-control-mcp --evidence build-ci/mcp.json
+      - name: Test separated 3D waveform render and rotation
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: dist/bin/getdaq-waveform-viewer --surface-smoke

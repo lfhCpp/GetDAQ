@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "checks": [
+    "MCP negotiation and read-only default; GUI YAML reuses original SOAP/Sentry clients",
+    "invalid nodes/arguments/tools rejected; notifications cannot execute tools",
+    "explicit confirmation, durable private receipts and no replay across retries/restart",
+    "SOAP timeout remains unknown and is never automatically replayed",
+    "independent MCP processes sharing receipts cannot submit concurrent duplicate commands",
+    "interrupted intent is inspectable as unknown; operation paths cannot escape",
+    "stdout contains only JSON-RPC; malformed and oversized frames return bounded errors",
+    "no fabricated GUI Run/catalog or raw-file work; configured receiver mapping retained"
+  ],
+  "physical_hardware": false
+}

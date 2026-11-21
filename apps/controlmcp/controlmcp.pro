@@ -1,0 +1,11 @@
+QT += core network
+QT -= gui
+CONFIG += console c++11
+TEMPLATE = app
+TARGET = getdaq-control-mcp
+INCLUDEPATH += ../envoy ../../third_party/yaml-cpp/include ../../third_party/yaml-cpp/src
+DEFINES += YAML_CPP_STATIC_DEFINE
+SOURCES += main.cpp ../envoy/runconfig.cpp ../envoy/runconfig_yaml.cpp ../envoy/autorun.cpp ../envoy/protocol.cpp ../envoy/httpclient.cpp ../envoy/eccclient.cpp ../envoy/sentryclient.cpp
+SOURCES += $$files($$PWD/../../third_party/yaml-cpp/src/*.cpp) $$files($$PWD/../../third_party/yaml-cpp/src/contrib/*.cpp)
+HEADERS += ../envoy/httpclient.h ../envoy/eccclient.h ../envoy/sentryclient.h
+!isEmpty(GETDAQ_DESTDIR): DESTDIR = $$GETDAQ_DESTDIR

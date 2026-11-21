@@ -1,3 +1,4 @@
+#include <QScrollArea>
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
@@ -50,7 +51,7 @@ WaveformWindow::WaveformWindow(QWidget *parent) : QMainWindow(parent,Qt::Window)
         fPrevious->setEnabled(false);
         fNext->setEnabled(false);
         fAutoScan->setEnabled(false);
-        fSurfaceToggle->setToolTip(tr("Show bucket × channel × signal as a rotatable surface"));
+        fSurfaceToggle->setToolTip(tr("Show separate waveforms: time bucket × amplitude × channel. Ctrl+wheel changes channel spacing; double-click resets the view."));
         QWidget *central = new QWidget;
         QVBoxLayout *layout = new QVBoxLayout(central);
         QHBoxLayout *controls = new QHBoxLayout;
@@ -78,7 +79,7 @@ WaveformWindow::WaveformWindow(QWidget *parent) : QMainWindow(parent,Qt::Window)
         fEvent->setEnabled(false);fFindEvent->setEnabled(false);fEventFrames->setEnabled(false);
         connect(fFindEvent,&QPushButton::clicked,this,[this]{JumpToEvent();});connect(fEvent,&QLineEdit::returnPressed,this,[this]{JumpToEvent();});
         connect(fEventFrames,QOverload<int>::of(&QComboBox::currentIndexChanged),this,[this](int index){if(index>=0)fFrame->setValue(fEventFrames->itemData(index).toInt());});
-        layout->addWidget(fCanvas, 1);
+        auto *plotScroll=new QScrollArea;plotScroll->setWidgetResizable(true);plotScroll->setFrameShape(QFrame::NoFrame);plotScroll->setWidget(fCanvas);layout->addWidget(plotScroll,1);
         fMetrics->setWordWrap(true);
         layout->addWidget(fMetrics);
         setCentralWidget(central);
@@ -114,12 +115,12 @@ QMainWindow *CreateWaveformWindow(QWidget *parent)
     return new detail::WaveformWindow(parent);
 }
 
-int RunWaveformSurfaceSmoke() {
+int RunWaveformSurfaceSmoke(const QString &screenshot) {
 
         WaveformCanvas canvas;
         canvas.resize(820, 560);
         QVector<GetDAQ::WaveformPlotTrace> traces;
-        for (int channel = 0; channel < 68; ++channel) {
+        for (int channel = 0; channel < (screenshot.isEmpty()?68:8); ++channel) {
             GetDAQ::WaveformPlotTrace trace;
             trace.channel = channel;
             trace.samples.reserve(512);
@@ -156,6 +157,7 @@ int RunWaveformSurfaceSmoke() {
             QPainter painter(&after);
             canvas.render(&painter);
         }
+        if(!screenshot.isEmpty())before.save(screenshot);
         int changedPixels = 0;
         for (int y = 0; y < before.height(); ++y)
             for (int x = 0; x < before.width(); ++x)

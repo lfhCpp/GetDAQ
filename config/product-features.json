@@ -24,7 +24,9 @@
     "event/ECC/receiver log tabs",
     "operator-confirmed control warnings without local bookkeeping lockout",
     "slave invitation clipboard and explicit re-pair without backend restart",
-    "independent bounded multi-source online waveform preview"
+    "independent bounded multi-source online waveform preview",
+    "separated 3D time/amplitude/channel traces with adjustable depth spacing",
+    "stdio MCP for current original SOAP ECC/Sentry using GUI YAML"
   ],
   "retired": [
     "simulation",

@@ -11,11 +11,12 @@
 #include <QPainterPath>
 #include <QMouseEvent>
 #include <QPaintEvent>
+#include <QWheelEvent>
 
 
 namespace GetDAQ {
 
-WaveformCanvas::WaveformCanvas() : fHasData(false), fSurface(false), fYaw(-0.72), fElevation(0.62), fDragging(false)
+WaveformCanvas::WaveformCanvas() : fAget(0), fHasData(false), fSurface(false), fYaw(0.55), fElevation(0.72), fDragging(false)
 {
         setMinimumSize(600, 360);
         setAutoFillBackground(true);
@@ -27,14 +28,15 @@ void WaveformCanvas::SetTraces(const QVector<GetDAQ::WaveformPlotTrace> &traces,
         for(auto &trace:fTraces)std::stable_sort(trace.samples.begin(),trace.samples.end(),[](const QPointF &a,const QPointF &b){return a.x()<b.x();});
         fAget = aget;
         fHasData = !fTraces.isEmpty();
+        UpdateSurfaceSize();
         update();
     }
 
 void WaveformCanvas::Clear()
-{ fTraces.clear(); fHasData = false; update(); }
+{ fTraces.clear(); fHasData = false; UpdateSurfaceSize();update(); }
 
 void WaveformCanvas::SetSurface(bool enabled)
-{ fSurface = enabled; update(); }
+{ fSurface = enabled; UpdateSurfaceSize();update(); }
 
 const QVector<GetDAQ::WaveformPlotTrace> &WaveformCanvas::Traces() const
 { return fTraces; }
@@ -137,8 +139,8 @@ void WaveformCanvas::mouseMoveEvent(QMouseEvent *event)
         if (fSurface && fDragging) {
             const QPoint delta = event->pos() - fLastMousePosition;
             fLastMousePosition = event->pos();
-            fYaw += delta.x() * 0.012;
-            fElevation = qBound(-1.2, fElevation + delta.y() * 0.008, 1.2);
+            fYaw = qBound(-1.2, fYaw + delta.x() * 0.008, 1.2);
+            fElevation = qBound(0.25, fElevation + delta.y() * 0.005, 1.2);
             update();
             event->accept();
             return;
@@ -155,6 +157,27 @@ void WaveformCanvas::mouseReleaseEvent(QMouseEvent *event)
         }
         QWidget::mouseReleaseEvent(event);
     }
+
+void WaveformCanvas::UpdateSurfaceSize()
+{
+    int first=67,last=0;
+    for(const auto &trace:fTraces)if(trace.channel>=0 && trace.channel<68 && !trace.samples.isEmpty()){first=qMin(first,trace.channel);last=qMax(last,trace.channel);}
+    fDepthMinimum=first<=last?first:0;fDepthMaximum=first<=last?last:1;
+    setMinimumSize(600,fSurface?qMax(480,280+qMax(1,last-first)*fChannelGap):360);
+}
+void WaveformCanvas::wheelEvent(QWheelEvent *event)
+{
+    if(!fSurface){QWidget::wheelEvent(event);return;}
+    // Ctrl+wheel changes physical channel separation; normal wheel scrolls the plot.
+    if(!(event->modifiers()&Qt::ControlModifier)){event->ignore();return;}
+    fChannelGap=qBound(8,fChannelGap+(event->angleDelta().y()>0?4:-4),48);
+    UpdateSurfaceSize();update();event->accept();
+}
+void WaveformCanvas::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if(fSurface && event->button()==Qt::LeftButton){fYaw=0.55;fElevation=0.72;fChannelGap=16;UpdateSurfaceSize();update();event->accept();return;}
+    QWidget::mouseDoubleClickEvent(event);
+}
 
 QColor WaveformCanvas::ChannelColor(int channel) const
 {

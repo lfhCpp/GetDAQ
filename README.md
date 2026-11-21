@@ -13,6 +13,7 @@ GetDAQ 是 GET 采集操作界面。当前固定方案使用原版 **getEccSoapS
 - [直连 CoBo 只读信息工具](docs/DIRECT_COBO_INFO.md)
 - [自动采集](docs/AUTOMATIC_RUN.md)
 - [波形查看、事件与通道](docs/WAVEFORM_VIEWER.md)
+- [MCP 接口配置](docs/MCP_SETUP.md)
 - [简易 PDF 说明书](docs/manual/GetDAQ-Quick-Guide.pdf)
 - [macOS 安装](docs/MACOS_INSTALL.md)
 

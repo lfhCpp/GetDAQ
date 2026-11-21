@@ -1,3 +1,6 @@
+#include <cmath>
+#include "waveformcanvas.h"
+#include <QWheelEvent>
 #include <QtTest>
 #include <QTemporaryDir>
 #include <QFile>
@@ -46,6 +49,11 @@ using namespace GetDAQTestSupport;
 class ProductTests:public QObject {Q_OBJECT
 private slots:
  void initTestCase(){QCoreApplication::setOrganizationName("GetDAQ-Product-Tests");QCoreApplication::setApplicationName("OriginalBackendBaseline");qRegisterMetaType<QVector<NodeStatus>>();}
+ void threeDimensionalWaveformsHaveAxesAndSeparation(){
+    GetDAQ::WaveformCanvas canvas;canvas.resize(900,600);QVector<GetDAQ::WaveformPlotTrace> traces;
+    for(int channel:{2,7,22}){GetDAQ::WaveformPlotTrace trace;trace.channel=channel;for(int i=0;i<512;++i)trace.samples<<QPointF(i,1000+channel+40*std::sin(i/30.0));traces<<trace;}canvas.SetTraces(traces,1);canvas.SetSurface(true);canvas.show();QTest::qWait(20);const auto image=canvas.grab().toImage();QVERIFY(!image.isNull());const auto text=canvas.accessibleDescription();QVERIFY(text.contains("Time: sample bucket"));QVERIFY(text.contains("Amplitude: ADC"));QVERIFY(text.contains("Depth: channel number 2 to 22"));QVERIFY(text.contains("3 selected traces; no interpolated channels"));QVERIFY(!text.contains("ADC 0 to"));
+    const int before=canvas.minimumHeight();QWheelEvent wheel(QPointF(200,200),QPointF(200,200),QPoint(),QPoint(0,120),Qt::NoButton,Qt::ControlModifier,Qt::NoScrollPhase,false);QApplication::sendEvent(&canvas,&wheel);QVERIFY(canvas.minimumHeight()>before);canvas.SetSurface(false);QCOMPARE(canvas.minimumHeight(),360);canvas.Clear();canvas.SetSurface(true);QVERIFY(!canvas.grab().isNull());
+ }
  void controlsRemainAvailableDuringLocalBookkeeping(){
     MainWindow window;QVERIFY(QMetaObject::invokeMethod(&window,"ShowControlSlot",Qt::DirectConnection,Q_ARG(QString,QString("Settling")),Q_ARG(bool,true),Q_ARG(bool,true),Q_ARG(bool,true)));for(const auto &name:{"StartRun","StopRun","Disconnect"}){auto *button=window.findChild<QPushButton *>(name);QVERIFY(button);QVERIFY(button->isEnabled());}
  }

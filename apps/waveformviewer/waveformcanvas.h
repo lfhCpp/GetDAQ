@@ -7,6 +7,7 @@
 #include <QWidget>
 
 class QMouseEvent;
+class QWheelEvent;
 class QPaintEvent;
 class QPainter;
 class QRectF;
@@ -27,6 +28,9 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void UpdateSurfaceSize();
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
@@ -41,6 +45,8 @@ private:
     int fAget;
     bool fHasData;
     bool fSurface;
+    double fDepthMinimum=0, fDepthMaximum=67;
+    int fChannelGap=16;
     double fYaw;
     double fElevation;
     bool fDragging;

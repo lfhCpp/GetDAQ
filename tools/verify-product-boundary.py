@@ -7,7 +7,7 @@ def verify():
  features=json.loads((ROOT/'config/product-features.json').read_text())
  assert hashlib.sha256((ROOT/'apps/envoy/mainwindow.ui').read_bytes()).hexdigest()==features['protected_main_ui_sha256'],'Main window layout changed; review the baseline explicitly'
  project=(ROOT/'GetDAQ.pro').read_text();subdirs=re.search(r'^SUBDIRS\s*=\s*(.*)$',project,re.M).group(1).split()
- assert set(subdirs)=={'console','sentry','waveformviewer','cconfigeditor','onlinewaveform'},'Retired subproject reintroduced'
+ assert set(subdirs)=={'console','sentry','waveformviewer','cconfigeditor','onlinewaveform','controlmcp'},'Retired subproject reintroduced'
  for rel in ['apps/envoy/envoy.pro','apps/envoy/core.pri','apps/envoy/originalservices.pri','apps/deployment/nodeagent.pro']:
   p=ROOT/rel;text=p.read_text();assert not any(s in text for s in ['nativeruncontrol','eccsystemclient','hardwaresetupwindow','plantransitionwindow','scanplanwindow']),rel
   for token in text.split():
@@ -20,8 +20,8 @@ def verify():
  from types import SimpleNamespace
  args=SimpleNamespace(profile='full',root_config=[],cmake='cmake',qmake='qmake',make='make',jobs=2)
  steps=suite.plan(args,ROOT/'build-boundary-probe');programs={name for step in steps for name in step['programs']}
- assert {'GetDAQ','getEccSoapServer','DataExporter','dataRouter','getdaq-node-agent','getdaq-cobo-info','getdaq-sentry'}<=programs
- assert not programs & {'getdaq-ecc-server','getdaq-receiver','getdaq-supervisor','getdaq-control-mcp','getdaq-config','getdaq-config-check','getdaq-config-upload','getdaq-getcontroller'}
+ assert {'GetDAQ','getEccSoapServer','DataExporter','dataRouter','getdaq-node-agent','getdaq-cobo-info','getdaq-sentry','getdaq-control-mcp'}<=programs
+ assert not programs & {'getdaq-ecc-server','getdaq-receiver','getdaq-supervisor','getdaq-config','getdaq-config-check','getdaq-config-upload','getdaq-getcontroller'}
  assert 'OriginalGetController' not in menus and 'DirectCoBoInformation' in menus
  assert not (ROOT/'apps/getcontroller').exists()
  assert not any((ROOT/'apps'/name).exists() for name in ['ecc','datasupervisor','iceingress','configtool','configtransfer','configcheck'])

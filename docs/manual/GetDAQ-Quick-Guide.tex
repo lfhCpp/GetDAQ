@@ -18,9 +18,9 @@
 \definecolor{signal}{HTML}{B14B30}
 \pagestyle{fancy}\fancyhf{}
 \fancyhead[L]{\small\color{navy}GetDAQ \quad 简易说明书}
-\fancyhead[R]{\small\color{muted}2026-11-17}
+\fancyhead[R]{\small\color{muted}2026-11-21}
 \fancyfoot[L]{\footnotesize\color{muted}操作、配置与运行原理}
-\fancyfoot[R]{\footnotesize\thepage\,/\,6}
+\fancyfoot[R]{\footnotesize\thepage\,/\,\pageref{guide-last}}
 \renewcommand{\headrulewidth}{0.4pt}
 \hyphenpenalty=10000\exhyphenpenalty=10000
 \setlength{\parindent}{0pt}\setlength{\parskip}{5pt}
@@ -38,205 +38,277 @@
 \newcommand{\note}[1]{\begin{tcolorbox}[colback=light,colframe=accent!40,boxrule=0.5pt,arc=2mm,left=8pt,right=8pt,top=5pt,bottom=5pt]#1\end{tcolorbox}}
 \newcommand{\pagehead}[2]{\section*{#1}\textcolor{muted}{#2}\par\vspace{3pt}}
 \begin{document}
-\fontsize{10.3}{15.6}\selectfont
-
-% -------------------- 1 --------------------
+\fontsize{10.1}{15.0}\selectfont
 {\fontsize{29}{34}\selectfont\bfseries\color{navy}GetDAQ}\par
-{\fontsize{17}{23}\selectfont 简易使用说明与运行原理}\par
-\textcolor{muted}{适合第一次配置、连接 ECC 和开始采集的使用者。}\par
-\vspace{5pt}
-\subsection*{1\quad 先分清三件事}
-\note{\textbf{GetDAQ 是操作界面；ECC 负责板卡命令；接收程序负责收数据和写磁盘。}\par
-它们可以在同一台电脑，也可以分布在多台电脑。ECC 不转发原始采集数据。}
+{\fontsize{17}{23}\selectfont 安装、配置与采集操作指南}\par
+\textcolor{muted}{适用：原版 SOAP ECC + DataExporter / DataRouter；2026-11-21。}\par
+\subsection*{1\quad 运行原理}
+\note{\textbf{GetDAQ 是操作界面；getEccSoapServer 负责给板卡发命令；DataExporter / DataRouter 负责收数据、写磁盘。}原始数据不经过 GUI、ECC 或配置分发服务。}
 \begin{center}
-\begin{tikzpicture}[>=Stealth,box/.style={draw=navy!40,fill=light,rounded corners=2mm,minimum width=3.9cm,minimum height=1.0cm,align=center,font=\small},cmd/.style={->,thick,draw=accent},data/.style={->,very thick,draw=signal}]
-\node[box] (gui) at (0,0) {GetDAQ 界面\\设置、启停、显示状态};
-\node[box] (ecc) at (5.1,0) {ECC 服务\\执行板卡命令};
-\node[box] (board) at (10.2,0) {CoBo / AsAd / AGET\\电子学与采样};
-\node[box] (obs) at (0,-2) {监管 / Sentry\\进程、目录与磁盘状态};
-\node[box] (disk) at (5.1,-2) {数据磁盘\\原始文件、归档};
-\node[box] (recv) at (10.2,-2) {DataExporter\\接收并写入数据};
-\draw[cmd] (gui)--node[above,font=\footnotesize]{操作请求}(ecc);
-\draw[cmd] (ecc)--node[above,font=\footnotesize]{控制命令}(board);
-\draw[data] (board)--node[right,font=\footnotesize]{原始数据}(recv);
-\draw[data] (recv)--node[above,font=\footnotesize]{写盘}(disk);
-\draw[cmd,dashed] (gui)--node[left,font=\footnotesize]{状态查询}(obs);
-\draw[cmd,dashed] (obs)--node[above,font=\footnotesize]{观察元数据}(disk);
+\begin{tikzpicture}[>=Stealth,box/.style={draw=navy!40,fill=light,rounded corners=2mm,minimum width=3.7cm,minimum height=1.0cm,align=center,font=\small},cmd/.style={->,thick,draw=accent},data/.style={->,very thick,draw=signal}]
+\node[box] (gui) at (0,0) {GetDAQ / MCP\\命令与状态};
+\node[box] (ecc) at (5,0) {getEccSoapServer\\电子学控制};
+\node[box] (board) at (10,0) {CoBo / AsAd / AGET\\电子学与采样};
+\node[box] (logs) at (0,-2) {Sentry / Node agent\\目录监控、实例管理};
+\node[box] (disk) at (5,-2) {数据盘\\原始文件、归档};
+\node[box] (recv) at (10,-2) {DataExporter / DataRouter\\数据接收};
+\draw[cmd] (gui)--(ecc);\draw[cmd] (ecc)--(board);
+\draw[data] (board)--(recv);\draw[data] (recv)--(disk);
+\draw[cmd,dashed] (gui)--(logs);\draw[cmd,dashed] (logs)--(disk);
 \end{tikzpicture}
 \end{center}
-\textcolor{accent}{蓝色：命令与状态。}\quad\textcolor{signal}{橙色：原始数据。}\par
-\subsection*{每个程序做什么}
-\par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{35mm}Y@{}}\toprule
-程序或组件 & 作用 \\\midrule
-GetDAQ & 配置节点、连接 ECC、发起 Run，显示状态并保存运行记录。\\
-ECC & Describe、Prepare、Configure、Start、Stop 等板卡操作与状态协调。\\
-DataExporter & 按匹配的协议接收板卡数据，写入接收主机的数据目录。\\
-Supervisor & 新版数据接收进程和接收会话的监管、封存及状态管理。\\
-Sentry & 旧流程的目录、磁盘、文件统计和归档；不承担原始数据传输。\\
-Node agent & Linux 主从部署的主机管理入口，可管理多套 ECC / Data 实例。\\\bottomrule
+\subsection*{程序职责}
+\par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{39mm}Y@{}}\toprule
+程序 & 职责 \\\midrule
+GetDAQ & 连接多个 ECC、采集操作、状态显示及本地运行记录。\\
+getEccSoapServer & 原版 SOAP ECC；Describe、Prepare、Configure、Start、Stop。\\
+DataExporter & 原版数据接收和 FrameStorage；另提供 TCP 导出供在线波形预览。\\
+DataRouter & 可选原版接收器；也兼容其他主机已有的外部 DataRouter。\\
+getdaq-sentry & 文件计数、磁盘、吞吐统计与 catalog 归档。\\
+Node agent / 配置服务 & 主从配对、整目录分发、缓存、独立后台实例管理。\\
+getdaq-control-mcp & AI 客户端的独立 stdio 接口，复用 GUI YAML 和 SOAP / Sentry 客户端。\\\bottomrule
 \end{tabularx}\par\smallskip
-\subsection*{最常用的一条操作链}
-启动程序 $\rightarrow$ 配置主机、IP 和路径 $\rightarrow$ 启动或选用 ECC / Data 服务 $\rightarrow$
-Connect $\rightarrow$ Describe / Prepare / Configure $\rightarrow$ Run start $\rightarrow$ Run stop。\par
-\textbf{看到连接成功，只能说明通信建立；还要看实际状态是否已经 Ready。}
+\subsection*{最短操作顺序}
+安装 $\rightarrow$ 确定目录 $\rightarrow$ 填 IP、端口和实验 ID $\rightarrow$ 启动服务或选择已有服务
+$\rightarrow$ Connect $\rightarrow$ Progress 至 Ready $\rightarrow$ Run start $\rightarrow$ Run stop。\par
+\textbf{ECC、接收器、GUI 可以同机或分布在多台电脑。多实例指多套后台，不要求多开主界面。}
+\subsection*{本文覆盖}
+第 2 页：Ubuntu 安装；第 3 页：macOS 与 IP / 端口；第 4 页：单机设置；
+第 5 页：主从与文件同步；第 6 页：采集与日志；第 7 页：离线 / 在线 / 3D 波形；第 8 页：MCP 与排错。
+\note{GET、Ice、Boost、CompoundConfig、gSOAP、MFM 等必需源码已内置。仍需基础编译工具和 Qt 5；不是“无需任何系统依赖”。历史 \code{source/} 不参与构建。}
 
 \newpage
-% -------------------- 2 --------------------
-\pagehead{2\quad 安装、启动与地址填写}{先启动正确平台的程序，再区分电脑地址、板卡地址和接收地址。}
-\subsection*{已有软件包怎样启动}
-\par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{29mm}Y@{}}\toprule
-环境 & 操作 \\\midrule
-Ubuntu 安装包 & 进入安装目录，例如 \code{/home/user/DAQ/GetDAQ}，运行 \code{./start-getdaq.sh}。源码目录下也可运行 \code{./bin/GetDAQ}。\\
-macOS & 把完整软件包传到 Mac 后，在包根目录运行 \code{./build-macos.command --jobs 2}。构建成功后打开 \code{dist-macos/GetDAQ.app}。Ubuntu 的可执行文件不能直接在 Mac 运行。\\\bottomrule
-\end{tabularx}\par\smallskip
-已有 Ubuntu 程序仍需要匹配的 Qt / 系统运行库；旧组件库已编入相应工具。
-从源码构建需要编译器、Python 3、CMake 和 Qt 5 开发组件。所需旧代码在
-\code{third\_party/legacy-get/}，这两个原版工具的构建不再读取历史 \code{source/}。\par
-macOS 适配和打包入口已提供，\textbf{原生编译、启动及实板采集尚未验收}；详细步骤见 \code{docs/MACOS\_INSTALL.md}。
-\subsection*{IP 应填在哪里}
-下面是便于理解的现场示例，\textbf{不代表新电脑可以直接使用这些地址}。
-\par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{35mm}L{34mm}Y@{}}\toprule
-字段 & 示例 & 应该填什么 \\\midrule
-ECC computer IP & \code{192.168.40.16} & 运行目标 ECC 的\textbf{电脑}地址；ECC 在本机时填本机可达的地址。\\
-CoBo IP & \code{192.168.40.64} & 实际 CoBo 板卡的地址。\\
-控制网卡 IP & \code{192.168.40.10} & 执行主机上能访问 CoBo 的本机网卡地址。\\
-接收 / Router host & \code{192.168.50.10} & 板卡可以访问、接收程序实际绑定的接收网卡地址。旧接收机示例为 \code{192.168.50.16}。\\
-SSH / 管理地址 & 电脑管理网地址 & 用于登录、复制文件或主机管理；不一定用于板卡数据接收。\\\bottomrule
-\end{tabularx}\par\smallskip
-\subsection*{端口不要混用}
-ECC 端口填\textbf{目标服务实际监听的端口}，并让软件检查服务类型。
-旧系统常见默认值：Ice ECC 为 46002、DataRouter 管理为 46003、数据接收为 46005；
-现场可以改端口，因此不能仅按数字判断服务。\par
-当前受管主从流程使用原版 SOAP ECC（默认 8083）和 ATTPC DataExporter；重写的原生 ECC 已停用自动启动。直连 CoBo 信息工具使用 Ice/HwNode，只读查询。
-旧 Sentry 常见监控端口为 8080。\textbf{监控端口、管理端口、数据端口是不同用途。}
-\note{接收地址必须属于真正的接收电脑。接收主机在哪台、绑定哪个网卡、监听什么端口，就填那一组地址。接收协议也必须与发送端一致。}
+\pagehead{2\quad Ubuntu 安装教程}{建议在目标 Ubuntu 本机编译，安装到一个新的目录，保留旧版和用户数据。}
+\subsection*{第一步：安装基础工具}
+使用具有 sudo 权限的账户，在 Ubuntu 终端执行：
+\begin{verbatim}
+sudo apt update
+sudo apt install -y build-essential cmake python3 git openssl \
+  qtbase5-dev libqt5svg5-dev qttools5-dev-tools
+qmake -v
+\end{verbatim}
+\code{qmake -v} 应显示 Qt 5。机器装有多套 Qt 时，在构建参数中用 \code{--qmake /path/to/qmake} 指定 Qt 5。完整构建不需要另装旧 GET / Boost / Ice，也不必安装 ROOT。
+\subsection*{第二步：获取完整项目源码}
+已有完整源码目录就直接进入，不要只拷贝某一个程序。
+\begin{verbatim}
+git clone https://github.com/lfhCpp/GetDAQ.git
+cd GetDAQ
+python3 tools/verify-product-boundary.py
+python3 tools/verify-original-backends.py
+\end{verbatim}
+若复制的是已有安装包、源码位于 \code{code/}，先 \code{cd code} 再执行构建命令。
+\subsection*{第三步：编译并安装到新目录}
+以下 \code{dist-linux} 必须尚不存在；再次构建可换新名称。
+\begin{verbatim}
+python3 tools/build-suite.py --profile full --jobs 2 \
+  --stage "$PWD/dist-linux"
+python3 tools/build-suite.py --verify-stage "$PWD/dist-linux"
+./dist-linux/bin/GetDAQ
+\end{verbatim}
+编译成功后，\code{dist-linux/bin/} 包含主程序、原版后台、配置编辑器、波形查看器和 MCP；
+资源在 \code{share/}，说明书在 \code{docs/}。完整构建包含 16 个程序。\par
+内存较小可把 \code{--jobs 2} 改为 \code{--jobs 1}；只需要连接外部 ECC 可选 \code{--profile control}，不包含本机整套后台。
+\subsection*{已有现场安装怎样启动或升级}
+若安装目录已经有 \code{start-getdaq.sh}，可使用它；普通源码 / 新 stage 不保证有该脚本，直接运行 \code{bin/GetDAQ} 即可。
+复制同平台运行包时，整体保留 \code{bin/}、\code{share/} 和 \code{docs/}；目标机仍需匹配的 Qt / 系统运行库。\par
+升级使用新的运行目录。不要清空配置、原始数据、运行记录或主从配对缓存；不在采集期间强制杀后台。
+\note{首次打开不会自动复位或启动板卡。先完成第 4 / 5 页的路径与网络设置，再明确启动后台或连接已有 ECC。}
 
 \newpage
-% -------------------- 3 --------------------
-\pagehead{3\quad 单机配置与开始采集}{单机先从一块 CoBo 开始；Nodes / Paths 可查看节点与地址总表。}
-\subsection*{A. 连接已经运行的 ECC}
-\begin{enumerate}
-\item 打开 \ui{Master / Slave} 中的 \ui{Master}，选择 \ui{Connect existing ECC}。
-\item 填实例名称、\ui{ECC computer IP} 和 \ui{ECC service port}，点击 \ui{Check connection}。
-\item 检查通过后点击 \ui{Save and use in Run Setup}。旧接收服务的 Router host、\textbf{实际数据接收端口}及 Sentry 地址也要对应同一数据路径。
-\end{enumerate}
-\subsection*{B. 在本机启动原版 SOAP ECC 和 DataExporter}
-\begin{enumerate}
-\item 选择 \ui{Create ECC / data services}，首次设置点 \ui{Use this computer (automatic)}。
-\item 点 \ui{Add boards / ECC…}，选择主控机上的原始 XML/XCFG 配置目录及实验 ID，选择 ECC / Data 执行主机及各自的项目数据目录，填写控制 IP、接收数据 IP 和端口。
-\item 在原版配置文件中核对 CoBo IP、AsAd 槽位和 AGET 设置，点 \ui{Start services and use this configuration}。软件分发文件，在项目目录启动 DataExporter（也可选 DataRouter）、原版 SOAP ECC 和共享 Sentry。
-\end{enumerate}
-\textbf{A、B 选择一种即可。}使用已有 ECC 时，不必再创建另一套服务来替代它。
-\subsection*{回到主界面后的顺序}
-\begin{enumerate}
-\item 在 \ui{Run setup} 核对 Experiment、Run 编号、节点与输出目录；主程序已移除模拟模式，所有连接都查询实际服务。
-\item 点 \ui{Connect}。软件查询 ECC 当前状态，而不是自动复位硬件。
-\item 用节点区的 \ui{Progress all}，或选中节点后 \ui{Progress selected node}，逐步完成 Describe、Prepare、Configure。
-\item 所有参与节点确认 \ui{Ready} 后，点 \ui{Run start}；检查 \ui{Running}、Files / Data GB 和写盘情况。
-\item 结束时点 \ui{Run stop}。先确认所有 ECC 已回到 \ui{Ready}，再看运行记录和归档是否完成。
-\end{enumerate}
-\begin{center}
-\begin{tikzpicture}[>=Stealth,font=\small,n/.style={draw=accent!55,fill=light,rounded corners=1mm,inner sep=5pt}]
-\node[n] (a) {Idle};\node[n,right=9mm of a] (b) {Described};\node[n,right=9mm of b] (c) {Prepared};\node[n,right=9mm of c] (d) {Ready};\node[n,right=9mm of d] (e) {Running};
-\draw[->] (a)--(b);\draw[->] (b)--(c);\draw[->] (c)--(d);\draw[->] (d)--(e);
-\draw[->,draw=accent] (e.south) to[bend left=35] node[below]{Stop} (d.south);
-\end{tikzpicture}
-\end{center}
-\note{这是常见的正向准备流程。\textbf{重连后可能已经是 Ready 或 Running，不必强行回到 Idle。}关闭 / 重启界面也不会自动重置后台或板卡状态。}
+\pagehead{3\quad macOS 与网络地址}{Ubuntu 可执行文件不能直接在 Mac 上运行，需在 Mac 本机编译。}
+\subsection*{macOS 安装步骤}
+安装 Xcode 命令行工具、Python 3、CMake 和匹配 CPU 架构的 Qt 5。已有 Homebrew 可使用：
+\begin{verbatim}
+xcode-select --install
+brew install cmake qt@5
+cd /Users/attpc/Documents/GetDAQ
+./build-macos.command --jobs 2
+\end{verbatim}
+也可使用已有 Qt 5.15 kit：\code{--qmake /path/to/Qt5/bin/qmake}。
+构建后打开 \code{dist-macos/GetDAQ.app}。重复打包选新目录，例如
+\code{--output dist-macos-new}。详细步骤见 \code{docs/MACOS\_INSTALL.md}。\par
+\textbf{macOS 已有适配入口，原生构建及实板验收尚未完成。}不要复制 Ubuntu 的绝对路径、配对缓存或网络设置当作 Mac 的有效配置。
+\subsection*{先分清五类 IP}
+下表仅用于解释，不能直接套用到任意新电脑。
+\par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{37mm}L{33mm}Y@{}}\toprule
+字段 & 示例 & 填什么 \\\midrule
+ECC host & \code{192.168.40.16} & 运行 getEccSoapServer 的电脑 IP；不是 CoBo IP。\\
+CoBo IP & \code{192.168.40.64} & 板卡本身，填在原版 XML/XCFG 拓扑中。\\
+Control IP & \code{192.168.40.10} & 接收电脑的控制网卡，用于接收器管理连接。\\
+Data / Router host & \code{192.168.50.10} & 接收电脑的数据网卡，板卡数据实际发到这里。\\
+Management / SSH & 电脑管理网地址 & 主从管理或文件传输地址，可与控制/数据网卡不同。\\\bottomrule
+\end{tabularx}\par\smallskip
+\subsection*{端口用途}
+\par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{38mm}L{25mm}Y@{}}\toprule
+服务 & 常见端口 & 用途 \\\midrule
+SOAP ECC & 8083 & GUI / MCP 的电子学命令和状态。\\
+Router control & 46003 & 接收器管理，不能误填为数据接收端口。\\
+Router data & 46005 & CoBo 发来的原始数据 TCP。\\
+TCP export & 46491 & DataExporter 在线预览导出。\\
+Sentry & 8080 & HTTP 状态与归档，不传输原始数据。\\
+Node / 配置服务 & 24260 / 24250 & 主从 HTTPS 管理 / 文件分发。\\\bottomrule
+\end{tabularx}\par\smallskip
+\note{这些是常见值，必须以实际启动的服务为准。同一台电脑多实例要分配独立端口。板卡控制 HwNode 常见 46001，属于直连信息工具，不是 GUI 的 SOAP ECC 端口。}
 
 \newpage
-% -------------------- 4 --------------------
-\pagehead{4\quad 多实例、主从机和配置文件}{多实例指多套 ECC / Data 后台，不要求打开多个主界面。}
-\subsection*{同一台电脑可以运行多套后台}
-用“运行主机 + 实例名称 + 服务端口”区分 ECC，例如同一电脑上的 ECC-A、ECC-B。
-不同实例使用不同服务端口，避免争用同一块板卡。可以共享项目数据目录，同一主机、同一目录只启动一个 Sentry，统一归档。
-端口由软件建议后仍应以实际启动结果为准。
-\subsection*{多主机：从控先启用，主控再配对}
-\par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{25mm}Y@{}}\toprule
-角色 & 最少操作 \\\midrule
-从控 Slave & 选择本机 \ui{Configuration cache} 和 \ui{Project data folder} 目录；点击 \ui{Enable / check slave}，复制配对码。此时只是启用主机管理，还没有开始采集。\\
-主控 Master & 在 Hosts 中用 \ui{Add slave} 加入从控；添加板卡组时选择 ECC host 与 Data receiver host，填写板卡和网络参数；最后点 \ui{Start services and use this configuration}。\\\bottomrule
-\end{tabularx}\par\smallskip
-主控维护实验源文件；从控接收同一版本并缓存到本机。\textbf{不要把主控电脑的绝对路径当作从控本地路径}，也不要在从控另改一份缓存配置。
-项目目录是 ECC、接收器和 Sentry 的实际工作目录，配置直接放在根目录，原始数据也写在这里。
-主控源目录默认安装目录下的 \code{config}，可 Browse 修改；保留 \ui{Sync configuration to project folders} 勾选。
-用 Tools 中的 \ui{Sync project configuration…} 选择本机、从机或全部主机。整目录分发，从机缓存后自动应用；活动配置变化确认后可同步；已知硬件转换期间等待命令完成，同步不改变板卡已加载参数，旧配置有备份，原始数据不删除。
-Describe ID 为 \code{cobo0} 对应 \code{describe-cobo0}，Prepare / Configure ID 为 \code{pedestals} 都对应 \code{configure-pedestals}。
-原日志区域可切换 Event、ECC、接收器和 Sentry 日志，右侧选择主机 / 实例。
-Linux 主从部署的管理入口常见端口为 24260，配置服务常见端口为 24250；它们都不是采集数据端口。
-\subsection*{哪些文件决定哪些事情}
-\par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{37mm}Y@{}}\toprule
-文件 / 目录 & 用途 \\\midrule
-GetDAQ YAML & 记录节点、ECC / 接收地址、路径、实验与运行设置；由 Open / Save YAML 和配置窗口维护。\\
-实验 \code{.xcfg} / \code{.xml} & 描述、准备、配置所用的电子学参数。实验名与节点配置 ID / 文件映射要一起核对。\\
-硬件 profile & 说明具体硬件、版本、槽位等解释方式；模板必须与实际接线一致。\\
-运行记录 \code{run.yml}、journal & 保存本次运行的配置快照、阶段与错误信息，用于查阅或恢复。\\
-\code{.graw} 等原始数据 & 由接收程序写在数据主机；GUI 的运行记录目录不等于原始数据目录。\\\bottomrule
-\end{tabularx}\par\smallskip
-\subsection*{旧 ECC 与 NFS 的区别}
-受管主从流程同样使用原版 SOAP ECC，由主控分发原始配置，从机自动缓存，不要求 NFS。自行启动的外部 ECC 使用它所在电脑能访问的配置文件，
-有些实验室通过 NFS 共享；\textbf{连接旧 ECC 不代表 GetDAQ 已自动上传所有配置文件}。
-旧运行的本地配置备份还需要 GUI 能读到对应文件或共享镜像。
-
-\newpage
-% -------------------- 5 --------------------
-\pagehead{5\quad 配置编辑器、CoBo 信息和波形}{这些工具从菜单打开；它们与主采集界面有各自的职责。}
-\subsection*{编辑配置文件}
-选择 \ui{Configuration → GET configuration files…} 打开随包提供的原版 cconfiged。
-在原来的树形界面中打开、修改、校验并保存实验配置。
-\begin{itemize}
-\item 编辑器以独立进程运行，保留原版的树形编辑、校验和撤销 / 重做操作。
-\item 保存文件\textbf{不会直接给板卡写寄存器}。对应配置在后续重新加载 / Prepare / Configure 时使用。
-\item 原版 CompoundConfig、TinyXML 等必需代码已随工具编译；源代码集中在项目内的抽取目录。
-\end{itemize}
-\subsection*{直连 CoBo 查看信息}
-选择 \ui{Tools → CoBo information (direct, read-only)…}，填写板卡 IP，默认控制端口
-\code{46001}、对象 \code{HwNode}，点击连接/刷新。工具读取设备列表、硬件/固件版本
-及固定状态位；它不会 Prepare、Configure、Start 或写寄存器，也不改变 ECC 状态。
-\subsection*{查看离线波形}
-从 Tools 的波形入口打开查看器，或运行 \code{getdaq-waveform-viewer}。
-\begin{enumerate}
-\item 用 \ui{Open waveform…} 打开 \code{.graw} 或 \code{.gmat}，等待索引完成。
-\item 对 \code{.graw}，输入 \ui{Event ID} 并点 \ui{Go to event}；若同一事件有多帧，选择相应的板卡 / 帧。
-\item 用 \ui{Frame (0-based)} 选择从 0 开始的帧索引，用 \ui{AGET} 选择芯片。
-\item 点 \ui{Channels…} 勾选要显示的通道；仍使用弹窗，不占用常驻侧栏。
-\item 需要时用 Previous / Next 浏览，或用 \ui{Export plot/data…} 导出 PNG / CSV。
-\end{enumerate}
-\par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{30mm}Y@{}}\toprule
-显示项 & 含义 \\\midrule
-横轴 Bucket & 实际采样桶号，范围通常为 0--511；没有核对采样频率前，不把桶号直接当作 ns。\\
-纵轴 ADC value & 信号采样数值；多通道使用共同的纵轴范围。\\
-Event ID 与 Frame & 前者是数据帧中的真实事件号，后者是文件内的帧索引；\code{.gmat} 不保存真实事件号。\\\bottomrule
-\end{tabularx}\par\smallskip
-\note{波形查看器读取已有文件，不直接承担在线数据接收。为避免操作冲突，主程序在离线工具窗口打开期间可能锁定 Run start；开始新 Run 前先关闭这些窗口。}
-
-\newpage
-% -------------------- 6 --------------------
-\pagehead{6\quad 怎样判断运行正常}{把“板卡停止”和“记录 / 归档完成”分开看。}
-\subsection*{常见情况与处理}
+\pagehead{4\quad 单机配置教程}{先选目录，再确认本机网卡，最后填实验 ID 和启动服务。}
+\subsection*{第一步：明确三个目录}
 \par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{43mm}Y@{}}\toprule
-看到的现象 & 应怎样理解 / 处理 \\\midrule
-Connection refused & 对应地址没有可达的服务在监听，或地址 / 端口不对。先检查后台是否启动，再检查网络与端口用途。\\
-ECC 为 Unknown & 尚未获得可信状态，或上次操作结果不明确。先刷新状态、查看连接日志；不能仅靠重启 GUI 当作复位成功。\\
-Prepare timed out & 只表示等待超时，不证明远端没有执行。界面中的转换超时可调整，现场可设为 30 s；先核查实际状态，再决定后续操作，避免重复下发。\\
-所有节点 stopped (Ready) & ECC 已确认采集停止。后续还可能在封存数据、归档或保存本地记录。\\
-旧 Sentry /catalog HTTP 500 & 是旧归档环节异常，不等于板卡仍在采集。满足最新 Ready 等条件后，兼容流程可警告结束本地 Run，并保留未知归档记录。\\
-缺少 describe 等备份源文件 & 本地 / NFS 镜像中没有相应文件时，旧流程记录配置备份警告；不能因此声称配置已成功备份。\\
-Run 编号已存在 & 旧流程可按提示确认同编号替换；旧记录可能被保留，已有接收文件可能与本次数据一起归档。新原生流程仍有更严格限制。\\\bottomrule
+目录 & 示例与含义 \\\midrule
+Configuration source & 主控安装目录 \code{config/}。放整套实验 XML/XCFG、拓扑和引用资源。\\
+Project data folder & 例如 \code{/home/user/DAQ/experiment-data}。ECC、接收器、Sentry 在此工作，配置复制到此，原始 \code{.graw} 也写在此。\\
+GUI Run records root & 例如 \code{/home/user/DAQ/run-records}。GUI YAML、journal、备份和元信息；不是原始数据目录。\\\bottomrule
 \end{tabularx}\par\smallskip
-\subsection*{数据率怎样看}
-先看 Files、Data GB 是否增长，接收目录是否持续写入，以及保存的波形是否合理。
-数据率通常由两次字节计数差除以时间差得到；事件率、通道数、采样深度和数据格式都会影响它。
-\textbf{只看到 0.4 MB/s，不能单独判断是否故障。}
-计数重置、监控目录错误或状态过期时，也不能把显示值当成实时吞吐。
-\subsection*{结束 Run 后的三个确认}
+\textbf{从哪启动接收器决定其工作目录。}受管模式会明确设置 Project data folder，不依赖打开 GUI 时终端所在目录。
+\subsection*{第二步：启动新的原版后台}
 \begin{enumerate}
-\item 确认所有参与 ECC 都已停止并处于最新 \ui{Ready} 状态。
-\item 确认原始文件所在主机与目录；如果归档出现警告，保留原文件和 journal，不直接删除或重复提交。
-\item 确认本地 Run 已结束或了解仍待处理的收尾项，再手动开始下一次采集。
+\item 在 Nodes / Paths 右侧的 \ui{Master / Slave} 选择 \ui{Master}，进入 \ui{Create ECC / data services}。
+\item 首次使用点 \ui{Use this computer (automatic)}，添加执行主机。
+\item 点 \ui{Add boards / ECC…}，选择 Configuration source、Experiment ID，并指定 ECC host / Data receiver host 及该主机的 Project data folder。
+\item 填接收电脑的 Control IP、Data IP、Router control/data 端口、ECC SOAP 端口；核对 AsAd、AGET 和 CoBo 拓扑文件。
+\item 保留 \ui{Sync configuration to project folders}，点击 \ui{Start services and use this configuration}。软件先分发配置，再在项目目录启动原版后台和共享 Sentry。
 \end{enumerate}
-\note{\textbf{关闭 GUI、Disconnect、停止采集、停止后台服务，是四种不同操作。}
-关闭主界面通常会保留独立后台。真正需要关闭 ECC / Data 时，使用实例管理中的停止入口，并核对进程和采集状态。}
+下面只是对应关系示意，受管模式会生成实际参数：
+\begin{verbatim}
+cd /home/user/DAQ/experiment-data
+dataRouter 192.168.40.10 192.168.50.10 TCP FrameStorage
+getEccSoapServer --port 8083 --alarm-port 46011 \
+  --config-repo-url /home/user/DAQ/experiment-data
+\end{verbatim}
+\textbf{不要在同端口再手工启动第二套程序。}DataExporter 的受管入口使用生成的控制 / 数据端口参数和实例文件，状态以实例管理显示的实际命令为准。
+\subsection*{已有 ECC / DataRouter：不必重建后台}
+选择 \ui{Connect existing ECC}，填写实际 SOAP ECC host / port，检查连接后保存使用；
+Router host 填接收数据网卡，Router port 填\textbf{数据端口}，Sentry 填对应目录的监控服务。
+外部 DataRouter 不需要另起 DataExporter；已有 NFS / ECC 仓库继续使用原配置。
+\note{旧 ECC 准备成功不证明数据接收目标一定正确。先核对 Router 数据端口与地址，再看实际文件是否增长。}
+
+\newpage
+\pagehead{5\quad 主从机、配置 ID 与同步}{从机选择自己的目录；实验配置只在主控维护。}
+\subsection*{从控 Slave 的设置}
+\begin{enumerate}
+\item 选择 Slave，设置本机 \ui{Configuration cache} 与 \ui{Project data folder}。前者是软件缓存；后者是后台工作目录和原始数据目录。
+\item 点击 \ui{Enable / check slave}，软件启用节点管理服务。
+\item 点 \ui{Copy pairing code}，到主控的 \ui{Add slave} 粘贴。邀请码有有效期，配对后即消费，不需反复复制。
+\item 主控不可达时保留配对。需要更换主控，用 \ui{Renew / re-pair…} 明确确认；旧管理凭据失效，后台、数据和审计记录保留。
+\end{enumerate}
+\subsection*{主控 Master 的设置}
+添加从机后，创建板卡组时选择 ECC host、Data receiver host；同一组的两类服务可以在不同电脑。
+各执行电脑使用\textbf{本机} Project data folder，不能把主机绝对路径直接当作从机目录。
+同机多开后台时，以主机、组名称、端口和实例身份区分，不共享同一块板卡的控制权。
+\subsection*{配置文件从哪里来、到哪里去}
+\note{主控 Configuration source 整目录 $\rightarrow$ 不可变配置版本 $\rightarrow$ 本机 / 从机缓存
+$\rightarrow$ 该执行主机的 Project data folder。资源保持相对路径；原始数据不随配置分发传输。}
+\par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{43mm}Y@{}}\toprule
+GUI 字段 / 操作 & 原版 ECC 匹配的文件名（.xcfg 或 .xml） \\\midrule
+Describe ID = cobo0 & \code{describe-cobo0} \\
+Prepare ID = pedestals & \code{configure-pedestals}，不是 prepare-pedestals \\
+Configure ID = pedestals & \code{configure-pedestals} \\
+Experiment & Run 名称及缺省 ID；节点明确填写的 ID 优先。\\\bottomrule
+\end{tabularx}\par\smallskip
+\subsection*{修改配置以后}
+\begin{enumerate}
+\item 用原版配置编辑器保存到 Configuration source。
+\item Tools $\rightarrow$ \ui{Sync project configuration…}，选择本机、指定从机或全部执行主机。
+\item 活动实例需确认警告；稳定 Ready / Running 也可同步，不强制退回 Idle。已观察到硬件命令仍在转换时暂缓替换文件，未知状态需明确确认。
+\item 同步只改变磁盘文件。板卡仍用上次加载的参数；通过相应 ECC Configure 才更新硬件。
+\end{enumerate}
+Nodes / Paths 的 Save and apply 主要保存连接 YAML，不等于立刻发布 XML/XCFG。
+后台启动和项目发布也会检查源目录；外部未托管 ECC 的 NFS / 仓库不被擅自覆盖。
+被替换配置保存在项目目录的备份中，不删除原始数据。
+
+\newpage
+\pagehead{6\quad 开始、停止与日志}{以 ECC 实际状态判断采集；以接收目录判断写盘。}
+\subsection*{开始采集}
+\begin{enumerate}
+\item Run setup 核对 Experiment、Run 编号，Save YAML 保存本次连接设置。
+\item Connect 查询真实状态。若已经 Ready，可直接开始；不必因为重连再强制回到 Idle。
+\item 初次初始化，用 Progress all 或选定节点 Progress，依次 Describe、Prepare、Configure；MuTaNT / CoBo 顺序由界面流程协调。
+\item Ready 后 Run start，观察 Running、Files / Data GB、数据率和磁盘空间。
+\item 核对接收主机项目目录里的 \code{.graw} 是否持续增长，必要时查看在线波形。
+\end{enumerate}
+\subsection*{停止采集}
+点 Run stop，先等待所有参与 ECC 真实返回 Ready。之后是 Sentry catalog、配置备份与本地记录。
+\textbf{记录失败不等于硬件未停止；也不能仅凭本地日志断言板卡已停。}\par
+归档成功通常在项目目录 \code{<Experiment>/run\_NNNN/}；归档警告时数据可能仍在原目录，以实际文件和日志为准。
+\subsection*{警告不再锁死操作}
+\par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{40mm}Y@{}}\toprule
+情况 & 行为 \\\midrule
+本地记录 / 备份失败 & 告警并保留已有记录，可手动开始下一次；不伪称已成功保存，自动续跑取消。\\
+catalog 结果不确定 & 保留未知回执，不自动重试；确认 Ready 后允许关闭本地 Run 并继续手动操作。\\
+状态过期、监控缺失 & 需要确认时弹出警告；硬件命令仍由 ECC 判断。\\
+Start / Stop / Disconnect & 连接后保持可用；正在执行的硬件命令串行处理，Stop 可排在当前命令后。\\
+已有同号 Run / 接收文件 & 明确询问后才保留或替换记录；不直接删除原始数据。\\\bottomrule
+\end{tabularx}\par\smallskip
+\textbf{Start 观察到已经 Running 时只附着观察，不再重复 Start；停止外部开始的采集也可用 Stop。}
+断开可在确认后脱离未完成工作，不停止远端采集。
+\subsection*{查看、清屏和导出日志}
+原 Event log 区域切换 \ui{Event log / ECC log / DataExporter log / DataRouter log}，右侧选择主机和实例；也可选择共享 Sentry。
+Data log 右侧 Clear 清显示，不删后台日志或已收集历史。
+Tools $\rightarrow$ Logs $\rightarrow$ \ui{Export combined logs…} 导出 TXT，按 GUI 接收时间与顺序号合并，分隔来源；远端原文时间保留，不能冒充完全同步的跨主机事件时钟。
+\note{关闭 GUI、Disconnect、Stop acquisition、Stop backend services 是四件事。需要关闭后台时使用实例管理，并先核对采集状态。}
+
+\newpage
+\pagehead{7\quad 波形查看与 3D}{在线、离线使用相同的电子学通道和绘图方式，没有 pad 映射。}
+\subsection*{离线：读已有 .graw / .gmat}
+Tools 中打开波形查看器，Open waveform 选文件；用 Event ID / Go to event 选事件，Frame 选该事件的帧，AGET 选芯片，Channels… 勾选通道。
+\code{.gmat} 没有真实事件号，用帧号选择。PNG / CSV 从 \ui{Export plot/data…} 导出。
+\subsection*{在线：独立连接 DataExporter}
+Tools $\rightarrow$ \ui{Online waveform viewer…}。地址区每行一个\textbf{DataExporter IP:export port}，默认 46491；不是 8083、46003 或 46005。
+Connect 后选 Source、CoBo、AsAd、AGET 与通道。\par
+Follow latest 跟随最新事件；取消后可选缓存事件或输入 Event ID 点 Go。最近缓存最多 100 事件 / 4096 帧 / 256 MiB；更老事件读离线文件。
+预览允许丢帧，正常落盘优先。关闭查看器不停止后台。
+旧 DataRouter 必须确实提供相同 TCP 导出协议才能在线预览，普通接收服务不会自动具备该功能。
+\subsection*{3D：三个轴和逐通道间距}
+\par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{34mm}Y@{}}\toprule
+轴 / 操作 & 含义 \\\midrule
+Time (sample bucket) & 时间方向显示采样桶 0--511；未核对采样频率时不直接标为 ns。\\
+Amplitude (ADC) & 幅度轴，共用真实样本范围，不把基线强行补为零。\\
+Channel number & 纵深轴，标注实际选中通道号；通道之间独立，不插值成曲面。\\
+拖动 / 滚动 & 左键拖动调纵深角度；普通滚轮滚动多通道图；Ctrl+滚轮调通道间距；双击重置。\\\bottomrule
+\end{tabularx}\par\smallskip
+\begin{center}\includegraphics[width=0.92\linewidth,height=65mm,keepaspectratio]{../waveform-3d-example.png}\end{center}
+{\footnotesize\color{muted}图示为 8 通道合成脉冲，仅演示坐标与通道分离，不是实板采集结果。}
+\note{白色背景、浅色参考底面、独立彩色曲线。通道多时绘图区域可滚动，不把 68 条线强压在一屏。离线工具打开不再锁死 Run start；避免修改正在采集的文件。}
+
+\newpage
+\pagehead{8\quad MCP 设置与常见排错}{MCP 是独立 stdio 工具，复用已保存的 GUI YAML；不重新配一遍 IP。}
+\subsection*{配置 MCP 客户端}
+复制安装包 \code{share/config/ecc-control-mcp.example.json}，保存为 \code{mcp.json}，填写：
+\begin{verbatim}
+{
+  "schema": 2,
+  "run_config": "/absolute/path/to/envoy.yml",
+  "allow_control": false,
+  "request_timeout_ms": 30000
+}
+\end{verbatim}
+MCP 客户端 command 设为安装目录 \code{bin/getdaq-control-mcp} 的绝对路径，
+args 为 \code{["--config", "/absolute/path/to/mcp.json"]}。macOS 位于
+\code{GetDAQ.app/Contents/MacOS/getdaq-control-mcp}。
+\subsection*{MCP 能做什么}
+\code{ecc\_configuration} 显示节点和目录；\code{ecc\_status} 查询实际 ECC；
+\code{ecc\_receivers} 查询 Sentry；\code{ecc\_operation} 查询命令回执。
+默认只读。控制需在本地设置 \code{allow\_control=true} 并重启 MCP，然后调用
+\code{ecc\_submit\_operation}，每次指定 node\_id、command、唯一 operation\_id 和确认文字：
+\begin{verbatim}
+{"node_id":0,"command":"stop","operation_id":"stop-001",
+ "confirmation":"I_CONFIRM_stop_stop-001"}
+\end{verbatim}
+命令确认只代表 SOAP 已应答，仍要用状态查询确认 Ready / Running。
+超时或中断为 unknown，同 ID 重试只读回执，不再发命令。关闭 MCP 不停止硬件。
+多节点完整 Run / 归档仍由 GUI 管理；不要同时从 GUI 和 MCP 操作同一块板卡。
+旧原生 HTTP 的 base\_url / epoch 配置不再适用。详见 \code{docs/MCP\_SETUP.md}。
+\subsection*{排错速查}
+\par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{39mm}Y@{}}\toprule
+现象 & 先查什么 \\\midrule
+Connection refused & 对应电脑 IP、服务端口、后台是否真实监听；别混用 SOAP / 数据 / export 端口。\\
+Prepare timed out & 可能远端已执行。先查询状态和 ECC log，不因超时自动重复发命令。\\
+Unknown & 当前没有可信状态；重启 GUI 不等于复位。核对服务输出、地址和连接。\\
+无数据率 / 无波形 & 确认实际项目目录文件增长；再查 Sentry 监控目录、Data IP、数据端口及 export 端口。\\
+缺少配置文件 & 核对源目录、同步目标、文件 ID 和原版 ECC 的仓库 / NFS。Prepare 匹配 configure-ID。\\
+记录或 catalog 警告 & 确认 ECC Ready 后可手动下一次；保留原数据和未知回执，不直接重复归档。\\\bottomrule
+\end{tabularx}\par\smallskip
 \vfill
-{\footnotesize\color{muted}资料依据：当前本机源码及 \code{UNIFIED\_ECC\_SETUP.md}、\code{SIMPLE\_MASTER\_SLAVE.md}、\code{WAVEFORM\_VIEWER.md}、两份原版工具说明与 macOS 安装说明。本文是操作速查，不替代实际硬件接线核对和现场验收。}
+{\footnotesize\color{muted}依据当前源码与配置 / 在线波形 / MCP 说明整理。软件回归不能替代实板接线、数据质量和原生 macOS 验收。}
+\label{guide-last}
 \end{document}

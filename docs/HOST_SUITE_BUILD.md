@@ -39,4 +39,4 @@ Original process and payload checks are in
 `tests/original_backends_payload_smoke.py` and
 `tests/original_backends_integration.py`.
 
-The full profile currently stages 15 executables, including both original receiver choices and the independent online waveform viewer.
+The full profile currently stages 16 executables, including both original receiver choices and the independent online waveform viewer and original SOAP MCP adapter.

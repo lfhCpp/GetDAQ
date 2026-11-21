@@ -9,6 +9,9 @@ the existing-ECC connection. No exporter is required on an external router host.
 
 Retained functions:
 
+- Original SOAP ECC/Sentry stdio MCP adapter using the same saved GUI YAML;
+  read-only by default, explicit confirmed commands have durable no-replay receipts.
+
 - Original main Run Control layout, node selection, XML configuration IDs and
   YAML files; the main `.ui` layout file is protected by a recorded SHA256.
 - Original cconfiged as an independent integrated tool; direct read-only CoBo information under Tools.
@@ -25,7 +28,7 @@ Retained functions:
 Removed product routes:
 
 - Simulation and fake service states/rates.
-- Rewritten native ECC, native receiver, supervisor and MCP controller.
+- Rewritten native ECC, native receiver, supervisor and native HTTP MCP controller.
 - Native scan execution, plan handoff, reconciliation and hardware override UI.
 - Rewritten configuration-editor windows and manual native credentials/hashes.
 - Original GetController application and the old separate-GUI-instance setup workflow.

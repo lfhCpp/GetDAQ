@@ -1,0 +1,9 @@
+{
+  "programs": 16,
+  "product_tests_passed": 41,
+  "mcp_checks_passed": 8,
+  "guide_pages": 8,
+  "main_ui_unchanged": true,
+  "hardware_commands_sent_to_real_boards": false,
+  "native_macos_tested": false
+}

@@ -10,12 +10,13 @@ int main(int argc, char *argv[])
     int commandExitCode = 0;
     if (RunWaveformViewerCommandLine(argc, argv, &commandExitCode)) return commandExitCode;
 
-    bool surfaceSmoke = false;
+    bool surfaceSmoke = false;QString screenshot;
     for (int i = 1; i < argc; ++i) {
         if (std::strcmp(argv[i], "--surface-smoke") == 0) surfaceSmoke = true;
+        if (std::strcmp(argv[i], "--surface-screenshot") == 0 && i+1<argc){surfaceSmoke=true;screenshot=QString::fromLocal8Bit(argv[++i]);}
     }
     QApplication application(argc, argv);
-    if (surfaceSmoke) return GetDAQ::RunWaveformSurfaceSmoke();
+    if (surfaceSmoke) return GetDAQ::RunWaveformSurfaceSmoke(screenshot);
     std::unique_ptr<QMainWindow> window(GetDAQ::CreateWaveformWindow());
     window->show();
     return application.exec();

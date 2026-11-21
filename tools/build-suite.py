@@ -13,7 +13,7 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTROL = ['GetDAQ', 'getdaq-sentry', 'getdaq-waveform-viewer', 'getdaq-cconfig-editor', 'getdaq-online-waveform-viewer']
+CONTROL = ['GetDAQ', 'getdaq-sentry', 'getdaq-waveform-viewer', 'getdaq-cconfig-editor', 'getdaq-online-waveform-viewer', 'getdaq-control-mcp']
 GUI_CONTROL = CONTROL[:]
 QT_CONTROL = CONTROL[:]
 RECEIVER = ['getdaq-inspect', 'getdaq-merge', 'getdaq-matrix']
@@ -217,6 +217,7 @@ def runtime_dependencies(program, name):
 def stage_files():
     """Only documented templates; never include private credentials or run data."""
     files = [(ROOT / 'README.md', 'README.md'),
+             (ROOT / 'examples/ecc-control-mcp.example.json', 'share/config/ecc-control-mcp.example.json'),
              (ROOT / 'config/product-features.json', 'share/product-features.json'),
              (ROOT / 'docs/manual/GetDAQ-Quick-Guide.pdf', 'docs/manual/GetDAQ-Quick-Guide.pdf')]
     files += [(p, 'docs/' + p.name) for p in sorted((ROOT / 'docs').glob('*'))

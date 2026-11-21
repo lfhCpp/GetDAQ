@@ -1,99 +1,86 @@
 #include "waveformcanvas.h"
-
 #include <QPainter>
-
+#include <QPainterPath>
+#include <QSet>
+#include <QVariant>
 #include <algorithm>
 #include <cmath>
-#include <vector>
+#include <limits>
 
 namespace GetDAQ {
-namespace {
-struct SurfaceCell {
-    QPointF points[4];
-    double depth = 0.0;
-    QColor color;
-};
-}
-
-QPointF WaveformCanvas::ProjectSurfacePoint(double bucket, double channel, double normalizedValue,
-                                            const QRectF &plot, double *depth) const
+QPointF WaveformCanvas::ProjectSurfacePoint(double bucket,double channel,double value,
+                                           const QRectF &plot,double *depth) const
 {
-    const double x = bucket / 511.0 - 0.5;
-    const double y = channel / 67.0 - 0.5;
-    const double cosine = std::cos(fYaw);
-    const double sine = std::sin(fYaw);
-    const double horizontal = x * cosine - y * sine;
-    const double rotatedDepth = x * sine + y * cosine;
-    const double vertical = rotatedDepth * std::sin(fElevation) +
-        (normalizedValue - 0.5) * std::cos(fElevation);
-    if (depth) *depth = rotatedDepth * std::cos(fElevation) -
-        (normalizedValue - 0.5) * std::sin(fElevation);
-    const double scale = qMin(plot.width() / 1.55, plot.height() / 1.45);
-    return QPointF(plot.center().x() + horizontal * scale, plot.center().y() - vertical * scale);
+    const double fraction=(channel-fDepthMinimum)/qMax(1.0,fDepthMaximum-fDepthMinimum);
+    const double depthHeight=qMax(40.0,plot.height()-180.0)*(0.6+0.4*std::sin(fElevation));
+    const QPointF origin(plot.left(),plot.bottom());
+    if(depth)*depth=fraction;
+    return origin+QPointF(bucket/511.0*plot.width()*0.72 + fraction*plot.width()*0.22*std::cos(fYaw),
+                          -fraction*depthHeight-value*150.0);
 }
 
 void WaveformCanvas::DrawSurface(QPainter &painter)
 {
-    if (!fHasData) {
-        painter.drawText(rect(), Qt::AlignCenter, tr("Open a .graw or .gmat waveform file"));
-        return;
+    painter.fillRect(rect(),Qt::white);
+    painter.setRenderHint(QPainter::Antialiasing);
+    double minimum=std::numeric_limits<double>::infinity(),maximum=-minimum;
+    QVector<WaveformPlotTrace> traces;
+    for(const auto &trace:fTraces){
+        if(trace.channel<0 || trace.channel>=68)continue;
+        bool valid=false;
+        for(const auto &p:trace.samples)if(std::isfinite(p.x()) && std::isfinite(p.y()) && p.x()>=0 && p.x()<=511){minimum=qMin(minimum,p.y());maximum=qMax(maximum,p.y());valid=true;}
+        if(valid)traces<<trace;
     }
-    const QRectF plot = QRectF(rect()).adjusted(64, 36, -46, -62);
-    if (plot.width() < 20 || plot.height() < 20) return;
-    std::vector<double> values(68 * 512, 0.0);
-    double minimum = 0.0;
-    double maximum = 0.0;
-    for (const WaveformPlotTrace &trace : fTraces) {
-        if (trace.channel < 0 || trace.channel >= 68) continue;
-        for (const QPointF &sample : trace.samples) {
-            const int bucket = qBound(0, qRound(sample.x()), 511);
-            values[std::size_t(trace.channel) * 512 + std::size_t(bucket)] = sample.y();
-            minimum = qMin(minimum, sample.y());
-            maximum = qMax(maximum, sample.y());
+    if(traces.isEmpty() || !std::isfinite(maximum-minimum)){
+        painter.setPen(QColor(40,55,70));painter.drawText(rect(),Qt::AlignCenter,
+            property("emptyMessage").toString().isEmpty()?tr("No waveform samples to display"):property("emptyMessage").toString());return;
+    }
+    if(maximum==minimum){minimum-=1;maximum+=1;}
+    const double padding=(maximum-minimum)*0.06;minimum-=padding;maximum+=padding;
+    if(!std::isfinite(maximum-minimum)){painter.drawText(rect(),Qt::AlignCenter,tr("Waveform range is too large to plot"));return;}
+    const QRectF plot=QRectF(rect()).adjusted(105,45,-95,-90);
+    if(plot.width()<100 || plot.height()<150)return;
+    auto project=[&](double bucket,double channel,double value){return ProjectSurfacePoint(bucket,channel,value,plot,nullptr);};
+    const auto origin=project(0,fDepthMinimum,0),endTime=project(511,fDepthMinimum,0),
+        endDepth=project(511,fDepthMaximum,0),endAmplitude=project(0,fDepthMinimum,1);
+    QPolygonF floor;floor<<origin<<endTime<<endDepth<<project(0,fDepthMaximum,0);
+    painter.setBrush(QColor(246,249,252));painter.setPen(Qt::NoPen);painter.drawPolygon(floor);
+    painter.setPen(QPen(QColor(218,225,233),1,Qt::DashLine));
+    for(int bucket:{0,128,256,384,511})painter.drawLine(project(bucket,fDepthMinimum,0),project(bucket,fDepthMaximum,0));
+    std::sort(traces.begin(),traces.end(),[](const WaveformPlotTrace &a,const WaveformPlotTrace &b){return a.channel>b.channel;});
+    for(const auto &trace:traces){
+        painter.setPen(QPen(QColor(226,232,239),1));painter.drawLine(project(0,trace.channel,0),project(511,trace.channel,0));
+        QPainterPath path;bool connected=false;double previous=0;
+        for(const auto &sample:trace.samples){
+            if(!std::isfinite(sample.x()) || !std::isfinite(sample.y()) || sample.x()<0 || sample.x()>511){connected=false;continue;}
+            const auto point=project(sample.x(),trace.channel,(sample.y()-minimum)/(maximum-minimum));
+            if(!connected || sample.x()-previous>1.5)path.moveTo(point);else path.lineTo(point);
+            previous=sample.x();connected=true;
         }
+        // A thin white halo distinguishes crossings without inventing a surface
+        // or zero samples for channels that were not selected/read.
+        painter.setPen(QPen(Qt::white,4.2));painter.drawPath(path);
+        painter.setPen(QPen(ChannelColor(trace.channel),1.7));painter.drawPath(path);
     }
-    const double span = maximum - minimum;
-    std::vector<SurfaceCell> cells;
-    cells.reserve(67u * 511u);
-    for (int channel = 0; channel < 67; ++channel) {
-        for (int bucket = 0; bucket < 511; ++bucket) {
-            const double v0 = values[std::size_t(channel) * 512 + std::size_t(bucket)];
-            const double v1 = values[std::size_t(channel) * 512 + std::size_t(bucket + 1)];
-            const double v2 = values[std::size_t(channel + 1) * 512 + std::size_t(bucket + 1)];
-            const double v3 = values[std::size_t(channel + 1) * 512 + std::size_t(bucket)];
-            const double n0 = span > 0.0 ? (v0 - minimum) / span : 0.5;
-            const double n1 = span > 0.0 ? (v1 - minimum) / span : 0.5;
-            const double n2 = span > 0.0 ? (v2 - minimum) / span : 0.5;
-            const double n3 = span > 0.0 ? (v3 - minimum) / span : 0.5;
-            double depths[4] = {};
-            SurfaceCell cell;
-            cell.points[0] = ProjectSurfacePoint(bucket, channel, n0, plot, &depths[0]);
-            cell.points[1] = ProjectSurfacePoint(bucket + 1, channel, n1, plot, &depths[1]);
-            cell.points[2] = ProjectSurfacePoint(bucket + 1, channel + 1, n2, plot, &depths[2]);
-            cell.points[3] = ProjectSurfacePoint(bucket, channel + 1, n3, plot, &depths[3]);
-            cell.depth = (depths[0] + depths[1] + depths[2] + depths[3]) / 4.0;
-            const double average = (n0 + n1 + n2 + n3) / 4.0;
-            cell.color = QColor::fromHsv(240 - int(240.0 * average), 205, 220);
-            cells.push_back(cell);
-        }
+    const QColor ink(37,54,72);painter.setPen(QPen(ink,1.4));
+    painter.drawLine(origin,endTime);painter.drawLine(endTime,endDepth);painter.drawLine(origin,endAmplitude);
+    for(int bucket:{0,128,256,384,511}){
+        const auto p=project(bucket,fDepthMinimum,0);painter.drawLine(p,p+QPointF(0,5));painter.drawText(QRectF(p.x()-23,p.y()+7,46,20),Qt::AlignCenter,QString::number(bucket));
     }
-    std::sort(cells.begin(), cells.end(), [](const SurfaceCell &left, const SurfaceCell &right) {
-        return left.depth > right.depth;
-    });
-    painter.setPen(QColor(35, 40, 48));
-    painter.drawText(QRectF(4, 4, width() - 8, 22), Qt::AlignCenter,
-                     tr("AGET %1 — bucket × channel × ADC surface").arg(fAget));
-    painter.save();
-    painter.setClipRect(plot.adjusted(-1, -1, 1, 1));
-    painter.setPen(Qt::NoPen);
-    for (const SurfaceCell &cell : cells) {
-        painter.setBrush(cell.color);
-        painter.drawPolygon(cell.points, 4);
+    for(int tick=0;tick<=4;++tick){
+        const double fraction=tick/4.0;const auto p=project(0,fDepthMinimum,fraction);painter.drawLine(p-QPointF(5,0),p);
+        painter.drawText(QRectF(4,p.y()-10,plot.left()-12,20),Qt::AlignRight|Qt::AlignVCenter,QString::number(minimum+fraction*(maximum-minimum),'g',6));
     }
-    painter.restore();
-    painter.setPen(QPen(QColor(55, 60, 66), 1));
-    painter.drawText(QRectF(0, height() - 30, width(), 22), Qt::AlignCenter,
-                     tr("Drag to rotate  |  signal range %1 to %2").arg(minimum).arg(maximum));
+    QSet<int> labeled;
+    for(const auto &trace:traces)if(!labeled.contains(trace.channel)){
+        labeled.insert(trace.channel);const auto p=project(511,trace.channel,0);painter.setPen(QPen(ChannelColor(trace.channel),1.4));painter.drawLine(p,p+QPointF(5,0));
+        painter.setPen(ink);painter.drawText(QRectF(p.x()+8,p.y()-9,65,18),Qt::AlignLeft|Qt::AlignVCenter,QString::number(trace.channel));
+    }
+    painter.drawText(QRectF(0,5,width(),25),Qt::AlignCenter,tr("AGET %1 — 3D channel waveforms").arg(fAget));
+    painter.drawText(QRectF(origin.x(),endTime.y()+31,endTime.x()-origin.x(),22),Qt::AlignCenter,tr("Time (sample bucket)"));
+    painter.drawText(QRectF(endDepth.x()-90,endDepth.y()-32,180,22),Qt::AlignCenter,tr("Channel number"));
+    painter.save();painter.translate(20,endAmplitude.y()+75);painter.rotate(-90);painter.drawText(QRectF(-80,-10,160,22),Qt::AlignCenter,tr("Amplitude (ADC)"));painter.restore();
+    painter.drawText(QRectF(0,height()-29,width(),24),Qt::AlignCenter,tr("Drag: depth angle   |   Ctrl+wheel: channel spacing (%1 px)   |   Double-click: reset").arg(fChannelGap));
+    setAccessibleDescription(tr("3D waveform. Time: sample bucket 0 to 511. Amplitude: ADC %1 to %2. Depth: channel number %3 to %4. %5 selected traces; no interpolated channels. Channel spacing %6 pixels.").arg(minimum).arg(maximum).arg(fDepthMinimum).arg(fDepthMaximum).arg(traces.size()).arg(fChannelGap));
 }
-
-} // namespace GetDAQ
+}
