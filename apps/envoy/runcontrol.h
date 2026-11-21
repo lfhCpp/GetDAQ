@@ -8,6 +8,7 @@
 #include <QJsonObject>
 #include <QSet>
 #include <QTimer>
+#include <functional>
 
 // 控制对象整体移入 QThread；全部状态只在这个线程更新。
 class RunControl : public QObject
@@ -23,6 +24,8 @@ public slots:
     void CancelAutomaticRunSlot(QString reason);
     void UpdateRunMetadataSlot(RunConfig config);
     void DisconnectSlot();
+    void AcceptOperationWarningSlot(QString token);
+    void CancelOperationWarningSlot(QString token);
     void ProgressSlot(int id = -1);
     void RegressSlot(int id = -1);
     void StartRunSlot(bool replaceCompletedRun = false, bool acceptExistingIncoming = false);
@@ -34,6 +37,8 @@ public slots:
     void ResumeSlot();
 signals:
     void ConfigurationSnapshotSignal(QString path);
+    void RecordingDirectorySignal(QString path);
+    void OperationWarningSignal(QString token,QString summary);
     void IncomingFilesConfirmationSignal(bool replaceCompletedRun, QString summary);
     void StatusSignal(QVector<NodeStatus> status);
     void ControlSignal(QString phase, bool connected, bool busy, bool active);
@@ -50,6 +55,11 @@ private slots:
     void ReplacementFinalizedSlot(int id, QString error);
     void FileFinishedSlot();
 private:
+    QString fWarningToken,fWarningKey;QSet<QString> fAcceptedWarnings;
+    std::function<void()> fWarningAction,fDeferredAction;
+    bool ConfirmWarnings(const QString &,const QStringList &,std::function<void()>);
+    int fFileSequence=-1;
+    bool fRecordingDegraded=false;
     bool fProjectConfigurationChecked=false;
     bool fOfflineToolsOpen=false;
     AutoRunPolicy fAutoRun;
@@ -89,7 +99,7 @@ private:
     int fSequence = 0;
     int fMutant = -1;
     double fDuration = 0;
-    QString fReplacementOperationId;
+    QString fReplacementOperationId,fCandidateConfigurationSnapshot,fCandidateBackupWarning;
 
     QVector<int> Cobos() const;
     QVector<int> MonitorRepresentatives() const;

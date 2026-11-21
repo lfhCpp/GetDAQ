@@ -36,6 +36,7 @@ private:
     std::shared_ptr<std::atomic_bool> fCanceled;
     void SelectRole(int index);
     void StartSlave();
+    void RenewPairing();
 private slots:
     void ObserveSlave();
     void ShowNode(const QJsonObject &node);

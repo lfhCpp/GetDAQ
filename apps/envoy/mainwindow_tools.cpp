@@ -41,21 +41,10 @@ void MainWindow::OpenDataTools() {
 void MainWindow::RefreshOfflineToolsGate() {
     if(!fWaveformViewerAction)return;
     const bool running=fActive || fRemoteRunning;
-    if(running && fWaveformViewer && fWaveformViewer->isVisible()) {
-        fWaveformViewer->close();
-        ShowLogEntry(tr("Acquisition became active; the integrated waveform viewer has been closed."),Diagnostics::Information);
-    }
-    if(running && fDataTools && fDataTools->isVisible())fDataTools->close();
-    fWaveformViewerAction->setEnabled(!running && !fBusy && !fAutomaticArmed && !fClosing);
-    fDataToolsAction->setEnabled(!running && !fBusy && !fAutomaticArmed && !fClosing && !fDataToolsClosing && fDataToolsAvailable);
+    fWaveformViewerAction->setEnabled(!fClosing);
+    fDataToolsAction->setEnabled(!fClosing && !fDataToolsClosing && fDataToolsAvailable);
     fDataToolsAction->setToolTip(fDataToolsClosing?
         tr("Stopping the offline tool process; this menu item will be available after it exits."):
         tr("Inspect, merge and convert completed files; optional FITS / ROOT tools require installation."));
-    if(fWaveformViewer || fDataTools) {
-        ui->StartRun->setEnabled(false);
-        ui->StartRun->setToolTip(tr("Close the waveform viewer and data tools windows before starting a new Run."));
-    } else if(running) {
-        ui->StartRun->setEnabled(false);
-        ui->StartRun->setToolTip(tr("Acquisition is active; stop and finalize it before starting another Run."));
-    } else ui->StartRun->setToolTip(QString());
+    ui->StartRun->setToolTip(tr("Start remains available; warnings require confirmation."));
 }

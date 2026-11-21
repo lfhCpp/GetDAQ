@@ -13,6 +13,7 @@ public:
     explicit NodeAgent(const QString &configuration,QObject *parent=nullptr);
     ~NodeAgent() override;
     void Start();
+    void ProcessLocalPairingRequest();
 private:
     QJsonObject fConfig;
     QString fRoot,fPrograms,fData,fNode;
@@ -28,7 +29,7 @@ private:
     QJsonObject Execute(const QJsonObject &request,bool *effectStarted);
     void Progress(const QJsonObject &request,const QString &stage);
     QJsonObject Prepare(const QJsonObject &request);
-    bool ProjectCanApply(const QString &) const;
+    bool ProjectCanApply(const QString &,bool allowUnknown=false) const;
     void ApplyPendingProjects();
     void UpdateProjectRegistries();
     QJsonObject StartProjectMonitor(const QJsonObject &,bool *);

@@ -1,6 +1,7 @@
 #include "grawreader_internal.h"
 #include "../datareceiver/mfmheader.h"
 #include <QFile>
+#include <QBuffer>
 #include <stdexcept>
 
 namespace GetDAQ {
@@ -11,13 +12,13 @@ struct ParsedFrame {
     quint64 count = 0;
 };
 
-bool ReadAt(QFile &file, qint64 offset, char *destination, qint64 bytes)
+bool ReadAt(QIODevice &file, qint64 offset, char *destination, qint64 bytes)
 {
     if (offset < 0 || bytes < 0 || !file.seek(offset)) return false;
     return file.read(destination, bytes) == bytes;
 }
 
-ParsedFrame ParseFrame(QFile &file, qint64 offset, qint64 enclosingEnd)
+ParsedFrame ParseFrame(QIODevice &file, qint64 offset, qint64 enclosingEnd)
 {
     char primary[8];
     if (offset < 0 || offset > enclosingEnd - 8 || !ReadAt(file, offset, primary, sizeof(primary)))
@@ -51,8 +52,8 @@ ParsedFrame ParseFrame(QFile &file, qint64 offset, qint64 enclosingEnd)
     return parsed;
 }
 
-void IndexNested(QFile &file, qint64 offset, qint64 enclosingEnd, int depth,
-                 QVector<GrawFrameRecord> *frames, const std::atomic<bool> *cancel)
+void IndexNested(QIODevice &file, qint64 offset, qint64 enclosingEnd, int depth,
+                 QVector<GrawFrameRecord> *frames, const std::atomic<bool> *cancel,int maximumFrames)
 {
     if (cancel && cancel->load()) throw std::runtime_error("MFM frame index cancelled");
     if (depth > kMaximumLayerDepth) throw std::runtime_error("layered MFM nesting exceeds eight levels");
@@ -65,7 +66,7 @@ void IndexNested(QFile &file, qint64 offset, qint64 enclosingEnd, int depth,
         for (quint64 i = 0; i < parsed.count; ++i) {
             const ParsedFrame childFrame = ParseFrame(file, child, frameEnd);
             if (childFrame.record.bytes == 0) throw std::runtime_error("layered frame contains an invalid child");
-            IndexNested(file, child, frameEnd, depth + 1, frames, cancel);
+            IndexNested(file, child, frameEnd, depth + 1, frames, cancel,maximumFrames);
             child += childFrame.record.bytes;
         }
         char primary[1];
@@ -76,11 +77,11 @@ void IndexNested(QFile &file, qint64 offset, qint64 enclosingEnd, int depth,
         return;
     }
     if (parsed.record.type == 1 && parsed.record.revision <= 5) {
-        if (frames->size() >= kMaximumIndexedFrames)
+        if (frames->size() >= maximumFrames)
             throw std::runtime_error("file contains more than two million CoBo frames; index memory limit reached");
         frames->append(parsed.record);
     } else if (parsed.record.type == 2 && parsed.record.revision == 5) {
-        if (frames->size() >= kMaximumIndexedFrames)
+        if (frames->size() >= maximumFrames)
             throw std::runtime_error("file contains more than two million CoBo frames; index memory limit reached");
         frames->append(parsed.record);
     }
@@ -88,12 +89,10 @@ void IndexNested(QFile &file, qint64 offset, qint64 enclosingEnd, int depth,
 
 }
 
-GrawIndexResult GrawFrameReader::BuildIndex(const QString &path, const std::atomic<bool> *cancel)
+static GrawIndexResult IndexDevice(QIODevice &file,const std::atomic<bool> *cancel,int maximumFrames=2000000)
 {
     GrawIndexResult result;
     try {
-        QFile file(path);
-        if (!file.open(QIODevice::ReadOnly)) throw std::runtime_error(file.errorString().toStdString());
         result.inputBytes = file.size();
         if (result.inputBytes < 8) throw std::runtime_error("file is too small to contain an MFM frame");
         qint64 offset = 0;
@@ -101,7 +100,7 @@ GrawIndexResult GrawFrameReader::BuildIndex(const QString &path, const std::atom
             if (cancel && cancel->load()) throw std::runtime_error("MFM frame index cancelled");
             const ParsedFrame top = ParseFrame(file, offset, result.inputBytes);
             if (!top.record.bytes) throw std::runtime_error("MFM frame has zero length");
-            IndexNested(file, offset, result.inputBytes, 0, &result.frames, cancel);
+            IndexNested(file, offset, result.inputBytes, 0, &result.frames, cancel,maximumFrames);
             offset += top.record.bytes;
         }
         if (offset != result.inputBytes) throw std::runtime_error("file ends in a partial MFM frame");
@@ -113,5 +112,8 @@ GrawIndexResult GrawFrameReader::BuildIndex(const QString &path, const std::atom
     return result;
 }
 
+
+GrawIndexResult GrawFrameReader::BuildIndex(const QByteArray &bytes,const std::atomic<bool> *cancel,int maximumFrames){QBuffer buffer;buffer.setData(bytes);buffer.open(QIODevice::ReadOnly);return IndexDevice(buffer,cancel,maximumFrames);}
+GrawIndexResult GrawFrameReader::BuildIndex(const QString &path,const std::atomic<bool> *cancel){QFile file(path);if(!file.open(QIODevice::ReadOnly)){GrawIndexResult result;result.error=file.errorString();return result;}return IndexDevice(file,cancel);}
 
 }

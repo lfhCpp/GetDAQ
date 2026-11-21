@@ -31,6 +31,8 @@ public:
     void SetConfig(const RunConfig &config);
 signals:
     void ConnectSignal(RunConfig config);
+    void AcceptOperationWarningSignal(QString token);
+    void CancelOperationWarningSignal(QString token);
     void ConfigureAutoRunSignal(AutoRunSettings settings);
     void SetAutoRunEnabledSignal(bool enabled);
     void CancelAutomaticRunSignal(QString reason);

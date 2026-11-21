@@ -21,7 +21,10 @@
     "explicit shared project working directories",
     "whole-folder master/slave configuration synchronization",
     "one project Sentry with deduplicated archive",
-    "event/ECC/receiver log tabs"
+    "event/ECC/receiver log tabs",
+    "operator-confirmed control warnings without local bookkeeping lockout",
+    "slave invitation clipboard and explicit re-pair without backend restart",
+    "independent bounded multi-source online waveform preview"
   ],
   "retired": [
     "simulation",

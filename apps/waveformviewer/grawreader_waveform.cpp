@@ -7,7 +7,7 @@
 namespace GetDAQ {
 using namespace GrawReaderInternal;
 
-bool GrawFrameReader::ReadChannels(const QString &path, const GrawFrameRecord &frame,
+bool GrawFrameReader::ReadChannels(const QByteArray &input, const GrawFrameRecord &frame,
                                    int aget, const QVector<int> &channels,
                                    QVector<GrawChannelSamples> *traces, QString *error)
 {
@@ -28,21 +28,8 @@ bool GrawFrameReader::ReadChannels(const QString &path, const GrawFrameRecord &f
         }
         requested[channel] = true;
     }
-    QFile file(path);
-    if (!file.open(QIODevice::ReadOnly)) {
-        if (error) *error = file.errorString();
-        return false;
-    }
-    if (frame.bytes > quint32(kMaximumCoboFrameBytes) || frame.offset < 0 ||
-        frame.offset > file.size() - frame.bytes || !file.seek(frame.offset)) {
-        if (error) *error = QStringLiteral("Indexed frame no longer fits in the input file");
-        return false;
-    }
-    const QByteArray bytes = file.read(frame.bytes);
-    if (quint32(bytes.size()) != frame.bytes) {
-        if (error) *error = QStringLiteral("Could not read the complete indexed CoBo frame");
-        return false;
-    }
+    if(frame.offset<0 || frame.bytes>kMaximumCoboFrameBytes || frame.offset>input.size()-frame.bytes){if(error)*error="Invalid memory frame bounds";return false;}
+    const auto bytes=input.mid(frame.offset,frame.bytes);
     try {
         const FrameInfo info = InspectMfmHeader(reinterpret_cast<const std::uint8_t *>(bytes.constData()),
                                                 std::size_t(bytes.size()), frame.bytes);
@@ -64,6 +51,11 @@ bool GrawFrameReader::ReadChannels(const QString &path, const GrawFrameRecord &f
     return false;
 }
 
+bool GrawFrameReader::ReadChannels(const QString &path,const GrawFrameRecord &frame,int aget,const QVector<int> &channels,QVector<GrawChannelSamples> *traces,QString *error){
+ QFile file(path);if(!file.open(QIODevice::ReadOnly)){if(error)*error=file.errorString();return false;}
+ if(frame.offset<0 || frame.bytes>kMaximumCoboFrameBytes || frame.offset>file.size()-frame.bytes || !file.seek(frame.offset)){if(error)*error="Indexed frame no longer fits file";return false;}
+ auto bytes=file.read(frame.bytes);auto local=frame;local.offset=0;return ReadChannels(bytes,local,aget,channels,traces,error);
+}
 bool GrawFrameReader::ReadChannel(const QString &path, const GrawFrameRecord &frame,
                                   int aget, int channel, QVector<GrawSample> *samples,
                                   QString *error)

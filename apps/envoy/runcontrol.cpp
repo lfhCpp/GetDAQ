@@ -1,6 +1,9 @@
 #include "runcontrol.h"
 #include "runrecorder.h"
 #include <QDateTime>
+#include <QUuid>
+#include <QDir>
+#include <QStandardPaths>
 #include "diagnostics.h"
 
 RunControl::RunControl(QObject *parent) : QObject(parent) {
@@ -16,12 +19,13 @@ void RunControl::ConnectSlot(RunConfig config)
     if (fConnected || fBusy || fActive) return;
     QString error;
     if (!config.Validate(&error)) { emit LogSignal(error); return; }
-    fProjectConfigurationChecked=false;
+    fProjectConfigurationChecked=false;fRecordingDegraded=false;fCandidateConfigurationSnapshot.clear();fWarningAction={};fWarningToken.clear();fAcceptedWarnings.clear();
     fLocalFinalizationFailed=false;
     fCatalogResultUncertain=false;
     fConfig=config;ConfigureAutoRunSlot(config.autoRun);
 
     fConfig = config;
+    if(!fConfig.configurationSnapshot.isEmpty())fConfig.configurationBackupWarning="The source snapshot is available, but this connection has not confirmed which configuration the existing hardware loaded. Configure through this GUI to establish that association.";
     fReplacementOperationId.clear();
     fMutant = -1;
     fClock.start();
@@ -76,18 +80,13 @@ void RunControl::DisconnectSlot()
 {
     CancelAutoRun("Automatic Run canceled: manual disconnect");
     
-    if (fBusy) { emit LogSignal("Wait for the current operation before disconnecting."); return; }
-    if (fActive) {
-        if ((!fLocalFinalizationFailed && !fCatalogResultUncertain) || !AllAt(All(),4)) {
-            emit LogSignal("Stop and confirm every ECC Ready before disconnecting an unfinished Run."); return;
-        }
-        if (!Journal(fCatalogResultUncertain ? "Catalog inspection required (disconnected)" : "Finalization pending (disconnected)")) {
-            emit LogSignal("Cannot preserve the pending Run journal; disconnect canceled."); return;
-        }
-        emit LogSignal("Disconnected from stopped ECC. Incomplete Run records retained; reopen run.yml and Recover journal to resume finalization. Background services remain running.");
-        fActive=false;fLocalFinalizationFailed=false;fCatalogResultUncertain=false;
-    }
-    for (const NodeStatus &s : fStatus) if (s.state == 5 || s.state == 6) { emit LogSignal("Observed running/paused hardware; stop it before disconnecting."); return; }
+    QStringList warnings;if(fActive || fBusy)warnings<<"Local work/Run records are unfinished. Accepted remote commands and raw data are retained.";
+    for(const auto &status:fStatus)if(status.state==5 || status.state==6 || !status.eccOnline){warnings<<"Remote acquisition may continue. Disconnect only detaches this GUI; it does not stop hardware.";break;}
+    if(!ConfirmWarnings("Disconnect",warnings,[this]{DisconnectSlot();}))return;
+    if(fActive || fBusy)Journal("Detached; remote state and incomplete records retained");
+    ++fSequence;fWarningAction={};fDeferredAction={};fBusy=false;fActive=false;fStep=-1;
+    fAwaitAck.clear();fAwaitState.clear();fAwaitCatalog.clear();fAwaitReplacementCleanup.clear();
+ 
     if (fPoll) fPoll->stop();
     if (fDeadline) fDeadline->stop();
     ClearClients();
@@ -115,7 +114,25 @@ bool RunControl::Journal(const QString &phase)
     fJournal["phase"] = phase;
     fJournal["updated_utc"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
     QString error;
-    if (!RunRecorder::WriteJournal(fConfig, fJournal, &error)) { emit LogSignal("Journal write failed: " + error); return false; }
+    if (!RunRecorder::WriteJournal(fConfig, fJournal, &error)) {
+        fJournal["recording_degraded"]=true;
+        if(!fRecordingDegraded){fRecordingDegraded=true;emit LogSignal("Warning: local journal unavailable; hardware controls remain available: "+error);}
+        return true;
+    }
     return true;
 }
 
+
+bool RunControl::ConfirmWarnings(const QString &operation,const QStringList &warnings,std::function<void()> action){
+ if(warnings.isEmpty())return true;
+ const auto key=operation+'\n'+warnings.join('\n');
+ if(fAcceptedWarnings.contains(key)){ReportLog("Operator accepted "+operation+": "+warnings.join("; "),Diagnostics::Warning);return true;}
+ if(fAutomaticDispatch){CancelAutoRun("Automatic action needs operator confirmation: "+warnings.join("; "));return false;}
+ fWarningKey=key;fWarningAction=std::move(action);fWarningToken=QUuid::createUuid().toString();emit OperationWarningSignal(fWarningToken,operation+"\n\n"+warnings.join("\n\n"));return false;
+}
+void RunControl::AcceptOperationWarningSlot(QString token){
+ if(token!=fWarningToken || !fWarningAction)return;
+ auto action=std::move(fWarningAction);fWarningAction={};fAcceptedWarnings.insert(fWarningKey);fWarningToken.clear();action();if(!fWarningAction)fAcceptedWarnings.clear();
+}
+
+void RunControl::CancelOperationWarningSlot(QString token){if(token==fWarningToken){fWarningToken.clear();fWarningAction={};fAcceptedWarnings.clear();}}

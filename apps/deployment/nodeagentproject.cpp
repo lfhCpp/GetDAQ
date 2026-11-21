@@ -15,11 +15,11 @@ namespace {
 LocalServiceProcess Process(const QJsonObject &p){LocalServiceProcess result;result.pid=qint64(p["pid"].toDouble());result.executable=p["executable"].toString();result.started=p["started"].toString().toLatin1();return result;}
 QJsonObject Wire(const LocalServiceProcess &p){return {{"pid",double(p.pid)},{"executable",p.executable},{"started",QString::fromLatin1(p.started)}};}
 }
-bool NodeAgent::ProjectCanApply(const QString &project)const{
+bool NodeAgent::ProjectCanApply(const QString &project,bool allowUnknown)const{
  for(const auto &name:QDir(fRoot+"/instances").entryList({"*.json"},QDir::Files)){
   const auto record=Parse(Read(fRoot+"/instances/"+name));if(record["backend"]!="original-soap")continue;const auto service=Parse(Read(record["config_file"].toString()));if(service["working_directory"]!=project)continue;
   if(record["phase"]=="active" || record["phase"]=="starting"){
-   const auto ecc=service["group"].toObject()["ecc"].toObject();try{if(OriginalEccState(ecc["address"].toString(),ecc["port"].toInt())!=1)return false;}catch(...){return false;}
+   const auto ecc=service["group"].toObject()["ecc"].toObject();try{int transition=0;OriginalEccState(ecc["address"].toString(),ecc["port"].toInt(),&transition);if(transition!=0)return false;}catch(...){if(!allowUnknown)return false;}
   }
  }return true;
 }

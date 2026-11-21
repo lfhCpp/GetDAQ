@@ -19,7 +19,7 @@ suite=importlib.util.module_from_spec(spec);spec.loader.exec_module(suite)
 def program_plan(receipt):
     if receipt.get('status')!='complete':raise ValueError('A completed macOS build receipt is required')
     programs=receipt.get('programs',{})
-    required={'GetDAQ','getdaq-cconfig-editor','getdaq-cobo-info','getdaq-waveform-viewer'}
+    required={'GetDAQ','getdaq-cconfig-editor','getdaq-cobo-info','getdaq-waveform-viewer','getdaq-online-waveform-viewer'}
     if not required.issubset(programs):raise ValueError('Missing required GUI/helper programs: '+str(sorted(required-set(programs))))
     result={}
     for name,record in programs.items():

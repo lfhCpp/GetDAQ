@@ -34,11 +34,11 @@ QJsonObject NodeAgent::PrepareOriginal(const QJsonObject &request,const QJsonObj
  for(const auto &v:group["repository_files"].toArray()){const auto f=v.toObject();const auto path=directory+"/repository/"+f["path"].toString();Write(path,files.value(f["file"].toString()),true);checked[path]=Sha(files.value(f["file"].toString()));}
  const bool projectMode=group["project_mode"].toBool();QString work=directory,repo=directory+"/repository";QJsonObject sync;
  if(projectMode){
-  work=ProjectPath(group,fNode,fData);repo=work;bool canApply=ProjectCanApply(work);QTcpSocket observation;observation.connectToHost(ecc["address"].toString(),quint16(ecc["port"].toInt()));if(observation.waitForConnected(250)){try{canApply=canApply && OriginalEccState(ecc["address"].toString(),ecc["port"].toInt())==1;}catch(...){canApply=false;}}
+  work=ProjectPath(group,fNode,fData);repo=work;const bool accepted=request["configuration_warning_accepted"].toBool();bool canApply=ProjectCanApply(work,accepted);QTcpSocket observation;observation.connectToHost(ecc["address"].toString(),quint16(ecc["port"].toInt()));if(observation.waitForConnected(250)){try{int transition=0;OriginalEccState(ecc["address"].toString(),ecc["port"].toInt(),&transition);canApply=canApply && transition==0;}catch(...){canApply=canApply && accepted;}}
   sync=SyncWorkspace(work,group,files,request["release_id"].toString(),group["sync_configuration"].toBool(true),canApply);
   Write(fRoot+"/projects/"+Sha(work.toUtf8())+".json",Json({{"path",work}}));
   if(syncOnly)return {{"node_id",fNode},{"group_id",group["id"]},{"role",role},{"instance_id",instance},{"configuration_sync",sync},{"phase",sync["state"]}};
-  Require(sync["state"]!="pending","Configuration received and cached; return the shared project ECCs to Idle or stop services before startup");
+  Require(sync["state"]!="pending","Configuration received and cached; wait for the accepted ECC command to finish, or explicitly sync with a state-warning acknowledgement");
  }else if(role=="receiver"){PrivateDirectory(fData);work=fData+'/'+instance;PrivateDirectory(work);}
  const auto backend=group["receiver_backend"].toString("DataExporter");Require(backend=="DataExporter" || backend=="dataRouter","Choose DataExporter or dataRouter");
  const auto program=Executable(fPrograms,role=="ecc"?"getEccSoapServer":backend);

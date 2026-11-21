@@ -67,6 +67,7 @@ void RunControl::EccReplySlot(int id, QString operation, int state, int transiti
 void RunControl::FinishPlan()
 {
     fDeadline->stop(); fStep = -1;
+    for(const auto &step:fPlan)if(step.operation=="Configure" && !fCandidateConfigurationSnapshot.isEmpty()){fConfig.configurationSnapshot=fCandidateConfigurationSnapshot;fConfig.configurationBackupWarning=fCandidateBackupWarning;emit ConfigurationSnapshotSignal(fConfig.configurationSnapshot);}
     if (fOperation == "Start") {
         fPhase = "Running"; fBusy = false;
         if (!Journal(fPhase)) { Fail("Running, but journal could not be saved. Stop the run."); return; }
@@ -76,14 +77,13 @@ void RunControl::FinishPlan()
         emit LogSignal("All configured nodes confirmed stopped (Ready). Finalizing run records.");
         if (fRunClock.isValid()) fDuration += fRunClock.elapsed() / 1000.0;
         fRunClock.invalidate();
-        fRunClock.invalidate();
         fJournal["duration_seconds"] = fDuration;
-        if (fActive) {
+        if (fActive && !fJournal.value("untracked").toBool()) {
             fPhase = "Settling";
             if (!Journal(fPhase)) { Fail("Stopped but journal could not be saved."); return; }
             const int sequence = fSequence;
             QTimer::singleShot(fConfig.settleMs, this, [this, sequence]() { if (sequence == fSequence && !fShuttingDown) StartCatalog(); });
-        } else { fBusy = false; fPhase = "Stopped (untracked run)"; }
+        } else { fActive=false;fBusy = false; fPhase = "Stopped (untracked run)";emit LogSignal("Observed acquisition stopped. No local Run was reserved; no catalog or completion record was fabricated."); }
     } else if (fOperation == "Pause") {
         if (fRunClock.isValid()) fDuration += fRunClock.elapsed() / 1000.0;
         fRunClock.invalidate();

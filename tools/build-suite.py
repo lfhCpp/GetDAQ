@@ -13,7 +13,7 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTROL = ['GetDAQ', 'getdaq-sentry', 'getdaq-waveform-viewer', 'getdaq-cconfig-editor']
+CONTROL = ['GetDAQ', 'getdaq-sentry', 'getdaq-waveform-viewer', 'getdaq-cconfig-editor', 'getdaq-online-waveform-viewer']
 GUI_CONTROL = CONTROL[:]
 QT_CONTROL = CONTROL[:]
 RECEIVER = ['getdaq-inspect', 'getdaq-merge', 'getdaq-matrix']

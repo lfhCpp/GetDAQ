@@ -21,7 +21,7 @@ void MainWindow::on_Progress_clicked() { emit ProgressSignal(-1); }
 void MainWindow::on_Regress_clicked() { emit RegressSignal(-1); }
 void MainWindow::on_StartRun_clicked()
 {
-    if(!RequireOfflineToolsClosed())return;
+
     if (!ReadConfig()) return;
     const QFileInfo target(fConfig.RunDirectory());
     if (target.isSymLink()) {

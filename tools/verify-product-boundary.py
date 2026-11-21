@@ -7,7 +7,7 @@ def verify():
  features=json.loads((ROOT/'config/product-features.json').read_text())
  assert hashlib.sha256((ROOT/'apps/envoy/mainwindow.ui').read_bytes()).hexdigest()==features['protected_main_ui_sha256'],'Main window layout changed; review the baseline explicitly'
  project=(ROOT/'GetDAQ.pro').read_text();subdirs=re.search(r'^SUBDIRS\s*=\s*(.*)$',project,re.M).group(1).split()
- assert set(subdirs)=={'console','sentry','waveformviewer','cconfigeditor'},'Retired subproject reintroduced'
+ assert set(subdirs)=={'console','sentry','waveformviewer','cconfigeditor','onlinewaveform'},'Retired subproject reintroduced'
  for rel in ['apps/envoy/envoy.pro','apps/envoy/core.pri','apps/envoy/originalservices.pri','apps/deployment/nodeagent.pro']:
   p=ROOT/rel;text=p.read_text();assert not any(s in text for s in ['nativeruncontrol','eccsystemclient','hardwaresetupwindow','plantransitionwindow','scanplanwindow']),rel
   for token in text.split():

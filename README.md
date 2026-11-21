@@ -43,5 +43,9 @@ Configuration and storage paths: [配置文件与数据目录说明](docs/CONFIG
 主控选择配置源目录（默认安装目录 `config`），每台执行电脑选择 Project data folder。
 完整配置先分发到从机缓存，再自动同步到其项目目录；原版 SOAP ECC、DataExporter 或
 dataRouter、共享 Sentry 都在这个目录运行。控制 IP 与数据 IP 分开填写。
-Tools → Sync project configuration 可更新选定主机，活动配置先暂存，原始数据保留。
+Tools → Sync project configuration 可更新选定主机，活动配置确认后可同步，无须强制返回 Idle；同步不改变板卡已加载参数，原始数据保留。
 原日志区域可切换 Event / ECC / 接收器日志。[操作和目录说明](docs/CONFIGURATION_AND_DATA_PATHS.md)。
+
+在线波形：**Tools → Online waveform viewer…**，独立进程连接 DataExporter 的 TCP export 端口
+（默认 46491），支持多个接收器、缓存事件及电子学通道选择。
+[操作、性能边界与控制警告](docs/ONLINE_WAVEFORM_AND_CONTROL.md)。

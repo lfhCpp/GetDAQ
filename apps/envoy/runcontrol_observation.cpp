@@ -30,6 +30,7 @@ void RunControl::Publish()
         ? (AllAt(All(),4) ? QString("Stopped; finalization pending") : QString("Finalization pending; inspect ECC state"))
         : fPhase;
     emit ControlSignal(phase, fConnected, fBusy, fActive);
+    if(!fBusy && fDeferredAction){auto action=std::move(fDeferredAction);fDeferredAction={};const int sequence=fSequence;QTimer::singleShot(0,this,[this,action,sequence]{if(sequence==fSequence && fConnected)action();});}
 }
 
 void RunControl::PollSlot()

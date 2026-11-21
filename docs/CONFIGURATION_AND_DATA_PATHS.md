@@ -65,8 +65,9 @@ ECC 的 `--config-repo-url`、接收器 cwd 与 Sentry 监控目录都指向该�
 编辑主控源文件后，用 **Tools → Sync project configuration…** 选择本机、指定从机或全部主机。
 发布和启动也会重新读取源目录，不沿用过时的内存副本。
 
-- Idle / 停服务：应用到项目目录，被替换的配置备份到 `.getdaq/configuration-backups/`。
-- Running、Ready 或无法确认安全状态：只接收缓存，标记 pending，不替换活动配置；停服务后或下次 Idle → Describe 前自动检查并应用。
+- 稳定的 Idle、Described、Prepared、Ready、Running、Paused：可同步到项目目录，无须强制退回 Idle。已有活动实例时先警告并由操作者确认。
+- 已知硬件命令正在转换状态：等命令完成后同步。状态未知时可明确确认后同步。被替换配置保存在 `.getdaq/configuration-backups/`。
+- 同步只改变磁盘文件；硬件仍使用上次加载的参数，必须执行相应 ECC Configure 才能更新板卡。
 - 取消同步勾选：仍可分发缓存，但不覆盖项目文件；使用项目内自行维护的配置，Run 记录明确提示配置备份未验证。
 - XML 参数更新可复用同一套已核对的后端进程；程序、端口、工作目录或接收格式字典变化，须先停服务再重新启动。
 
@@ -89,14 +90,13 @@ ECC 的 `--config-repo-url`、接收器 cwd 与 Sentry 监控目录都指向该�
 外部 ECC 用其启动时指定的仓库或 NFS，GUI 发送 ID，不擅自更换仓库、cwd 或启动外部接收器。
 外部程序未托管时，GetDAQ 不声称能同步其目录或附着进程日志；本地镜像仍供编辑、备份。
 
-无硬件测试已覆盖原版两个接收器、共享 Sentry、完整目录分发、活动配置暂存、日志认证和进程复用；实际板卡参数与接线仍需现场验证。
+无硬件测试已覆盖原版两个接收器、共享 Sentry、完整目录分发、活动配置确认同步、日志认证和进程复用；实际板卡参数与接线仍需现场验证。
 
 ## Nodes 保存与真正分发的区别
 
 Nodes / Paths 的 Save and apply 保存 YAML 中的连接 IP、端口、路径和同步开关，
 **不自动分发 XML/XCFG**。配置文件的发布、复制由 Tools → Sync project configuration、
-项目中的保存同步或 Start project services 触发。Idle → Describe 前会检查并应用已接收的
-pending 版本，不会把尚未发布的主控源文件自动上传。外部已有 ECC 的 NFS/仓库继续由其自身维护。
+项目中的保存同步或 Start project services 触发。Progress 前会检查项目配置，不会把尚未发布的主控源文件自动上传。外部已有 ECC 的 NFS/仓库继续由其自身维护。
 
 ## 合并导出日志与 Clear
 

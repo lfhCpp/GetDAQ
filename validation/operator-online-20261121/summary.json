@@ -1,0 +1,12 @@
+{
+  "hardware_tested": false,
+  "macos_tested": false,
+  "product_tests": 40,
+  "project_integration_checks": 16,
+  "original_sources_unchanged": {
+    "legacy_get_files": 2516,
+    "DataExporter_files": 641
+  },
+  "main_ui_unchanged": true,
+  "active_acquisition_stopped": false
+}

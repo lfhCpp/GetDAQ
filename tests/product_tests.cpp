@@ -14,6 +14,15 @@
 #include <QDialogButtonBox>
 #include "runconfig.h"
 #include "runcontrol.h"
+#include "onlinereceiver.h"
+#include "applicationinstance.h"
+#include <QSettings>
+#include "waveformviewer_testfixtures_p.h"
+#include <QThread>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QtEndian>
+#include <QClipboard>
 #include "runrecorder.h"
 #include "protocol.h"
 #include "mainwindow.h"
@@ -37,6 +46,37 @@ using namespace GetDAQTestSupport;
 class ProductTests:public QObject {Q_OBJECT
 private slots:
  void initTestCase(){QCoreApplication::setOrganizationName("GetDAQ-Product-Tests");QCoreApplication::setApplicationName("OriginalBackendBaseline");qRegisterMetaType<QVector<NodeStatus>>();}
+ void controlsRemainAvailableDuringLocalBookkeeping(){
+    MainWindow window;QVERIFY(QMetaObject::invokeMethod(&window,"ShowControlSlot",Qt::DirectConnection,Q_ARG(QString,QString("Settling")),Q_ARG(bool,true),Q_ARG(bool,true),Q_ARG(bool,true)));for(const auto &name:{"StartRun","StopRun","Disconnect"}){auto *button=window.findChild<QPushButton *>(name);QVERIFY(button);QVERIFY(button->isEnabled());}
+ }
+ void slaveInvitationCanActuallyBeCopied(){
+    QTemporaryDir dir;QSettings settings;const auto key=StartupConfigurationKey()+"/slave-cache-directory";const auto previous=settings.value(key);std::unique_ptr<int,std::function<void(int *)>> restore(new int,[&](int *p){if(previous.isValid())settings.setValue(key,previous);else settings.remove(key);delete p;});settings.setValue(key,dir.path());
+    Deployment::Write(dir.filePath("pairing.json"),Deployment::Json({{"pairing_code","test-invitation"},{"expires_ms",double(QDateTime::currentMSecsSinceEpoch()+60000)},{"url","https://127.0.0.1:24260"}}));HostRoleWindow window(RunConfig::Default());QVERIFY(QMetaObject::invokeMethod(&window,"ShowNode",Qt::DirectConnection,Q_ARG(QJsonObject,QJsonObject())));auto *copy=window.findChild<QPushButton *>("CopySlaveInvitation");QVERIFY(copy && copy->isEnabled());copy->click();QVERIFY(QApplication::clipboard()->text().startsWith("getdaq-pair:"));QVERIFY(window.findChild<QPushButton *>("RenewSlavePairing"));
+ }
+ void operatorCanDisconnectRunningAfterWarning(){
+    QTemporaryDir dir;auto c=Config(dir.path());RunControl control;QSignalSpy states(&control,&RunControl::StatusSignal),warnings(&control,&RunControl::OperationWarningSignal),flags(&control,&RunControl::ControlSignal);control.ConnectSlot(c);QTRY_VERIFY_WITH_TIMEOUT(At(states,1),3000);for(int s=2;s<=4;++s){control.ProgressSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,s),3000);}control.StartRunSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,5),3000);control.DisconnectSlot();QCOMPARE(warnings.size(),1);QVERIFY(flags.last()[1].toBool());control.AcceptOperationWarningSlot(warnings.last()[0].toString());QVERIFY(!flags.last()[1].toBool());
+ }
+ void externalRunningCanBeStoppedAndPendingConfigurationIsWarning(){
+    QTemporaryDir dir;auto c=Config(dir.path());for(auto *mock:QCoreApplication::instance()->findChildren<GetDAQTestFixtures::MockNode *>())for(const auto &node:c.nodes)if(mock->serverPort()==node.eccPort)mock->state=5;
+    RunControl control;QSignalSpy states(&control,&RunControl::StatusSignal),flags(&control,&RunControl::ControlSignal);control.ConnectSlot(c);QTRY_VERIFY_WITH_TIMEOUT(At(states,5),3000);control.StopRunSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,4),3000);QTRY_VERIFY_WITH_TIMEOUT(!flags.last()[2].toBool(),3000);control.DisconnectSlot();
+ }
+ void attachedRunStopDoesNotInventCatalog(){
+    QTemporaryDir dir;auto c=Config(dir.path());for(auto *mock:QCoreApplication::instance()->findChildren<GetDAQTestFixtures::MockNode *>())for(const auto &node:c.nodes)if(mock->serverPort()==node.eccPort)mock->state=5;
+    RunControl control;QSignalSpy states(&control,&RunControl::StatusSignal),warnings(&control,&RunControl::OperationWarningSignal),flags(&control,&RunControl::ControlSignal);control.ConnectSlot(c);QTRY_VERIFY_WITH_TIMEOUT(At(states,5),3000);control.StartRunSlot();if(!warnings.isEmpty())control.AcceptOperationWarningSlot(warnings.last()[0].toString());control.StopRunSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,4),3000);QTRY_VERIFY_WITH_TIMEOUT(!flags.last()[2].toBool(),3000);QVERIFY(!QFileInfo::exists(c.RunDirectory()+"/journal.json"));control.DisconnectSlot();
+ }
+ void localFinalizationFailureAllowsNextRun(){
+    QTemporaryDir dir;auto c=Config(dir.path());RunControl control;QSignalSpy states(&control,&RunControl::StatusSignal),finished(&control,&RunControl::RunFinishedSignal),logs(&control,&RunControl::LogSignal);control.ConnectSlot(c);QTRY_VERIFY_WITH_TIMEOUT(At(states,1),3000);for(int s=2;s<=4;++s){control.ProgressSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,s),3000);}control.StartRunSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,5),3000);
+    QDir records(c.RunDirectory());QVERIFY(records.removeRecursively());QFile blocker(c.RunDirectory());QVERIFY(blocker.open(QIODevice::WriteOnly));blocker.write("preserve");blocker.close();control.StopRunSlot();QTRY_VERIFY_WITH_TIMEOUT(finished.size()==1,7000);QVERIFY(At(states,4));bool warned=false;for(const auto &entry:logs)if(entry[0].toString().contains("records are incomplete"))warned=true;QVERIFY(warned);control.DisconnectSlot();
+ }
+ void onlineMemoryDecoderAndSessionCache(){
+    const auto bytes=GetDAQTestInternal::MakeType1Frame();QTemporaryDir dir;QVERIFY(GetDAQTestInternal::WriteWaveformFixture(dir.filePath("frame.graw"),bytes));const auto memory=GetDAQ::GrawFrameReader::BuildIndex(bytes),file=GetDAQ::GrawFrameReader::BuildIndex(dir.filePath("frame.graw"));QVERIFY(memory.error.isEmpty());QCOMPARE(memory.frames.size(),file.frames.size());QVector<GetDAQ::GrawChannelSamples> a,b;QString error;QVERIFY(GetDAQ::GrawFrameReader::ReadChannels(bytes,memory.frames.first(),2,{7,8},&a,&error));QVERIFY(GetDAQ::GrawFrameReader::ReadChannels(dir.filePath("frame.graw"),file.frames.first(),2,{7,8},&b,&error));QCOMPARE(a.size(),b.size());
+    GetDAQ::OnlineStore store;for(int i=0;i<120;++i){auto frame=bytes;GetDAQTestInternal::Put32BigEndian(&frame,22,i);store.Insert("source",frame);}QVERIFY(store.Snapshot().size()<=100);auto frame=bytes;GetDAQTestInternal::Put32BigEndian(&frame,22,0);store.Insert("source",frame);QCOMPARE(store.Snapshot().size(),1);QVERIFY(store.Statistics().contains("discarded"));
+ }
+ void onlineReceiverHandlesSplitTcpFramesAndMalformedLength(){
+    QTcpServer server;QVERIFY(server.listen(QHostAddress::LocalHost));auto store=std::make_shared<GetDAQ::OnlineStore>();auto *worker=new GetDAQ::OnlineReceiver(store);QThread thread;worker->moveToThread(&thread);connect(&thread,&QThread::finished,worker,&QObject::deleteLater);thread.start();
+    std::unique_ptr<int,std::function<void(int *)>> cleanup(new int,[&](int *p){QMetaObject::invokeMethod(worker,"Stop",Qt::BlockingQueuedConnection);thread.quit();thread.wait();delete p;});
+    const auto endpoint=QString("127.0.0.1:%1").arg(server.serverPort());QMetaObject::invokeMethod(worker,"Connect",Qt::QueuedConnection,Q_ARG(QStringList,QStringList{endpoint}));QTRY_VERIFY_WITH_TIMEOUT(server.hasPendingConnections(),3000);auto *socket=server.nextPendingConnection();const auto frame=GetDAQTestInternal::MakeType1Frame();QByteArray header(8,0);qToLittleEndian<quint64>(frame.size(),reinterpret_cast<uchar *>(header.data()));socket->write(header.left(3));socket->flush();QTest::qWait(20);socket->write(header.mid(3)+frame.left(15));socket->flush();QTest::qWait(20);socket->write(frame.mid(15));socket->flush();QTRY_COMPARE_WITH_TIMEOUT(store->Snapshot().size(),1,3000);qToLittleEndian<quint64>(65ULL*1024*1024,reinterpret_cast<uchar *>(header.data()));socket->write(header);socket->flush();QTRY_VERIFY_WITH_TIMEOUT(store->Statistics().contains("Errors 1"),3000);
+ }
  void yamlAndRetiredProfileGuard(){QTemporaryDir dir;auto c=Config(dir.path());QString error;QVERIFY(c.Save(dir.filePath("envoy.yml"),&error));QFile f(dir.filePath("envoy.yml"));QVERIFY(f.open(QIODevice::ReadOnly));const auto bytes=f.readAll();QVERIFY(!bytes.contains("native_ecc"));QVERIFY(!bytes.contains("simulation"));RunConfig loaded;QVERIFY(loaded.Load(f.fileName(),&error));QCOMPARE(loaded.nodes.size(),2);QCOMPARE(loaded.configDir,c.configDir);QCOMPARE(loaded.outputDir,c.outputDir);c.nativeEcc=true;QVERIFY(!c.Validate(&error));QVERIFY(error.contains("removed"));c.nativeEcc=false;c.simulation=true;QVERIFY(!c.Validate(&error));}
  void remoteReceiverProtocol(){NodeConfig node;node.id=8;node.host="192.0.2.16";node.routerHost="198.51.100.16";node.routerPort=46005;node.exporterPort=0;auto body=Protocol::EccRequest(node,"pedestals","Configure");QVERIFY(body.contains("DataRouter"));QVERIFY(body.contains("198.51.100.16"));QVERIFY(body.contains("46005"));QVERIFY(!body.contains("DataExporter"));QVERIFY(body.contains("CoBo[8]"));}
  void fullSoapLifecycle(){QTemporaryDir dir;auto c=Config(dir.path());RunControl control;QSignalSpy states(&control,&RunControl::StatusSignal),finished(&control,&RunControl::RunFinishedSignal);control.ConnectSlot(c);QTRY_VERIFY_WITH_TIMEOUT(At(states,1),3000);control.ProgressSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,2),3000);control.ProgressSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,3),3000);control.ProgressSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,4),3000);control.StartRunSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,5),3000);control.PauseSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,6),3000);control.ResumeSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,5),3000);control.StopRunSlot();QTRY_VERIFY_WITH_TIMEOUT(finished.size()==1,7000);QVERIFY(At(states,4));QJsonObject journal;QString error;QVERIFY(RunRecorder::ReadJournal(c,&journal,&error));QCOMPARE(journal["phase"].toString(),QString("Complete"));control.DisconnectSlot();}

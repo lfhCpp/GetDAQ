@@ -101,6 +101,12 @@ void MainWindow::InitializeMenus()
 #else
     syncConfiguration->setEnabled(false);
 #endif
+    auto *onlineWaveform=toolsMenu->addAction(tr("Online waveform viewer…"));onlineWaveform->setObjectName("OnlineWaveformViewer");
+    connect(onlineWaveform,&QAction::triggered,this,[this]{auto program=QCoreApplication::applicationDirPath()+"/getdaq-online-waveform-viewer";
+#ifdef Q_OS_WIN
+    program+=".exe";
+#endif
+    QStringList args,seen;for(const auto &node:fConfig.nodes)if(!node.mutant && node.exporterPort>0){const auto endpoint=(node.exporterHost.isEmpty()?node.host:node.exporterHost)+':'+QString::number(node.exporterPort);if(!seen.contains(endpoint)){seen<<endpoint;args<<"--endpoint"<<endpoint;}}if(!QProcess::startDetached(program,args,QDir::homePath()))ShowLogSlot(tr("Cannot start the independent online viewer. Install getdaq-online-waveform-viewer beside GetDAQ."));});
     QMenu *logsMenu=toolsMenu->addMenu(tr("Logs"));
     logsMenu->setObjectName("ToolsLogsMenu");
     QAction *exportLog=logsMenu->addAction(tr("Export combined logs…"));

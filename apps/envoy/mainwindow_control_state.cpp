@@ -39,13 +39,13 @@ void MainWindow::ShowControlSlot(QString phase, bool connected, bool busy, bool 
     for (QWidget *widget : QList<QWidget *>{ui->LoadConfig, ui->SaveConfig, ui->Nodes}) widget->setEnabled(edit);
     ui->Connect->setEnabled(edit);
     const bool stoppedPending=(phase=="Stopped; finalization pending" || phase=="Stopped; catalog inspection required");
-    ui->Disconnect->setEnabled(connected && !busy && (!active || stoppedPending) && !fRemoteRunning);
+    ui->Disconnect->setEnabled(connected);
     ui->Disconnect->setToolTip(stoppedPending
         ? tr("Disconnect from stopped ECC and retain the unfinished Run journal. Background services keep running.")
         : tr("Disconnect from ECC without stopping background services."));
     for (QPushButton *button : {ui->Progress, ui->Regress, ui->NodeProgress, ui->NodeRegress, ui->Recover}) button->setEnabled(connected && !busy && !active);
-    ui->StartRun->setEnabled(connected && !busy && !active);
-    ui->StopRun->setEnabled(connected && !busy && (active || fAutomaticArmed));
+    ui->StartRun->setEnabled(connected);
+    ui->StopRun->setEnabled(connected);
     ui->Finalize->setEnabled(connected && !busy && active);
     fPause->setEnabled(connected && !busy && active && phase=="Running");
     fResume->setEnabled(connected && !busy && active && phase=="Paused");

@@ -73,8 +73,13 @@ def prepare(build,ice):
     cmake+=['target_link_libraries(original-get PUBLIC '+libs+' Threads::Threads ${CMAKE_DL_LIBS})','if(UNIX AND NOT APPLE)\n target_link_libraries(original-get PUBLIC rt)\nendif()']
     cmake+=['add_executable(getEccSoapServer '+ ' '.join(q(p) for p in [main,v/'getbench/src/get/soap/EccSoapServer.cpp',bindings/'eccC.cpp',bindings/'eccServer.cpp',gsoap/'stdsoap2.cpp'])+')','target_link_libraries(getEccSoapServer PRIVATE original-get)']
     dex=ROOT/'third_party/DataExporter/src'
+    preview=build/'preview-exporter'
+    for name in ['DataRouter.cpp','DataRouter.h','Exporter.cpp','Exporter.h','server/TCPServer.cpp','server/TCPServer.h','server/ServerMessage.h']:
+        target=preview/name;target.parent.mkdir(parents=True,exist_ok=True);text=(dex/name).read_text();patch=ROOT/'apps/original-backends'/('preview-'+Path(name).name+'.patch')
+        if patch.exists():text=patcher.apply_patch(text,patch.read_text())
+        target.write_text(text)
     dex_main=build/'DataExporter-main.cpp';dex_main.write_text(patcher.apply_patch((dex/'main.cpp').read_text(),(ROOT/'apps/original-backends/dataexporter-entry.patch').read_text()))
-    cmake+=['add_executable(DataExporter '+q(dex_main)+' '+ ' '.join(q(dex/p) for p in ['DataRouter.cpp','Exporter.cpp','server/TCPServer.cpp'])+')','target_include_directories(DataExporter PRIVATE '+q(dex)+' '+q(dex/'vendor/asio/asio/include')+')','target_link_libraries(DataExporter PRIVATE original-get)']
+    cmake+=['add_executable(DataExporter '+q(dex_main)+' '+ ' '.join(q(preview/p) for p in ['DataRouter.cpp','Exporter.cpp','server/TCPServer.cpp'])+')','target_include_directories(DataExporter PRIVATE '+q(preview)+' '+q(dex)+' '+q(dex/'vendor/asio/asio/include')+')','target_link_libraries(DataExporter PRIVATE original-get)']
     cmake+=['add_executable(dataRouter '+q(router_main)+' '+q(v/'getbench/src/get/daq/DataRouter.cpp')+')','target_link_libraries(dataRouter PRIVATE original-get)']
     (build/'CMakeLists.txt').write_text('\n'.join(cmake)+'\n')
 def main():

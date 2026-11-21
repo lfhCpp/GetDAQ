@@ -1,0 +1,13 @@
+--- a/Exporter.cpp
++++ b/Exporter.cpp
+@@ -29,9 +29,7 @@
+     // cross-thread boundary; all socket/client state is owned by the server's
+     // io_context thread.
+     if (m_server.IsActive()) {
+-        std::vector<uint8_t> buffer;
+-        buffer.insert(buffer.begin(), ((uint8_t *)pData), ((uint8_t *)pData + nbytes));
+-        m_server.MessageClients(DataExporter::ServerMessage(buffer));
++        m_server.TryMessage(reinterpret_cast<const uint8_t *>(pData),nbytes);
+     }
+ }
+ 

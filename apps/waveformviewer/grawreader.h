@@ -2,6 +2,7 @@
 #define GETDAQ_WAVEFORMVIEWER_GRAWREADER_H
 
 #include <QVector>
+#include <QByteArray>
 #include <QString>
 
 #include <array>
@@ -41,6 +42,8 @@ struct GrawChannelSamples {
 
 class GrawFrameReader {
 public:
+    static GrawIndexResult BuildIndex(const QByteArray &bytes, const std::atomic<bool> *cancel = 0,int maximumFrames=2000000);
+    static bool ReadChannels(const QByteArray &bytes,const GrawFrameRecord &frame,int aget,const QVector<int> &channels,QVector<GrawChannelSamples> *traces,QString *error);
     static GrawIndexResult BuildIndex(const QString &path, const std::atomic<bool> *cancel = 0);
     static bool ReadChannels(const QString &path, const GrawFrameRecord &frame,
                             int aget, const QVector<int> &channels,

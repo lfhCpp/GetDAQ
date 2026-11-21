@@ -48,17 +48,21 @@ void RunControl::StartFiles()
     fDeadline->stop();
     fPhase = "Backup and run log"; fBusy = true;
     if (!Journal(fPhase)) { Fail("Cannot persist backup phase."); return; }
-    fFileTask->setFuture(QtConcurrent::run(RunRecorder::Finish, fConfig, fDuration));
+    if(fFileTask->isRunning()){const int sequence=fSequence;QTimer::singleShot(200,this,[this,sequence]{if(sequence==fSequence && fConnected)StartFiles();});return;}
+    fFileSequence=fSequence;fFileTask->setFuture(QtConcurrent::run(RunRecorder::Finish, fConfig, fDuration));
     Publish();
 }
 
 void RunControl::FileFinishedSlot()
 {
     if (fShuttingDown) { emit ShutdownFinishedSignal(); return; }
+    if(fFileSequence!=fSequence || !fConnected)return;
     const QString error = fFileTask->result();
     if (!error.isEmpty()) {
-        fLocalFinalizationFailed=true;fJournal["local_finalization_failed"]=true;
-        Fail("Acquisition was stopped; local finalization failed: " + error + ". Run records remain incomplete. Retry finalization after fixing the path or permissions, or disconnect while every ECC is confirmed Ready; the journal will be retained."); return;
+        fLocalFinalizationFailed=true;fRecordingDegraded=true;fJournal["local_finalization_failed"]=true;
+        Journal("StoppedWithRecordWarning");
+        ReportLog("Acquisition stopped; local records remain incomplete: "+error+". Existing records are retained; manual next Start and Disconnect are available.",Diagnostics::Warning);
+        fReplacementOperationId.clear();CompleteRun();return;
     }
     fLocalFinalizationFailed=false;fJournal.remove("local_finalization_failed");
     if(fCatalogResultUncertain) {
@@ -67,7 +71,7 @@ void RunControl::FileFinishedSlot()
             {"errors",fJournal.value("catalog_errors")},{"automatic_retry",false},{"raw_data_preserved",true}};
         QSaveFile file(QDir(fConfig.RunDirectory()).filePath("catalog-warning.json"));
         const auto bytes=QJsonDocument(warning).toJson();
-        if(!file.open(QIODevice::WriteOnly) || file.write(bytes)!=bytes.size() || !file.commit()) {Fail("Cannot preserve the archive warning receipt: "+file.errorString());return;}
+        if(!file.open(QIODevice::WriteOnly) || file.write(bytes)!=bytes.size() || !file.commit()) {fRecordingDegraded=true;ReportLog("Cannot preserve the archive warning receipt: "+file.errorString(),Diagnostics::Warning);}
         fJournal["archive_status"]="unknown";
         fJournal["closed_with_archive_warning"]=true;
         CancelAutoRun("Archive result is unknown; automatic continuation canceled. Manual next Run is available after checking receiver status.");
@@ -139,8 +143,9 @@ void RunControl::CompleteRun()
     fActive = false; fBusy = false;
     const bool archiveWarning=fJournal.value("closed_with_archive_warning").toBool();
     fCatalogResultUncertain=false;
-    fPhase = archiveWarning ? "Stopped (archive warning)" : fJournal.value("closed_with_retained_previous_run").toBool() ? "Complete (previous Run retained)" : fJournal.value("configuration_backup_status").toString()=="missing" ? "Complete (configuration backup warning)" : "Complete";
-    emit LogSignal((archiveWarning ? QString("Run record saved; archive unconfirmed: ") : QString("Run saved: ")) + fConfig.RunDirectory());
+    fPhase = fRecordingDegraded ? "Stopped (local records warning)" : archiveWarning ? "Stopped (archive warning)" : fJournal.value("closed_with_retained_previous_run").toBool() ? "Complete (previous Run retained)" : fJournal.value("configuration_backup_status").toString()=="missing" ? "Complete (configuration backup warning)" : "Complete";
+    if(fRecordingDegraded){CancelAutoRun("Local records incomplete; automatic continuation canceled.");emit LogSignal("Acquisition stopped; local records are incomplete. Retained records: "+fConfig.RunDirectory());}
+    else emit LogSignal((archiveWarning ? QString("Run record saved; archive unconfirmed: ") : QString("Run saved: ")) + fConfig.RunDirectory());
     const QString snapshot = QDir(fConfig.RunDirectory()).filePath("run.yml");
     const bool openedSnapshot = QFileInfo(fConfig.filePath).absoluteFilePath() == QFileInfo(snapshot).absoluteFilePath();
     ++fConfig.runNumber;
@@ -155,7 +160,8 @@ void RunControl::CompleteRun()
     }
     QString saveError;
     if (!openedSnapshot && !fConfig.filePath.isEmpty() && !fConfig.Save(fConfig.filePath, &saveError)) emit LogSignal("Run complete, but configuration autosave failed: " + saveError);
-    fAutoRun.Completed(fAutoClock.elapsed());
+    if(!fRecordingDegraded)fAutoRun.Completed(fAutoClock.elapsed());
+    fRecordingDegraded=false;
     emit RunFinishedSignal(fConfig.runNumber);
     Publish();
 }

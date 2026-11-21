@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QUuid>
+#include <QStandardPaths>
 #include <QtConcurrent>
 #ifdef Q_OS_LINUX
 #include "deploymentcontroller.h"
@@ -16,10 +17,11 @@ void RunControl::ProgressSlot(int id)
     
     if (!Available() || fActive) return;
 #ifdef Q_OS_LINUX
-    if(!fConfig.deploymentProject.isEmpty() && AllAt(All(),1) && !fProjectConfigurationChecked){
-        fBusy=true;fPhase="Checking project configuration before Describe";Publish();const auto config=fConfig;auto *watcher=new QFutureWatcher<QPair<RunConfig,QString>>(this);
-        connect(watcher,&QFutureWatcher<QPair<RunConfig,QString>>::finished,this,[this,watcher,id]{const auto result=watcher->result();watcher->deleteLater();fBusy=false;if(fShuttingDown)return;if(!result.second.isEmpty()){fPhase="Configuration sync needs attention";ReportLog(result.second,Diagnostics::Warning);Publish();return;}
-            fConfig.configurationBackupWarning=result.first.configurationBackupWarning;fConfig.configurationSnapshot=result.first.configurationSnapshot;emit ConfigurationSnapshotSignal(fConfig.configurationSnapshot);fProjectConfigurationChecked=true;ProgressSlot(id);fProjectConfigurationChecked=false;
+    if(!fConfig.deploymentProject.isEmpty() && !All().isEmpty() && !fProjectConfigurationChecked){
+        fBusy=true;fPhase="Checking project configuration before Describe";Publish();const auto config=fConfig;const int sequence=fSequence;auto *watcher=new QFutureWatcher<QPair<RunConfig,QString>>(this);
+        connect(watcher,&QFutureWatcher<QPair<RunConfig,QString>>::finished,this,[this,watcher,id,sequence]{const auto result=watcher->result();watcher->deleteLater();if(sequence!=fSequence || !fConnected)return;fBusy=false;if(fShuttingDown)return;if(!result.second.isEmpty()){fPhase="Configuration sync warning";ReportLog(result.second,Diagnostics::Warning);Publish();
+            if(ConfirmWarnings("Progress",{result.second+" Continue the requested ECC operation with existing project files?"},[this,id]{fProjectConfigurationChecked=true;ProgressSlot(id);fProjectConfigurationChecked=false;})){fProjectConfigurationChecked=true;ProgressSlot(id);fProjectConfigurationChecked=false;}return;}
+            fCandidateBackupWarning=result.first.configurationBackupWarning;fCandidateConfigurationSnapshot=result.first.configurationSnapshot;fProjectConfigurationChecked=true;ProgressSlot(id);fProjectConfigurationChecked=false;
         });watcher->setFuture(QtConcurrent::run([config]{try{Deployment::OperationScope scope({},30000);return qMakePair(Deployment::RefreshProjectRunConfiguration(config),QString());}catch(const std::exception &error){return qMakePair(config,QString::fromUtf8(error.what()));}}));return;
     }
 #endif
@@ -56,20 +58,25 @@ void RunControl::SetOfflineToolsOpenSlot(bool open) {
 
 void RunControl::StartRunSlot(bool replaceCompletedRun, bool acceptExistingIncoming)
 {
-    if(fOfflineToolsOpen){ReportLog("Control rejected Run start while an offline data tool is open. Close its window first.",Diagnostics::Warning);return;}
+
     const auto view=AutoRunView();
     if(!fAutomaticDispatch && view.connected && !view.busy && !view.active && view.ready && view.canControl)
         fAutoRun.ManualStart(fAutoClock.elapsed(),view);
     
-    if (!Available() || fActive) return;
-    if (!AllAt(All(), 4)) { emit LogSignal("Start requires every ECC in Ready with fresh status."); return; }
+    if(!fConnected || All().isEmpty()){emit LogSignal("Connect a valid ECC target first.");return;}
+    if(fBusy && fStep>=0){fDeferredAction=[this,replaceCompletedRun,acceptExistingIncoming]{StartRunSlot(replaceCompletedRun,acceptExistingIncoming);};emit LogSignal("Start queued behind the in-flight hardware command.");return;}
+    for(int id:Cobos())if(fStatus[id].sentryOnline && fStatus[id].totalGB>0 && fStatus[id].availableGB<=0){ReportLog("Receiver reports a full raw-data disk; correct raw recording before Start.",Diagnostics::Error);return;}
+    QStringList warnings;
+    if(fActive || fBusy)warnings<<"Local Run bookkeeping is unfinished; retain it and continue using observed hardware state.";
+    if(!AllAt(All(),4) && !AllAt(All(),5))warnings<<"Not every ECC is freshly Ready. Continue sends Start once; ECC decides whether it is allowed.";
+    if(fOfflineToolsOpen)warnings<<"An offline tool is open. Viewing remains independent; avoid changing files being acquired.";
+    for(int id:Cobos()){const auto &s=fStatus[id];if(s.projectConfigurationPending)warnings<<QString("Node %1 has a newer configuration; this does not change the hardware's last configured version.").arg(id);if(!s.sentryOnline || s.availableGB<=0)warnings<<QString("Node %1 receiver monitoring or disk information is unavailable. Verify raw recording before continuing.").arg(id);}
+    if(!ConfirmWarnings("Start",warnings,[this,replaceCompletedRun,acceptExistingIncoming]{StartRunSlot(replaceCompletedRun,acceptExistingIncoming);}))return;
+    if(AllAt(All(),5)){fActive=true;fBusy=false;fPhase="Running";fJournal=QJsonObject{{"phase","Attached to existing Running ECC"},{"untracked",true}};fRunClock.start();Publish();return;}
+    if(fActive || fBusy){Journal("Previous local work retained before operator-approved next Start");++fSequence;fActive=false;fBusy=false;fStep=-1;fAwaitCatalog.clear();fAwaitReplacementCleanup.clear();for(auto *s:fSentry)s->Cancel();}
     QJsonArray retainedIncoming;
     for (int id : Cobos()) {
         const auto &status=fStatus[id];
-        if(status.projectConfigurationPending && fConfig.syncConfiguration){ReportLog("Configuration update is pending. Return project ECCs to Idle and sync, or restart the project services before Prepare/Configure; no Run was started.",Diagnostics::Warning);return;}
-        if (!status.sentryOnline || status.availableGB <= 0) {
-            emit LogSignal("Start requires healthy sentries and available disk space."); return;
-        }
         if((status.projectFiles>=0?status.projectFiles:status.files)!=0) {
             retainedIncoming.append(QJsonObject{{"node_id",id},{"data_path",status.dataPath},{"files",status.projectFiles>=0?status.projectFiles:status.files},{"data_written_gb",status.writtenGB}});
         }
@@ -88,8 +95,13 @@ void RunControl::StartRunSlot(bool replaceCompletedRun, bool acceptExistingIncom
         return;
     }
     QString error;
-    if (!RunRecorder::Reserve(fConfig, replaceCompletedRun, &error)) { CancelAutoRun("Automatic Run canceled: Run reservation failed."); ReportLog(error + " Use another run number, or Recover the existing journal.",Diagnostics::Error); return; }
-    if (!RunRecorder::ReadJournal(fConfig, &fJournal, &error)) { emit LogSignal(error); return; }
+    if ((fFileTask && fFileTask->isRunning()) || !RunRecorder::Reserve(fConfig,replaceCompletedRun,&error)) {
+        if(QFileInfo::exists(fConfig.RunDirectory()) && !replaceCompletedRun && !(fFileTask && fFileTask->isRunning())){ReportLog(error+" Explicit same-Run replacement confirmation is required.",Diagnostics::Warning);return;}
+        if(!ConfirmWarnings("Local records",{error+" Use a separate fallback records directory; raw data is not moved."},[this,replaceCompletedRun,acceptExistingIncoming]{StartRunSlot(replaceCompletedRun,acceptExistingIncoming);}))return;
+        fConfig.outputDir=QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)+"/degraded-runs/"+QUuid::createUuid().toString(QUuid::WithoutBraces);emit RecordingDirectorySignal(fConfig.outputDir);replaceCompletedRun=false;
+        if(!RunRecorder::Reserve(fConfig,false,&error)){fJournal=QJsonObject{{"recording_degraded",true}};ReportLog("Warning: volatile Run metadata only: "+error,Diagnostics::Warning);}
+    }
+    if (!RunRecorder::ReadJournal(fConfig, &fJournal, &error)) { fJournal=QJsonObject{{"recording_degraded",true}};emit LogSignal("Warning: "+error); }
     if(!retainedIncoming.isEmpty()) {
         fJournal["existing_incoming_acknowledged"]=true;
         if (replaceCompletedRun) fJournal["same_run_existing_incoming_acknowledged"]=true;
@@ -123,10 +135,13 @@ void RunControl::StopRunSlot()
 {
     if(!fAutomaticDispatch)CancelAutoRun("Automatic Run canceled: manual Run stop");
     
-    if (!Available()) return;
+    if(!fConnected || All().isEmpty()){emit LogSignal("No connected ECC targets for Stop.");return;}
+    if(fBusy && fStep>=0){fDeferredAction=[this]{StopRunSlot();};emit LogSignal("Stop queued with priority behind the accepted hardware command.");return;}
+    if(fBusy){++fSequence;fBusy=false;fAwaitCatalog.clear();fAwaitReplacementCleanup.clear();for(auto *s:fSentry)s->Cancel();}
     bool running = false;
     for (int id : All()) if (fStatus[id].state == 5 || fStatus[id].state == 6) running = true;
-    if (!fActive && !running) { emit LogSignal("No active or observed running acquisition."); return; }
+    if(!fActive && !running && !AllAt(All(),4) && !ConfirmWarnings("Stop",{"No fresh Running state. Send Stop once and let ECC report its result?"},[this]{StopRunSlot();}))return;
+    if(AllAt(All(),4) && !fActive){emit LogSignal("ECC already Ready; no duplicate Stop needed.");Publish();return;}
     QVector<Step> plan;
     if (fMutant >= 0) plan.append({{fMutant}, "Stop", 4});
     plan.append({Cobos(), "Stop", 4});

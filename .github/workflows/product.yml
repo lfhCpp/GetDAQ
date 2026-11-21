@@ -39,3 +39,7 @@ jobs:
           cmake -S third_party/ice-compat -B build-ci/full/native -DGETDAQ_BUILD_COBO_INFO_FIXTURE=ON
           cmake --build build-ci/full/native --parallel 2 --target cobo-info-fixture getdaq-cobo-info
           python3 tests/cobo_info_integration.py build-ci/full/native/getdaq-cobo-info build-ci/full/native/cobo-info-fixture
+      - name: Build online preview decoder probe
+        run: mkdir -p build-online-probe && cd build-online-probe && qmake ../tests/online_waveform_probe.pro && make -j2
+      - name: Test bounded DataExporter preview with a stalled client
+        run: python3 tests/preview_backpressure.py dist/bin --viewer-probe build-online-probe/online-waveform-probe --evidence build-ci/preview-evidence

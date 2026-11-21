@@ -30,6 +30,7 @@ private:
     QPlainTextEdit *fLog;
     QWidget *fControls;
     bool fBusy=false;
+    bool fConfigurationWarningAccepted=false;
     bool fCloseAfterWait=false;
     QLabel *fWaitStatus;
     QLabel *fPathSummary;

@@ -13,6 +13,12 @@
 void MainWindow::InitializeRunControl()
 {
     fRunControl->moveToThread(&fControlThread);
+    connect(this,&MainWindow::CancelOperationWarningSignal,fRunControl,&RunControl::CancelOperationWarningSlot);
+    connect(this,&MainWindow::AcceptOperationWarningSignal,fRunControl,&RunControl::AcceptOperationWarningSlot);
+    connect(fRunControl,&RunControl::RecordingDirectorySignal,this,[this](const QString &path){fConfig.outputDir=path;});
+    connect(fRunControl,&RunControl::OperationWarningSignal,this,[this](const QString &token,const QString &summary){
+        if(QMessageBox::warning(this,tr("Continue with warnings?"),summary,QMessageBox::Yes|QMessageBox::Cancel,QMessageBox::Cancel)==QMessageBox::Yes)emit AcceptOperationWarningSignal(token);else emit CancelOperationWarningSignal(token);
+    });
     connect(&fControlThread, &QThread::finished, fRunControl, &QObject::deleteLater);
     connect(this, &MainWindow::ConnectSignal, fRunControl, &RunControl::ConnectSlot);
     connect(this, &MainWindow::UpdateRunMetadataSignal, fRunControl, &RunControl::UpdateRunMetadataSlot);

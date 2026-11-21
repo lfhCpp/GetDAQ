@@ -154,6 +154,24 @@ def main():
   for group in groups:group['sync_configuration']=False
   (source/'resource.dat').write_bytes(b'cached-only');disabled_release=upload(groups)
   disabled=terminal(nodes[1],dict(schema=1,operation_id='sync-disabled',action='sync',release_id=disabled_release,group_id='group1',role='ecc'));require(disabled['configuration_sync']['state']=='disabled','Sync checkbox was ignored');require((data_folder/'resource.dat').read_bytes()==b'updated-resource','Disabled synchronization replaced project files');checks.append('disabled synchronization caches delivery without replacing project files')
+  # Files can be synchronized in Ready/Running; no hardware transition is sent.
+  from http.server import BaseHTTPRequestHandler,HTTPServer
+  import threading
+  observed_state=[4];queries=[]
+  class EccObservation(BaseHTTPRequestHandler):
+   def do_POST(self):
+    queries.append(self.rfile.read(int(self.headers.get('Content-Length','0'))));body=('<Envelope><State>'+str(observed_state[0])+'</State><Transition>0</Transition><ErrorCode>0</ErrorCode></Envelope>').encode();self.send_response(200);self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
+   def log_message(self,*args):pass
+  observation=HTTPServer(('127.0.0.1',0),EccObservation);observing=threading.Thread(target=observation.serve_forever,daemon=True);observing.start()
+  try:
+   groups[0]['ecc']['port']=observation.server_port;groups[0]['sync_configuration']=True
+   for state in [4,5]:
+    observed_state[0]=state;(source/'resource.dat').write_bytes(('files-in-state-'+str(state)).encode());live_release=upload(groups);applied=terminal(nodes[0],dict(schema=1,operation_id='sync-state-'+str(state),action='sync',release_id=live_release,group_id='group1',role='ecc',configuration_warning_accepted=True));require(applied['configuration_sync']['state']=='applied','Non-Idle state blocked configuration sync')
+   require(all(b'GetState' in query for query in queries),'File synchronization sent a hardware command');checks.append('Ready and Running accept acknowledged file synchronization without Idle or hardware transitions')
+  finally:observation.shutdown();observation.server_close()
+  # Explicit re-pair revokes the old credential while retaining all instance/raw records.
+  before_files={p.name:p.read_bytes() for p in (nodes[0]['root']/'instances').glob('*.json')};old_token=nodes[0]['token'];run(programs/'getdaq-node-agent','--config',nodes[0]['root']/'node.json','--request-repair');wait(lambda:(nodes[0]['root']/'pairing.json').exists() and not (nodes[0]['root']/'re-pair.request').exists())
+  require(request(nodes[0],'GET','/v1/inventory',token=old_token)[0]==401,'Old master credential was not revoked');invitation=json.loads((nodes[0]['root']/'pairing.json').read_text());pair=dict(pairing_code=invitation['pairing_code'],repository_id=repository_id,repository_url='https://127.0.0.1:'+str(repository['port']),repository_certificate_sha256=repository['pin'],repository_token=reader);code,body=request(nodes[0],'POST','/v1/pair',pair);require(code==200,'Re-pair failed');nodes[0]['token']=json.loads(body)['credential'];require(request(nodes[0],'GET','/v1/inventory',token=nodes[0]['token'])[0]==200,'New master cannot observe instances');require(before_files=={p.name:p.read_bytes() for p in (nodes[0]['root']/'instances').glob('*.json')},'Re-pair altered deployed instance records');require((data_folder/'preserve.graw').read_bytes()==b'old-raw','Re-pair changed raw data');checks.append('explicit slave re-pair revokes consumed credentials, enrolls with a fresh code, and retains backend/raw records')
   result=dict(passed=True,checks=checks,real_hardware=False,physical_multi_host=False,distinct_control_data_ip=data_ip!='127.0.0.1');(root/'result.json').write_text(json.dumps(result,indent=2)+'\n');print('PASS',len(checks),'unified project checks;',root)
  finally:
   for entry in Path('/proc').iterdir():

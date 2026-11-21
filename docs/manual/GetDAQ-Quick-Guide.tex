@@ -160,7 +160,7 @@ ECC 端口填\textbf{目标服务实际监听的端口}，并让软件检查服�
 主控维护实验源文件；从控接收同一版本并缓存到本机。\textbf{不要把主控电脑的绝对路径当作从控本地路径}，也不要在从控另改一份缓存配置。
 项目目录是 ECC、接收器和 Sentry 的实际工作目录，配置直接放在根目录，原始数据也写在这里。
 主控源目录默认安装目录下的 \code{config}，可 Browse 修改；保留 \ui{Sync configuration to project folders} 勾选。
-用 Tools 中的 \ui{Sync project configuration…} 选择本机、从机或全部主机。整目录分发，从机缓存后自动应用；活动配置变化先暂存，Idle / 停服务后应用，旧配置有备份，原始数据不删除。
+用 Tools 中的 \ui{Sync project configuration…} 选择本机、从机或全部主机。整目录分发，从机缓存后自动应用；活动配置变化确认后可同步；已知硬件转换期间等待命令完成，同步不改变板卡已加载参数，旧配置有备份，原始数据不删除。
 Describe ID 为 \code{cobo0} 对应 \code{describe-cobo0}，Prepare / Configure ID 为 \code{pedestals} 都对应 \code{configure-pedestals}。
 原日志区域可切换 Event、ECC、接收器和 Sentry 日志，右侧选择主机 / 实例。
 Linux 主从部署的管理入口常见端口为 24260，配置服务常见端口为 24250；它们都不是采集数据端口。

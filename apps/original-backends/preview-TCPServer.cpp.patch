@@ -1,0 +1,164 @@
+--- a/server/TCPServer.cpp
++++ b/server/TCPServer.cpp
+@@ -2,6 +2,8 @@
+ 
+ #include <algorithm>
+ #include <iostream>
++#include <chrono>
++namespace { std::atomic<uint64_t> previewDropped{0}; }
+ 
+ namespace DataExporter
+ {
+@@ -21,7 +23,7 @@
+         // Connection objects are owned and manipulated by the io_context thread.
+         std::error_code ec;
+         m_socket.close(ec);
+-        m_queue.clear();
++        m_queue.clear();m_queueBytes=0;
+         m_activeHeader.reset();
+     }
+ 
+@@ -30,8 +32,10 @@
+         if (!m_socket.is_open())
+             return;
+ 
++        while((m_queueBytes+message.size>64ULL*1024*1024 || m_queue.size()>=64) && m_queue.size()>1){auto old=m_queue.begin()+1;m_queueBytes-=old->size;m_queue.erase(old);++previewDropped;}
++        if(m_queueBytes+message.size>64ULL*1024*1024 || m_queue.size()>=64){++previewDropped;return;}
+         const bool wasEmpty = m_queue.empty();
+-        m_queue.push_back(message);
++        m_queue.push_back(message);m_queueBytes+=message.size;
+ 
+         if (wasEmpty)
+             WriteHeader();
+@@ -45,10 +49,11 @@
+         // The header must remain alive until async_write completes.
+         m_activeHeader = std::make_shared<uint64_t>(m_queue.front().size);
+         Ref self = shared_from_this();
++        auto header=m_activeHeader;auto payload=m_queue.front().body;
+ 
+         asio::async_write(m_socket,
+                           asio::buffer(m_activeHeader.get(), sizeof(*m_activeHeader)),
+-                          [self](std::error_code ec, std::size_t /*length*/)
++                          [self,header,payload](std::error_code ec, std::size_t /*length*/)
+                           {
+                               if (ec)
+                               {
+@@ -68,7 +73,7 @@
+                                   self->WriteBody();
+                               else
+                               {
+-                                  self->m_queue.pop_front();
++                                  {self->m_queueBytes-=self->m_queue.front().size;self->m_queue.pop_front();}
+                                   if (!self->m_queue.empty())
+                                       self->WriteHeader();
+                               }
+@@ -81,13 +86,14 @@
+             return;
+ 
+         Ref self = shared_from_this();
++        auto header=m_activeHeader;auto payload=m_queue.front().body;
+         ServerMessage &message = m_queue.front();
+ 
+         // The front message remains in m_queue until this operation completes,
+         // so its vector storage remains valid for the complete async write.
+         asio::async_write(m_socket,
+-                          asio::buffer(message.body.data(), message.body.size()),
+-                          [self](std::error_code ec, std::size_t /*length*/)
++                          asio::buffer(message.body->data(), message.body->size()),
++                          [self,header,payload](std::error_code ec, std::size_t /*length*/)
+                           {
+                               if (ec)
+                               {
+@@ -99,7 +105,7 @@
+                               }
+ 
+                               if (!self->m_queue.empty())
+-                                  self->m_queue.pop_front();
++                                  {self->m_queueBytes-=self->m_queue.front().size;self->m_queue.pop_front();}
+ 
+                               if (!self->m_queue.empty())
+                                   self->WriteHeader();
+@@ -110,7 +116,7 @@
+         : m_acceptorPort(serverPort),
+           m_context(),
+           m_acceptor(m_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), serverPort)),
+-          m_running(false)
++          m_reportTimer(m_context),m_running(false)
+     {
+     }
+ 
+@@ -126,7 +132,7 @@
+ 
+         try
+         {
+-            WaitForClient();
++            WaitForClient();ReportPreviewStats();
+             m_ioThread = std::thread([this]()
+                                      {
+                                          try
+@@ -174,22 +180,26 @@
+         std::cout << "Server has been shutdown." << std::endl;
+     }
+ 
+-    void TCPServer::MessageClients(const ServerMessage &message)
+-    {
+-        // This is the only cross-thread boundary. Never touch m_clients or a
+-        // connection from the acquisition thread.
+-        if (!m_running.load())
+-            return;
+-
+-        asio::post(m_context,
+-                   [this, message]()
+-                   {
+-                       // A message may have been queued immediately before shutdown.
+-                       if (!m_running.load())
+-                           return;
+-
+-                       MessageClientsOnIoThread(message);
+-                   });
++    void TCPServer::MessageClients(const ServerMessage &message){if(message.body)TryMessage(message.body->data(),message.size);}
++    void TCPServer::TryMessage(const uint8_t *data,size_t bytes){
++        if(!m_running.load() || !m_clientCount.load() || !bytes)return;
++        if(bytes>64ULL*1024*1024){++previewDropped;return;}
++        std::unique_lock<std::mutex> lock(m_previewMutex,std::try_to_lock);
++        if(!lock.owns_lock()){++previewDropped;return;}
++        while(!m_pending.empty() && (m_pendingBytes+bytes>128ULL*1024*1024 || m_pending.size()>=256)){m_pendingBytes-=m_pending.front().size;m_pending.pop_front();++previewDropped;}
++        m_pending.emplace_back(data,bytes);m_pendingBytes+=bytes;
++        if(!m_drainScheduled){m_drainScheduled=true;asio::post(m_context,[this]{DrainPreview();});}
++    }
++    void TCPServer::ReportPreviewStats(){
++        m_reportTimer.expires_after(std::chrono::seconds(1));m_reportTimer.async_wait([this](std::error_code ec){if(ec || !m_running.load())return;static uint64_t last=0;const auto current=previewDropped.load();if(current!=last){std::cerr<<"Preview frames discarded: "<<current<<std::endl;last=current;}ReportPreviewStats();});
++    }
++    void TCPServer::DrainPreview(){
++        ServerMessage message;
++        {std::lock_guard<std::mutex> lock(m_previewMutex);if(m_pending.empty() || !m_running.load()){m_pending.clear();m_pendingBytes=0;m_drainScheduled=false;return;}message=m_pending.front();m_pending.pop_front();m_pendingBytes-=message.size;}
++        MessageClientsOnIoThread(message);
++        static auto reported=std::chrono::steady_clock::now();static uint64_t last=0;
++        auto now=std::chrono::steady_clock::now();if(now-reported>std::chrono::seconds(1) && previewDropped.load()!=last){last=previewDropped.load();std::cerr<<"Preview frames discarded: "<<last<<std::endl;reported=now;}
++        asio::post(m_context,[this]{DrainPreview();});
+     }
+ 
+     void TCPServer::MessageClientsOnIoThread(const ServerMessage &message)
+@@ -214,6 +224,7 @@
+                 it = m_clients.erase(it);
+             }
+         }
++        m_clientCount.store(unsigned(m_clients.size()));
+     }
+ 
+     void TCPServer::WaitForClient()
+@@ -227,12 +238,12 @@
+                 if (!m_running.load())
+                     return;
+ 
+-                if (!ec)
++                if (!ec && m_clients.size()<4)
+                 {
+                     std::cout << "Server connection to new client: "
+                               << socket.remote_endpoint() << std::endl;
+                     m_clients.push_back(
+-                        std::make_shared<TCPServerConnection>(std::move(socket)));
++                        std::make_shared<TCPServerConnection>(std::move(socket)));m_clientCount.store(unsigned(m_clients.size()));
+                 }
+                 else if (ec != asio::error::operation_aborted)
+                 {

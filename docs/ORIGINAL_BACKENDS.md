@@ -147,8 +147,10 @@ Original SOAP ECC, DataExporter / DataRouter and shared Sentry run in that direc
 Receiver control and data interfaces are separate settings. No per-instance raw
 subdirectory is added for new project groups.
 
-Configuration changes are staged while hardware is not confirmed Idle; they are
-applied after services stop or before the next Describe. Existing raw files, Run
+Configuration files can be synchronized in any stable ECC state after an operator
+warning when instances are active. A known in-flight hardware transition defers
+replacement; unknown state requires acknowledgment. File synchronization does not
+configure hardware or force it back to Idle. Existing raw files, Run
 records and logs remain. Changed configurations are backed up. Tools → Sync project
 configuration supports local, selected remote, or all hosts. Sync can be disabled
 explicitly, in which case configuration backup is marked unverified.

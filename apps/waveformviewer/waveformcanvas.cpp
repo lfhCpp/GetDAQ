@@ -60,7 +60,7 @@ void WaveformCanvas::paintEvent(QPaintEvent *)
         const int legendRows = (fTraces.size() + legendColumns - 1) / legendColumns;
         const qreal legendHeight = legendRows * 15;
         if (!fHasData) {
-            painter.drawText(rect(), Qt::AlignCenter, tr("Open a .graw or .gmat waveform file"));return;
+            painter.drawText(rect(), Qt::AlignCenter, (property("emptyMessage").toString().isEmpty()?tr("Open a .graw or .gmat waveform file"):property("emptyMessage").toString()));return;
         }
         double minimum=std::numeric_limits<double>::infinity(),maximum=-minimum;
         for(const auto &trace:fTraces)for(const auto &point:trace.samples)if(std::isfinite(point.y())){minimum=qMin(minimum,point.y());maximum=qMax(maximum,point.y());}
