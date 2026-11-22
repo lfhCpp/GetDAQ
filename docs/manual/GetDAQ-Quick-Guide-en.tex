@@ -212,7 +212,7 @@ Tools → Waveform viewer opens .graw/.gmat. Open waveform selects a file; Event
 Tools → Online waveform viewer starts an independent process. Select a current DataExporter or all configured exporters; it uses the configured preview export port, not the incoming board-data port. Then select Source, CoBo, AsAd and AGET. Refresh interval controls display updates (100–10000 ms; default 1000 ms). Follow latest tracks matching events; uncheck it or use Event ID / Go to freeze a cached event while receiving continues.
 
 \subsection*{Memory counters}
-Cache is current raw-frame payload, bounded by 100 events, 4096 frames or 256 MiB. Old events are evicted. Received total is only a cumulative byte counter. A frozen event, decoding and network buffers use additional bounded memory. New session clears preview frames; closing the viewer releases its process memory. Preview may drop frames; raw recording is independent.
+Cache is current raw-frame payload, bounded by 100 events, 4096 frames or 256 MiB. Old events are evicted. Received total is only a cumulative byte counter. A frozen event, decoding and network buffers use additional bounded memory. New session clears preview frames; closing the viewer releases its process memory. Pause preview disconnects forwarding to reduce load; raw recording continues. After a disconnection, click Reconnect preview: automatic retries are disabled.
 
 \subsection*{3D axes and controls}
 \begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule

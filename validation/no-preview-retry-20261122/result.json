@@ -1,0 +1,16 @@
+{
+  "automatic_preview_retry": false,
+  "manual_reconnect_button": "Reconnect preview",
+  "tests_passed": [
+    "server disconnect does not reconnect after 2400 ms",
+    "manual reconnect adds exactly one connection",
+    "Pause preview stays disconnected after 2300 ms",
+    "existing adjustable refresh and frozen event tests",
+    "TCP split-frame and invalid-length regression",
+    "embedded Chinese and English guides"
+  ],
+  "backend_source_modified": false,
+  "main_ui_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec",
+  "target_services_restarted": false,
+  "hardware_commands_sent": false
+}

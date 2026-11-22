@@ -134,9 +134,9 @@ Tools → Logs → <b>Export combined logs…</b> 导出 TXT，按 GUI 接收时
 Tools 中打开波形查看器，Open waveform 选文件；用 Event ID / Go to event 选事件，Frame 选该事件的帧，AGET 选芯片，Channels… 勾选通道。
 <code>.gmat</code> 没有真实事件号，用帧号选择。PNG / CSV 从 <b>Export plot/data…</b> 导出。
 <h2>在线：独立连接 DataExporter</h2>
-Tools → <b>Online waveform viewer…</b>。直接从 <b>DataExporter</b> 选择框选择当前配置中的实例或全部实例，软件自动使用受管项目的导出地址，不再手填 IP。外部接收器在连接配置中选择 DataExporter 和预览端口（常见 46491），也可在 Nodes / Paths 设置 Preview host / Preview TCP port。选择后自动连接，再选 Source、CoBo、AsAd、AGET 与通道。<br/><br/>
+Tools → <b>Online waveform viewer…</b>。DataExporter 选择当前配置的实例或全部实例，自动连接预览地址。外部接收器在 Nodes / Paths 配置 Preview host / Preview TCP port（常见 46491）。再选 Source、CoBo、AsAd、AGET 与通道。<br/><br/>
 Refresh interval 调节显示间隔（默认 1000 ms，范围 100～10000 ms）。Follow latest 跟随匹配事件；取消后固定查看，接收继续。Cache 限 100 事件 / 4096 帧 / 256 MiB 并自动淘汰；Received total 仅累计计数，不保留等量数据。
-预览允许丢帧，正常落盘优先。关闭查看器不停止后台。
+预览允许丢帧，正常落盘优先。Pause preview 断开预览以减负载，落盘继续。断线不自动重连，需点 Reconnect preview。关闭查看器不停止后台。
 旧 DataRouter 必须确实提供相同 TCP 导出协议才能在线预览，普通接收服务不会自动具备该功能。
 <h2>3D：三个轴和逐通道间距</h2>
 <br/><br/> <table cellspacing="0" cellpadding="7"><tr><th>轴 / 操作</th><th>含义</th></tr><tr><td>Time (sample bucket)</td><td>时间方向显示采样桶 0--511；未核对采样频率时不直接标为 ns。</td></tr><tr><td>Amplitude (ΔADC / ADC)</td><td>默认 Align baselines 减去各通道中位数基线，零参考等距；取消后显示绝对 ADC。共用幅度尺度，原始值保留。</td></tr><tr><td>Channel number</td><td>纵深轴，标注实际选中通道号；通道之间独立，不插值成曲面。</td></tr><tr><td>拖动 / 滚动</td><td>左键拖动调纵深角度；普通滚轮滚动多通道图；Ctrl+滚轮调通道间距；双击重置。</td></tr></table><br/><br/> 

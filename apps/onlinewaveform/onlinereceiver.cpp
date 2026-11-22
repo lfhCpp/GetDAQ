@@ -12,8 +12,8 @@ void OnlineReceiver::Connect(QStringList endpoints){
  auto c=std::make_shared<Connection>();c->endpoint=endpoint;c->socket=new QTcpSocket(this);c->socket->setReadBufferSize(256*1024);clients.append(c);
  connect(c->socket,&QTcpSocket::readyRead,this,[this,c]{Read(c);});
  connect(c->socket,&QTcpSocket::connected,this,[this,c]{store->Reset();QMutexLocker lock(&store->mutex);store->links[c->endpoint]="Connected";});
- connect(c->socket,&QTcpSocket::disconnected,this,[this,c,url]{Release(c);{QMutexLocker lock(&store->mutex);store->links[c->endpoint]="Disconnected; retrying";}if(!stopped)QTimer::singleShot(2000,c->socket,[this,c,url]{if(!stopped && clients.contains(c) && c->socket->state()==QAbstractSocket::UnconnectedState)c->socket->connectToHost(url.host(),quint16(url.port()));});});
- connect(c->socket,QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error),this,[this,c,url](QAbstractSocket::SocketError){QMutexLocker lock(&store->mutex);store->links[c->endpoint]=c->socket->errorString();if(!stopped && c->socket->state()==QAbstractSocket::UnconnectedState)QTimer::singleShot(2000,c->socket,[this,c,url]{if(!stopped && clients.contains(c) && c->socket->state()==QAbstractSocket::UnconnectedState)c->socket->connectToHost(url.host(),quint16(url.port()));});});
+ connect(c->socket,&QTcpSocket::disconnected,this,[this,c]{Release(c);QMutexLocker lock(&store->mutex);store->links[c->endpoint]="Disconnected; click Reconnect preview (automatic retry is off)";});
+ connect(c->socket,QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error),this,[this,c](QAbstractSocket::SocketError){QMutexLocker lock(&store->mutex);store->links[c->endpoint]=c->socket->errorString()+"; automatic retry is off";});
  c->socket->connectToHost(url.host(),quint16(url.port()));
  }
 }

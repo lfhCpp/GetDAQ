@@ -20,6 +20,10 @@ private slots:
      send(1234);QTRY_COMPARE_WITH_TIMEOUT(quint32(events->currentData().toULongLong()),quint32(1234),3000);QTRY_VERIFY_WITH_TIMEOUT(!canvas->Traces().isEmpty(),3000);
      follow->setChecked(false);for(int i=1235;i<1355;++i)send(i);QTest::qWait(500);QCOMPARE(quint32(events->currentData().toULongLong()),quint32(1234));QVERIFY(!canvas->Traces().isEmpty());
      follow->setChecked(true);QTRY_COMPARE_WITH_TIMEOUT(quint32(events->currentData().toULongLong()),quint32(1354),3000);send(1355,1);QTest::qWait(300);QCOMPARE(quint32(events->currentData().toULongLong()),quint32(1354));QCOMPARE(connections,1);
+     // A dropped preview must remain disconnected until explicitly requested.
+     peer->abort();QTest::qWait(2400);QCOMPARE(connections,1);QVERIFY(!server.hasPendingConnections());
+     window.findChild<QPushButton *>("OnlineReconnectPreview")->click();QTRY_COMPARE_WITH_TIMEOUT(connections,2,3000);QVERIFY(server.hasPendingConnections());auto *second=server.nextPendingConnection();
+     auto *pause=window.findChild<QCheckBox *>("OnlinePausePreview");pause->setChecked(true);QTRY_VERIFY_WITH_TIMEOUT(second->state()==QAbstractSocket::UnconnectedState,3000);QTest::qWait(2300);QCOMPARE(connections,2);QVERIFY(!server.hasPendingConnections());
      period->setValue(2500);QCOMPARE(timer->interval(),2500);QCOMPARE(QSettings().value("display/refresh-ms").toInt(),2500);
     }
     OnlineWindow reopened({},QString());QCOMPARE(reopened.findChild<QSpinBox *>("OnlineRefreshInterval")->value(),2500);QCOMPARE(reopened.findChild<QTimer *>("OnlineDisplayTimer")->interval(),2500);
