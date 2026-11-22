@@ -10,12 +10,27 @@
 
 
 
+QString DefaultWorkspaceDirectory()
+{
+    const auto selected=qEnvironmentVariable("GETDAQ_WORKSPACE").trimmed();
+    return QDir::cleanPath(!selected.isEmpty() && QDir::isAbsolutePath(selected) ? selected : QDir(QDir::homePath()).filePath("GetDAQ"));
+}
+
+QString DefaultNodeCacheDirectory()
+{
+    const auto visible=QDir(DefaultWorkspaceDirectory()).filePath("local-node");
+    const auto legacy=QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)+"/local-node";
+    if(!QFileInfo::exists(visible+"/node.json") && QFileInfo::exists(legacy+"/node.json"))return legacy;
+    return visible;
+}
+
 RunConfig RunConfig::Default()
 {
     RunConfig c;
-    const QString root = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+    const QString root = DefaultWorkspaceDirectory();
     QDir installation(QCoreApplication::applicationDirPath());installation.cdUp();if(installation.dirName().startsWith("runtime-"))installation.cdUp();
-    c.configDir=installation.filePath("config");
+    const auto installedConfig=installation.filePath("config");
+    c.configDir=QFileInfo(installedConfig).isDir()?installedConfig:QDir(root).filePath("config");
     c.outputDir = QDir(root).filePath("runs");
     const QStringList names = {"Target Gas", "Beam", "Energy (MeV/U)", "Pressure (Torr)",
         "B-Field (T)", "V_THGEM (V)", "V_MM (V)", "V_Cathode (kV)", "E-Drift (V)",

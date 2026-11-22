@@ -9,6 +9,11 @@
 
 #include "autorun.h"
 
+// Visible workspace for new configurations; GETDAQ_WORKSPACE can override it.
+QString DefaultWorkspaceDirectory();
+// Reuse an existing legacy node cache to preserve pairing/process ownership.
+QString DefaultNodeCacheDirectory();
+
 struct NodeConfig
 {
     int id = 0;

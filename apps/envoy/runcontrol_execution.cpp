@@ -87,12 +87,12 @@ void RunControl::FinishPlan()
     } else if (fOperation == "Pause") {
         if (fRunClock.isValid()) fDuration += fRunClock.elapsed() / 1000.0;
         fRunClock.invalidate();
-        if (!Journal("Paused")) { Fail("Hardware paused, but the run journal could not be saved."); return; }
+        if (fActive && !fJournal.value("untracked").toBool() && !Journal("Paused")) { Fail("Hardware paused, but the run journal could not be saved."); return; }
         fBusy = false; fPhase = "Paused";
         emit LogSignal("All configured nodes confirmed Paused.");
     } else if (fOperation == "Resume") {
-        fRunClock.start();
-        if (!Journal("Running")) { Fail("Hardware resumed, but the run journal could not be saved."); return; }
+        if(fActive)fRunClock.start();
+        if (fActive && !fJournal.value("untracked").toBool() && !Journal("Running")) { Fail("Hardware resumed, but the run journal could not be saved."); return; }
         fBusy = false; fPhase = "Running";
         emit LogSignal("All configured nodes confirmed Running.");
     } else { fBusy = false; fPhase = "Monitoring"; }

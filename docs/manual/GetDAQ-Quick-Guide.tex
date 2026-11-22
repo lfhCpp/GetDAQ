@@ -18,7 +18,7 @@
 \definecolor{signal}{HTML}{B14B30}
 \pagestyle{fancy}\fancyhf{}
 \fancyhead[L]{\small\color{navy}GetDAQ \quad 简易说明书}
-\fancyhead[R]{\small\color{muted}2026-11-21}
+\fancyhead[R]{\small\color{muted}2026-11-22}
 \fancyfoot[L]{\footnotesize\color{muted}操作、配置与运行原理}
 \fancyfoot[R]{\footnotesize\thepage\,/\,\pageref{guide-last}}
 \renewcommand{\headrulewidth}{0.4pt}
@@ -42,7 +42,7 @@
 \fontsize{10.1}{15.0}\selectfont
 {\fontsize{29}{34}\selectfont\bfseries\color{navy}GetDAQ}\par
 {\fontsize{17}{23}\selectfont 安装、配置与采集操作指南}\par
-\textcolor{muted}{适用：原版 SOAP ECC + DataExporter / DataRouter；2026-11-21。}\par
+\textcolor{muted}{适用：原版 SOAP ECC + DataExporter / DataRouter；2026-11-22。}\par
 \subsection*{1\quad 运行原理}
 \note{\textbf{GetDAQ 是操作界面；getEccSoapServer 负责给板卡发命令；DataExporter / DataRouter 负责收数据、写磁盘。}原始数据不经过 GUI、ECC 或配置分发服务。}
 \begin{center}
@@ -157,9 +157,10 @@ Node / 配置服务 & 24260 / 24250 & 主从 HTTPS 管理 / 文件分发。\\\bo
 \par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{43mm}Y@{}}\toprule
 目录 & 示例与含义 \\\midrule
 Configuration source & 主控安装目录 \code{config/}。放整套实验 XML/XCFG、拓扑和引用资源。\\
-Project data folder & 例如 \code{/home/user/DAQ/experiment-data}。ECC、接收器、Sentry 在此工作，配置复制到此，原始 \code{.graw} 也写在此。\\
-GUI Run records root & 例如 \code{/home/user/DAQ/run-records}。GUI YAML、journal、备份和元信息；不是原始数据目录。\\\bottomrule
+Project data folder & 默认 \code{/home/user/GetDAQ/data}。ECC、接收器、Sentry 在此工作，配置复制到此，原始 \code{.graw} 也写在此。\\
+GUI Run records root & 默认 \code{/home/user/GetDAQ/runs}。GUI YAML、journal、备份和元信息；不是原始数据目录。\\\bottomrule
 \end{tabularx}\par\smallskip
+新配置、项目、日志和缓存默认放在 Home 下可见的 GetDAQ 目录。已有项目沿用保存路径；安装目录没有 config 时，配置源默认 Home/GetDAQ/config。\par
 \textbf{从哪启动接收器决定其工作目录。}受管模式会明确设置 Project data folder，不依赖打开 GUI 时终端所在目录。
 \subsection*{第二步：启动新的原版后台}
 \begin{enumerate}

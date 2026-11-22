@@ -6,7 +6,7 @@
 
 | 界面设置 | 在哪台电脑 | 用途 |
 | --- | --- | --- |
-| Configuration source folder | 主控 | 默认安装目录下的 `config`；放完整配置目录及其相对引用资源，可输入或 Browse。 |
+| Configuration source folder | 主控 | 默认安装目录下已有的 `config`；不存在时用 `~/GetDAQ/config`；放完整配置目录及其相对引用资源，可输入或 Browse。 |
 | Project data folder | 每个执行主机 | ECC、接收器和 Sentry 的实际工作目录；配置同步到目录根，原始 `.graw` 写在这里。 |
 | GUI Run records root | 操作界面主机 | YAML、journal、CSV 和配置备份，不是远端原始数据目录。 |
 
@@ -143,3 +143,11 @@ GUI records root 显示当前 GUI 设置，不再被上次准备生成的 YAML �
 启动托管组前会核对所选执行主机。对已验证为当前电脑的本机节点，软件检查节点身份、TLS 证书与本机私有配置；若仍属于同一项目，更新过期的项目凭据；若本机已经解除配对，使用本机邀请码重新加入当前项目。它不停止现有后台，也不发送硬件命令。已配对其他主控的节点不会被自动改配。
 
 远端从机不能用本机权限恢复：在从机 Enable / check slave，必要时明确解除旧主控配对并生成新码，再由主控 Add slave。相同节点重新配对会更新原主机条目，板卡组引用保留。也可手动点击 Use this computer (automatic) 检查本机配对。401 信息会显示具体主机名与管理地址。
+
+## 新配置默认目录与暂停/继续
+
+新建配置使用可见工作目录 `~/GetDAQ`：`data/` 为接收器项目目录，`runs/` 为 GUI 运行记录，`projects/` 为主控项目，`local-node/` 为节点缓存，`connections/` 为连接 YAML，`logs/` 为日志，`preview-sources/` 为在线预览的实例列表。源配置优先选安装目录已有的 `config/`，没有时使用 `~/GetDAQ/config/`。可选环境变量 `GETDAQ_WORKSPACE` 可把新配置工作目录放到指定的绝对路径，例如可写的安装目录。
+
+已有 YAML、项目、配对缓存继续读取保存的目录。默认位置仍发现旧节点缓存时复用它，以保留节点身份、部署和运行进程；不会为了改默认路径重新创建一套节点。MCP 的既有操作回执目录也继续使用，防止丢失去重记录。
+
+Run 菜单的 **Pause run** 在所有 ECC 都在线、稳定 Running 且没有本地命令在执行时启用；**Resume run** 对应稳定 Paused。重连到外部已经开始的采集也可以操作，不要求当前 GUI 创建这次 Run。外部采集的暂停、恢复不会新建本地 Run、发 Start 或伪造归档记录；恢复延续原采集。Ready/未连接时两项灰色属于正常状态。

@@ -58,6 +58,6 @@ void MainWindow::RefreshOfflineToolsGate() {
 }
 
 QString MainWindow::OnlineSourcesFile(){
- if(fOnlineSourcesPath.isEmpty()){const auto directory=QStandardPaths::writableLocation(QStandardPaths::CacheLocation)+"/online-waveform";QDir().mkpath(directory);fOnlineSourcesPath=directory+'/'+QUuid::createUuid().toString(QUuid::WithoutBraces)+".json";}
+ if(fOnlineSourcesPath.isEmpty()){const auto directory=DefaultWorkspaceDirectory()+"/preview-sources";QDir().mkpath(directory);fOnlineSourcesPath=directory+'/'+QUuid::createUuid().toString(QUuid::WithoutBraces)+".json";}
  const auto bytes=QJsonDocument(QJsonObject{{"sources",ExporterSources(fConfig,fLastNodeStatus)}}).toJson(QJsonDocument::Compact);QFile previous(fOnlineSourcesPath);if(previous.open(QIODevice::ReadOnly) && previous.readAll()==bytes)return fOnlineSourcesPath;previous.close();QSaveFile file(fOnlineSourcesPath);if(!file.open(QIODevice::WriteOnly))return {};file.setPermissions(QFile::ReadOwner|QFile::WriteOwner);if(file.write(bytes)!=bytes.size() || !file.commit())return {};return fOnlineSourcesPath;
 }

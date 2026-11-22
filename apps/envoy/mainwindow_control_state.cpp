@@ -47,7 +47,9 @@ void MainWindow::ShowControlSlot(QString phase, bool connected, bool busy, bool 
     ui->StartRun->setEnabled(connected);
     ui->StopRun->setEnabled(connected);
     ui->Finalize->setEnabled(connected && !busy && active);
-    fPause->setEnabled(connected && !busy && active && phase=="Running");
-    fResume->setEnabled(connected && !busy && active && phase=="Paused");
+    fPause->setEnabled(connected && !busy && fObservedEccState==5);
+    fResume->setEnabled(connected && !busy && fObservedEccState==6);
+    fPause->setToolTip(tr("Pause every ECC confirmed Running, including acquisition started before this GUI connected."));
+    fResume->setToolTip(tr("Resume every ECC confirmed Paused; this does not start a new Run."));
     RefreshOfflineToolsGate();
 }

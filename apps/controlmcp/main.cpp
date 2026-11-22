@@ -46,7 +46,7 @@ public:
   const auto yaml=QDir(QFileInfo(path).absolutePath()).absoluteFilePath(options["run_config"].toString());QString error;Need(config.Load(yaml,&error),error);QFile f(yaml);Need(f.open(QIODevice::ReadOnly),"Cannot read Run configuration");fingerprint=Digest(f.readAll());
   if(options.contains("allow_control"))Need(options["allow_control"].isBool(),"allow_control must be boolean");allow=options["allow_control"].toBool();
   if(options.contains("request_timeout_ms")){const auto value=options["request_timeout_ms"];Need(value.isDouble() && value.toDouble()==value.toInt() && value.toInt()>=100 && value.toInt()<=120000,"request_timeout_ms must be an integer from 100 to 120000");timeout=value.toInt();}
-  operations=options["operation_directory"].toString();if(operations.isEmpty())operations=QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)+"/operations/"+Digest(QFileInfo(yaml).absoluteFilePath().toUtf8());else operations=QDir(QFileInfo(path).absolutePath()).absoluteFilePath(operations);
+  operations=options["operation_directory"].toString();if(operations.isEmpty()){const auto relative="/operations/"+Digest(QFileInfo(yaml).absoluteFilePath().toUtf8());const auto legacy=QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)+relative;operations=QFileInfo(legacy).isDir()?legacy:DefaultWorkspaceDirectory()+relative;}else operations=QDir(QFileInfo(path).absolutePath()).absoluteFilePath(operations);
  }
  QJsonObject Ecc(const NodeConfig &node,const QString &operation,int budget){
   auto c=config;c.timeoutMs=c.stepTimeoutMs=qMax(100,budget);EccClient client(node,c);QEventLoop loop;QJsonObject result;

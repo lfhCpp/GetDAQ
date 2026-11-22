@@ -111,6 +111,7 @@ void RunControl::ShutdownSlot()
 
 bool RunControl::Journal(const QString &phase)
 {
+    if(fJournal.value("untracked").toBool())return true;
     fJournal["phase"] = phase;
     fJournal["updated_utc"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
     QString error;

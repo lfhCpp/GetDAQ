@@ -98,7 +98,7 @@ void RunControl::StartRunSlot(bool replaceCompletedRun, bool acceptExistingIncom
     if ((fFileTask && fFileTask->isRunning()) || !RunRecorder::Reserve(fConfig,replaceCompletedRun,&error)) {
         if(QFileInfo::exists(fConfig.RunDirectory()) && !replaceCompletedRun && !(fFileTask && fFileTask->isRunning())){ReportLog(error+" Explicit same-Run replacement confirmation is required.",Diagnostics::Warning);return;}
         if(!ConfirmWarnings("Local records",{error+" Use a separate fallback records directory; raw data is not moved."},[this,replaceCompletedRun,acceptExistingIncoming]{StartRunSlot(replaceCompletedRun,acceptExistingIncoming);}))return;
-        fConfig.outputDir=QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)+"/degraded-runs/"+QUuid::createUuid().toString(QUuid::WithoutBraces);emit RecordingDirectorySignal(fConfig.outputDir);replaceCompletedRun=false;
+        fConfig.outputDir=DefaultWorkspaceDirectory()+"/degraded-runs/"+QUuid::createUuid().toString(QUuid::WithoutBraces);emit RecordingDirectorySignal(fConfig.outputDir);replaceCompletedRun=false;
         if(!RunRecorder::Reserve(fConfig,false,&error)){fJournal=QJsonObject{{"recording_degraded",true}};ReportLog("Warning: volatile Run metadata only: "+error,Diagnostics::Warning);}
     }
     if (!RunRecorder::ReadJournal(fConfig, &fJournal, &error)) { fJournal=QJsonObject{{"recording_degraded",true}};emit LogSignal("Warning: "+error); }

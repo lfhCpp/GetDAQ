@@ -157,7 +157,7 @@ void IPWindow::ApplySlot()
     QString error;
     if (!config.Validate(&error)) { QMessageBox::warning(this, tr("Configuration"), error); return; }
     if(config.filePath.isEmpty()) {
-        const auto directory=QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)+"/connections/"+QUuid::createUuid().toString(QUuid::WithoutBraces);
+        const auto directory=DefaultWorkspaceDirectory()+"/connections/"+QUuid::createUuid().toString(QUuid::WithoutBraces);
         if(!QDir().mkpath(directory)){QMessageBox::warning(this,tr("Configuration"),tr("Cannot create the settings directory: %1").arg(directory));return;}
         config.filePath=directory+"/envoy.yml";
     }

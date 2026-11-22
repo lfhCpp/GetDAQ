@@ -1,4 +1,5 @@
 #include "consolelogstore.h"
+#include "runconfig.h"
 
 #include <QCoreApplication>
 #include <QDateTime>
@@ -23,13 +24,10 @@ bool OpenAppend(QFile &file,const QString &directory,const QString &name)
 
 bool ConsoleLogStore::OpenApplicationLog()
 {
-    const QString localData=QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
-    const QString cacheData=QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    const QString localData=DefaultWorkspaceDirectory();
     const QString preferredDirectory=localData.isEmpty() ? QString() : QDir(localData).filePath("logs");
     QStringList directories;
     if(!preferredDirectory.isEmpty())directories.append(preferredDirectory);
-    const QString cacheDirectory=cacheData.isEmpty() ? QString() : QDir(cacheData).filePath("logs");
-    if(!cacheDirectory.isEmpty() && !directories.contains(cacheDirectory))directories.append(cacheDirectory);
     const QString temporaryDirectory=TemporaryLogDirectory();
     if(!directories.contains(temporaryDirectory))directories.append(temporaryDirectory);
 
@@ -51,13 +49,8 @@ bool ConsoleLogStore::OpenApplicationLog()
 bool ConsoleLogStore::OpenConnectionLog()
 {
     CloseConnectionLog();
-    const QString cacheData=QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
     QStringList bases;
     if(!fApplicationDirectory.isEmpty())bases.append(fApplicationDirectory);
-    if(!cacheData.isEmpty()) {
-        const QString cacheLogs=QDir(cacheData).filePath("logs");
-        if(!bases.contains(cacheLogs))bases.append(cacheLogs);
-    }
     const QString temporary=TemporaryLogDirectory();
     if(!bases.contains(temporary))bases.append(temporary);
 

@@ -9,6 +9,7 @@
 #include <QWheelEvent>
 #include <QtTest>
 #include <QTemporaryDir>
+#include <QStandardPaths>
 #include <QFile>
 #include <QDir>
 #include <QAction>
@@ -53,8 +54,27 @@
 #include "waveformviewer_tests_p.h"
 using namespace GetDAQTestSupport;
 class ProductTests:public QObject {Q_OBJECT
+ QTemporaryDir fWorkspace;
 private slots:
- void initTestCase(){QCoreApplication::setOrganizationName("GetDAQ-Product-Tests");QCoreApplication::setApplicationName("OriginalBackendBaseline");qRegisterMetaType<QVector<NodeStatus>>();}
+ void initTestCase(){QVERIFY(fWorkspace.isValid());qputenv("GETDAQ_WORKSPACE",fWorkspace.path().toUtf8());QCoreApplication::setOrganizationName("GetDAQ-Product-Tests");QCoreApplication::setApplicationName("OriginalBackendBaseline");qRegisterMetaType<QVector<NodeStatus>>();}
+ void newDefaultPathsUseVisibleHomeWorkspace(){
+    const auto previous=qgetenv("GETDAQ_WORKSPACE");qunsetenv("GETDAQ_WORKSPACE");QCOMPARE(DefaultWorkspaceDirectory(),QDir(QDir::homePath()).filePath("GetDAQ"));const auto defaults=RunConfig::Default();QCOMPARE(defaults.outputDir,QDir(QDir::homePath()).filePath("GetDAQ/runs"));QVERIFY(!defaults.configDir.contains("/.local/"));qputenv("GETDAQ_WORKSPACE",previous);QCOMPARE(DefaultWorkspaceDirectory(),fWorkspace.path());
+    ConsoleLogStore log;QVERIFY(log.OpenApplicationLog());QVERIFY(log.ApplicationLogPath().startsWith(fWorkspace.path()+"/logs/sessions/"));
+ }
+ void existingNodeCacheIsReusedInsteadOfCreatingAnotherIdentity(){
+    QTemporaryDir dir,workspace;const auto oldData=qgetenv("XDG_DATA_HOME"),oldWorkspace=qgetenv("GETDAQ_WORKSPACE");const bool dataWasSet=qEnvironmentVariableIsSet("XDG_DATA_HOME");std::unique_ptr<int,std::function<void(int *)>> restore(new int,[=](int *p){if(dataWasSet)qputenv("XDG_DATA_HOME",oldData);else qunsetenv("XDG_DATA_HOME");qputenv("GETDAQ_WORKSPACE",oldWorkspace);delete p;});qputenv("XDG_DATA_HOME",dir.path().toUtf8());qputenv("GETDAQ_WORKSPACE",workspace.path().toUtf8());
+    const auto visible=workspace.path()+"/local-node";const auto legacy=QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)+"/local-node";QCOMPARE(DefaultNodeCacheDirectory(),visible);QVERIFY(QDir().mkpath(legacy));QFile old(legacy+"/node.json");QVERIFY(old.open(QIODevice::WriteOnly));old.write("{}");old.close();QCOMPARE(DefaultNodeCacheDirectory(),legacy);QVERIFY(QDir().mkpath(visible));QFile current(visible+"/node.json");QVERIFY(current.open(QIODevice::WriteOnly));current.write("{}");current.close();QCOMPARE(DefaultNodeCacheDirectory(),visible);
+ }
+ void pauseResumeMenusUseObservedHardwareStateEvenWithoutLocalRun(){
+    MainWindow window;auto *pause=window.findChild<QAction *>("PauseRun"),*resume=window.findChild<QAction *>("ResumeRun");QVERIFY(pause && resume);
+    for(int state:{4,5,6}){NodeStatus status;status.id=0;status.state=state;status.transition=0;status.eccOnline=true;QVERIFY(QMetaObject::invokeMethod(&window,"ShowStatusSlot",Qt::DirectConnection,Q_ARG(QVector<NodeStatus>,QVector<NodeStatus>{status})));QVERIFY(QMetaObject::invokeMethod(&window,"ShowControlSlot",Qt::DirectConnection,Q_ARG(QString,QString("Monitoring")),Q_ARG(bool,true),Q_ARG(bool,false),Q_ARG(bool,false)));QCOMPARE(pause->isEnabled(),state==5);QCOMPARE(resume->isEnabled(),state==6);}
+    QVERIFY(QMetaObject::invokeMethod(&window,"ShowControlSlot",Qt::DirectConnection,Q_ARG(QString,QString("Paused")),Q_ARG(bool,true),Q_ARG(bool,true),Q_ARG(bool,false)));QVERIFY(!pause->isEnabled() && !resume->isEnabled());
+ }
+ void externalRunCanPauseAndResumeWithoutCreatingLocalRecords(){
+    for(bool attach:{false,true}){QTemporaryDir dir;auto c=Config(dir.path());for(auto *mock:QCoreApplication::instance()->findChildren<GetDAQTestFixtures::MockNode *>())for(const auto &node:c.nodes)if(mock->serverPort()==node.eccPort)mock->state=5;
+     RunControl control;QSignalSpy states(&control,&RunControl::StatusSignal),flags(&control,&RunControl::ControlSignal),warnings(&control,&RunControl::OperationWarningSignal);control.ConnectSlot(c);QTRY_VERIFY_WITH_TIMEOUT(At(states,5),3000);if(attach){control.StartRunSlot();if(!warnings.isEmpty())control.AcceptOperationWarningSlot(warnings.last()[0].toString());QTRY_VERIFY_WITH_TIMEOUT(flags.last()[3].toBool(),3000);}control.PauseSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,6),3000);QTRY_VERIFY_WITH_TIMEOUT(!flags.last()[2].toBool(),3000);QVERIFY(!QFileInfo::exists(c.RunDirectory()));control.ResumeSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,5),3000);QCOMPARE(flags.last()[3].toBool(),attach);QVERIFY(!QFileInfo::exists(c.RunDirectory()));control.StopRunSlot();QTRY_VERIFY_WITH_TIMEOUT(At(states,4),3000);QTRY_VERIFY_WITH_TIMEOUT(!flags.last()[2].toBool(),3000);QVERIFY(!QFileInfo::exists(c.RunDirectory()));control.DisconnectSlot();}
+ }
+
  void threeDimensionalWaveformsHaveAxesAndSeparation(){
     GetDAQ::WaveformCanvas canvas;canvas.SetBaselineAlignment(false);canvas.resize(900,600);QVector<GetDAQ::WaveformPlotTrace> traces;
     for(int channel:{2,7,22}){GetDAQ::WaveformPlotTrace trace;trace.channel=channel;for(int i=0;i<512;++i)trace.samples<<QPointF(i,1000+channel+40*std::sin(i/30.0));traces<<trace;}canvas.SetTraces(traces,1);canvas.SetSurface(true);canvas.show();QTest::qWait(20);const auto image=canvas.grab().toImage();QVERIFY(!image.isNull());const auto text=canvas.accessibleDescription();QVERIFY(text.contains("Time: sample bucket"));QVERIFY(text.contains("Amplitude: ADC"));QVERIFY(text.contains("Depth: channel number 2 to 22"));QVERIFY(text.contains("3 selected traces; no interpolated channels"));QVERIFY(!text.contains("ADC 0 to"));

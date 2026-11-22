@@ -61,7 +61,7 @@ macOS 使用 `GetDAQ.app/Contents/MacOS/getdaq-control-mcp` 的绝对路径。�
 
 ## 回执、超时与并发
 
-- 默认回执位于本用户 GetDAQ MCP 应用数据目录。`ecc_configuration` 返回实际 `operation_directory`；可在 MCP JSON 指定独立目录。
+- 新回执默认位于 `~/GetDAQ/operations/<配置路径摘要>/`；已存在的旧回执目录继续复用，以保留命令去重记录。`ecc_configuration` 返回实际 `operation_directory`；可在 MCP JSON 指定独立目录。
 - 先原子保存 accepted 意图，再发送 SOAP。回执和目录限本用户访问；同目录跨进程命令锁防止重复下发。
 - 收到响应标记 acknowledged，**不等于已经达到目标状态**；调用 `ecc_status` 核对 Ready / Running。
 - 超时或进程中断后结果标记 unknown，可能已在远端生效。重用相同 ID 只返回回执，不重发。不同内容使用旧 ID 被拒绝；必须先检查真实状态再决定新操作。
