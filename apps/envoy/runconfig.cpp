@@ -24,6 +24,15 @@ QString DefaultNodeCacheDirectory()
     return visible;
 }
 
+QString PreferredNodeCacheDirectory(const QString &saved)
+{
+    if(saved.isEmpty())return DefaultNodeCacheDirectory();
+    const auto visible=QDir(DefaultWorkspaceDirectory()).filePath("local-node");
+    const auto legacy=QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)+"/local-node";
+    if(QDir::cleanPath(saved)==legacy && (!QFileInfo::exists(legacy+"/node.json") || QFileInfo::exists(visible+"/node.json")))return visible;
+    return saved;
+}
+
 RunConfig RunConfig::Default()
 {
     RunConfig c;

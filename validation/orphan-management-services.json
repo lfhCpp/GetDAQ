@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-22",
+  "product_tests": {
+    "passed": 75,
+    "failed": 0,
+    "skipped": 0
+  },
+  "verified_regressions": [
+    "missing state folder and deleted lifetime lock",
+    "same-path repository recreation after deletion",
+    "healthy project retained",
+    "log rotation does not retire healthy service",
+    "stale legacy cache preference uses visible cache",
+    "missing acquisition project does not override available saved project"
+  ],
+  "target_verification": {
+    "current_visible_project_authenticated": true,
+    "visible_node_cache_authenticated": true,
+    "previous_single_board_pulser_group_draft_restored": true,
+    "configuration_preparation": "prepared",
+    "backend_activation": "active",
+    "original_soap_ecc_state": 1,
+    "original_soap_ecc_transition": 0,
+    "original_soap_ecc_error_code": 0,
+    "sentry_working_directory": "visible project data folder",
+    "sentry_run_file_policies": [
+      "overwrite",
+      "append"
+    ]
+  },
+  "hardware_initialization_or_acquisition_commands_sent": false,
+  "backend_executable_files_replaced": false
+}

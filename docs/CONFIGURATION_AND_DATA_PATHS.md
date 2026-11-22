@@ -168,3 +168,19 @@ moves only this GUI session's logs, including connection logs; earlier Run
 records are retained at their previous location. If the chosen log directory is
 unwritable, logging continues in its previous location with a warning. Each GUI
 launch starts a separate log session and does not reload prior logs.
+
+## Missing state folders and occupied management ports
+
+A configuration service or node agent can remain alive after its state folder
+has been deleted. Startup now checks only this installation's owned management
+processes for a missing configuration/repository or a deleted lifetime lock. It
+requests a normal exit and waits; it never kills ECC, receivers or healthy
+projects by executable name. A log file being rotated does not qualify a service
+as orphaned. A genuinely occupied port still requires opening its existing
+project or choosing a different management port.
+
+A removed acquisition-project reference no longer overrides an available saved
+project when opening Master settings. A stale saved default cache path follows
+the visible node cache when it exists; explicit custom paths and existing paired
+identities are preserved. Use the software's directory migration and service
+controls rather than deleting active state folders to switch configurations.

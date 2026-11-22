@@ -13,6 +13,7 @@
 QString DefaultWorkspaceDirectory();
 // Reuse an existing legacy node cache to preserve pairing/process ownership.
 QString DefaultNodeCacheDirectory();
+QString PreferredNodeCacheDirectory(const QString &saved);
 
 struct NodeConfig
 {

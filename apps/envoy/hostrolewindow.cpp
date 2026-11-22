@@ -32,7 +32,7 @@
 using namespace Deployment;
 namespace {
 QString RoleKey(){return StartupConfigurationKey()+"/machine-role";}
-QString NodeRoot(){return QSettings().value(StartupConfigurationKey()+"/slave-cache-directory",DefaultNodeCacheDirectory()).toString();}
+QString NodeRoot(){return PreferredNodeCacheDirectory(QSettings().value(StartupConfigurationKey()+"/slave-cache-directory",DefaultNodeCacheDirectory()).toString());}
 QString DefaultAddress(){const auto hint=qEnvironmentVariable("GETDAQ_CONTROL_IPV4");const auto addresses=QNetworkInterface::allAddresses();if(!hint.isEmpty() && addresses.contains(QHostAddress(hint)))return hint;for(const auto &a:addresses)if(a.protocol()==QAbstractSocket::IPv4Protocol && !a.isLoopback())return a.toString();return "127.0.0.1";}
 QJsonObject Settings(const QString &root){if(QFile::exists(root+"/node.json"))return Parse(Read(root+"/node.json"));return {{"bind",DefaultAddress()},{"port",24260},{"data_directory",DefaultWorkspaceDirectory()+"/data"}};}
 using Result=QPair<QJsonObject,QString>;

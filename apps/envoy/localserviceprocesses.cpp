@@ -5,6 +5,9 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QThread>
+#include <csignal>
+#include <stdexcept>
 #ifdef Q_OS_LINUX
 #include <unistd.h>
 #endif
@@ -90,4 +93,31 @@ QStringList LocalServiceConfigurations(const QString &program) {
         if(!file.isEmpty() && !result.contains(file))result.append(file);
     }
     return result;
+}
+
+int CleanupOrphanedLocalServiceProcesses(const QString &program,const QByteArray &argument) {
+    int stopped=0;
+#ifdef Q_OS_LINUX
+    const auto name=QFileInfo(program).fileName();
+    if(!((name=="getdaq-config-service" && argument=="--root") || (name=="getdaq-node-agent" && argument=="--config")))return 0;
+    for(const auto &process:Candidates(program)) {
+        const auto configured=Arg(process,argument);if(configured.isEmpty() || !QDir::isAbsolutePath(configured))continue;
+        const auto directory=argument=="--config"?QFileInfo(configured).absolutePath():configured;
+        bool orphan=!QFileInfo::exists(configured);
+        const auto lifetimeLock=directory+(argument=="--config"?"/agent.lock":"/lock");
+        const auto descriptors=QString("/proc/%1/fd").arg(process.pid);
+        for(const auto &fd:QDir(descriptors).entryList(QDir::AllEntries|QDir::NoDotAndDotDot)) {
+            const auto target=QFileInfo(descriptors+'/'+fd).symLinkTarget();
+            if(target==directory+" (deleted)" || target==lifetimeLock+" (deleted)")orphan=true;
+        }
+        if(!orphan || !SameLocalServiceProcess(process))continue;
+        if(::kill(process.pid,SIGTERM))throw std::runtime_error("Cannot stop this installation's orphaned management service");
+        for(int i=0;i<50 && SameLocalServiceProcess(process);++i)QThread::msleep(100);
+        if(SameLocalServiceProcess(process))throw std::runtime_error("Orphaned management service is still finishing accepted work; wait and retry. It was not force killed.");
+        ++stopped;
+    }
+#else
+    Q_UNUSED(program);Q_UNUSED(argument);
+#endif
+    return stopped;
 }

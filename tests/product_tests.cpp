@@ -1,5 +1,6 @@
 #include "distributeddeploymentwindow.h"
 #include "backendshutdown.h"
+#include "localserviceprocesses.h"
 #include "userguidewindow.h"
 #include <QListWidget>
 #include <QTextBrowser>
@@ -158,6 +159,30 @@ private slots:
     const auto credential=Deployment::Read(before["admin_credential"].toString());after=Deployment::RelocateMasterProject(source,destination,programs)["master"].toObject();
     QCOMPARE(after["repository_id"],before["repository_id"]);QCOMPARE(after["certificate_sha256"],before["certificate_sha256"]);QCOMPARE(after["repository_url"],before["repository_url"]);QCOMPARE(Deployment::Read(after["admin_credential"].toString()),credential);
     QVERIFY(after["admin_credential"].toString().startsWith(destination+'/'));
+ }
+ void missingAcquisitionProjectDoesNotOverrideSavedAvailableProject(){
+    QTemporaryDir dir;const auto project=dir.path()+"/available";Deployment::PrivateDirectory(project);Deployment::Write(project+"/project.json",Deployment::Json({{"schema",1},{"kind","getdaq.distributed-project"},{"project_id","available"},{"nodes",QJsonArray()},{"groups",QJsonArray()},{"content_files",QJsonArray()}}));
+    const auto key=StartupConfigurationKey()+"/distributed-project";QSettings settings;const bool had=settings.contains(key);const auto old=settings.value(key);std::unique_ptr<int,std::function<void(int *)>> restore(new int,[&](int *p){if(had)settings.setValue(key,old);else settings.remove(key);delete p;});settings.setValue(key,project);
+    auto base=RunConfig::Default();base.filePath=dir.path()+"/acquisition.yml";base.deploymentProject=dir.path()+"/removed/project.json";
+    DistributedDeploymentWindow window(base);auto *field=window.findChild<QLineEdit *>("DistributedProjectRoot");QVERIFY(field);QCOMPARE(field->text(),project);
+ }
+ void staleSavedCacheUsesVisibleDirectoryWithoutLosingExplicitCustomPaths(){
+    QTemporaryDir data,workspace;const auto oldData=qgetenv("XDG_DATA_HOME"),oldWorkspace=qgetenv("GETDAQ_WORKSPACE");const bool hadData=qEnvironmentVariableIsSet("XDG_DATA_HOME");std::unique_ptr<int,std::function<void(int *)>> restore(new int,[=](int *p){if(hadData)qputenv("XDG_DATA_HOME",oldData);else qunsetenv("XDG_DATA_HOME");qputenv("GETDAQ_WORKSPACE",oldWorkspace);delete p;});qputenv("XDG_DATA_HOME",data.path().toUtf8());qputenv("GETDAQ_WORKSPACE",workspace.path().toUtf8());
+    const auto legacy=QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)+"/local-node",visible=workspace.path()+"/local-node";QCOMPARE(PreferredNodeCacheDirectory(legacy),visible);QCOMPARE(PreferredNodeCacheDirectory(workspace.path()+"/custom"),workspace.path()+"/custom");
+    QVERIFY(QDir().mkpath(legacy));QFile old(legacy+"/node.json");QVERIFY(old.open(QIODevice::WriteOnly));old.write("{}");old.close();QCOMPARE(PreferredNodeCacheDirectory(legacy),legacy);
+    QVERIFY(QDir().mkpath(visible));QFile current(visible+"/node.json");QVERIFY(current.open(QIODevice::WriteOnly));current.write("{}");current.close();QCOMPARE(PreferredNodeCacheDirectory(legacy),visible);
+ }
+ void orphanedConfigurationServiceIsRetiredWithoutStoppingHealthyProject(){
+    const auto programs=qEnvironmentVariable("GETDAQ_TEST_PROGRAMS");if(programs.isEmpty())QSKIP("Set GETDAQ_TEST_PROGRAMS for real management-process lifecycle tests");
+    QTemporaryDir dir;const auto bin=dir.path()+"/bin",orphanRoot=dir.path()+"/orphan",healthyRoot=dir.path()+"/healthy";Deployment::PrivateDirectory(bin);
+    for(const auto &name:{"getdaq-config-service","getdaq-config-repository"}){QVERIFY(QFile::copy(programs+'/'+name,bin+'/'+name));QVERIFY(QFile::setPermissions(bin+'/'+name,QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner));}
+    auto freePort=[](){QTcpServer s;if(!s.listen(QHostAddress::LocalHost,0))return 0;return int(s.serverPort());};const int first=freePort();int second=freePort();while(second==first)second=freePort();QVERIFY(first && second);
+    QJsonObject a,b;std::unique_ptr<int,std::function<void(int *)>> cleanup(new int,[&](int *p){for(const auto &m:{a,b})if(!m.isEmpty()){try{Deployment::StopMaster(m);}catch(...){}}delete p;});
+    a=Deployment::EnsureMaster(orphanRoot,bin,"127.0.0.1",first);b=Deployment::EnsureMaster(healthyRoot,bin,"127.0.0.1",second);
+    QVERIFY(QFile::remove(healthyRoot+"/repository.log"));QCOMPARE(CleanupOrphanedLocalServiceProcesses(bin+"/getdaq-config-service","--root"),0);
+    QVERIFY(QDir(orphanRoot).removeRecursively());Deployment::PrivateDirectory(orphanRoot+"/repository");QCOMPARE(CleanupOrphanedLocalServiceProcesses(bin+"/getdaq-config-service","--root"),1);
+    QVERIFY(FindLocalArgumentProcesses(bin+"/getdaq-config-service","--root",orphanRoot+"/repository").isEmpty());QCOMPARE(FindLocalArgumentProcesses(bin+"/getdaq-config-service","--root",healthyRoot+"/repository").size(),1);
+    const Deployment::Endpoint endpoint{b["repository_url"].toString(),b["certificate_sha256"].toString(),Deployment::Secret(b["admin_credential"].toString())};QCOMPARE(Deployment::Get(endpoint,"/v1/identity")["repository_id"],b["repository_id"]);
  }
  void existingNodeCacheIsReusedInsteadOfCreatingAnotherIdentity(){
     QTemporaryDir dir,workspace;const auto oldData=qgetenv("XDG_DATA_HOME"),oldWorkspace=qgetenv("GETDAQ_WORKSPACE");const bool dataWasSet=qEnvironmentVariableIsSet("XDG_DATA_HOME");std::unique_ptr<int,std::function<void(int *)>> restore(new int,[=](int *p){if(dataWasSet)qputenv("XDG_DATA_HOME",oldData);else qunsetenv("XDG_DATA_HOME");qputenv("GETDAQ_WORKSPACE",oldWorkspace);delete p;});qputenv("XDG_DATA_HOME",dir.path().toUtf8());qputenv("GETDAQ_WORKSPACE",workspace.path().toUtf8());

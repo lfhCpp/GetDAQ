@@ -10,4 +10,5 @@ QVector<LocalServiceProcess> FindLocalArgumentProcesses(const QString &program,c
 QVector<LocalServiceProcess> FindLocalReceiverProcesses(const QString &program,const QString &supervisorConfig);
 QStringList LocalServiceConfigurations(const QString &program);
 bool SameLocalServiceProcess(const LocalServiceProcess &process);
+int CleanupOrphanedLocalServiceProcesses(const QString &program,const QByteArray &argument);
 #endif
