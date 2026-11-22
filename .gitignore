@@ -54,3 +54,6 @@ __pycache__/
 
 # Local reference documents and preserved acquisition artifacts
 /docs/local-references/
+
+# Preserved local files are not installation configuration.
+/config/preserved-cleanup/

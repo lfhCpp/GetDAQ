@@ -50,7 +50,7 @@ def package(receipt_path,destination,macdeployqt,sign=True):
     architecture=suite.macos_architectures(programs['GetDAQ'])['host_architecture']
     info={'CFBundleExecutable':'GetDAQ','CFBundleName':'GetDAQ','CFBundleDisplayName':'GetDAQ',
           'CFBundleIdentifier':'org.getdaq.GetDAQ','CFBundlePackageType':'APPL',
-          'CFBundleShortVersionString':'0.1.0','CFBundleVersion':'1',
+          'CFBundleShortVersionString':'1.0','CFBundleVersion':'1',
           'LSMinimumSystemVersion':minimum_macos(programs['GetDAQ']),
           'NSHighResolutionCapable':True}
     (contents/'Info.plist').write_bytes(plistlib.dumps(info))

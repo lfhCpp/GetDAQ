@@ -1,54 +1,62 @@
-# GetDAQ
+# GetDAQ 1.0
 
-GetDAQ 是 GET 采集操作界面。当前固定方案使用原版 **getEccSoapServer** 控制硬件，
-由 ATTPC **DataExporter** 独立接收、落盘和导出数据；也兼容其他主机上已经运行的
-**DataRouter**，对方不需要安装或启动 DataExporter。
+GetDAQ 是用于 GET / AT-TPC 数据采集的图形化控制软件，集成原版 SOAP ECC、DataExporter / DataRouter、配置分发与波形查看。
 
-主界面布局保持原样。主从机只管理配置分发、缓存和后台实例；原始数据不经过 GUI 或 ECC。
+[English installation guide](README.en.md)
 
-- [当前功能范围与已清理路线](docs/PRODUCT_SCOPE.md)
-- [原版后端配置、启动及外部 DataRouter 连接](docs/ORIGINAL_BACKENDS.md)
-- [构建与安装](docs/HOST_SUITE_BUILD.md)
-- [原版配置编辑器](docs/ORIGINAL_CCONFIG_EDITOR.md)
-- [直连 CoBo 只读信息工具](docs/DIRECT_COBO_INFO.md)
-- [自动采集](docs/AUTOMATIC_RUN.md)
-- [波形查看、事件与通道](docs/WAVEFORM_VIEWER.md)
-- [MCP 接口配置](docs/MCP_SETUP.md)
-- [简易 PDF 说明书](docs/manual/GetDAQ-Quick-Guide.pdf)
-- [macOS 安装](docs/MACOS_INSTALL.md)
+## Ubuntu 安装
 
-## 使用
+### 1. 安装编译工具和 Qt 5
 
-已有 ECC：选择 **Master → Connect existing ECC**，填写 ECC 电脑 IP 和 SOAP 端口，
-把数据目标设为实际 DataRouter / DataExporter 的接收 IP、TCP 数据端口；Sentry 单独配置。
+```bash
+sudo apt update
+sudo apt install -y git build-essential cmake python3 qtbase5-dev libqt5svg5-dev qttools5-dev-tools openssl
+```
 
-新建服务：选择 **Master → Create ECC / data services**，添加执行主机，选择主控机的
-原始 XML/XCFG 配置目录，填写 IP / 端口，启动并使用配置。Slave 自动缓存文件。
-支持同机多套后台实例，各自使用独立端口、数据目录和进程身份。
+必需的 GET、Ice、Boost、CompoundConfig、Qwt 等源码已内置在 `third_party/`，无需另装旧版 GET，也无需 `source/` 目录；构建依赖不在编译期间下载。
 
-原版配置编辑器和 CoBo 只读信息工具从菜单打开。运行记录、已有 Run 覆盖确认、告警管理、
-自动采集及波形的事件/通道选择保留。重写的原生 ECC、receiver/supervisor、原生扫描与交接
-等路线已从当前构建和界面移除。旧原生配置会明确报错，不会自动转换后操作硬件。
+### 2. 获取源码
 
-## 验证边界
+```bash
+git clone --branch v1.0 https://github.com/lfhCpp/GetDAQ.git GetDAQ-src
+cd GetDAQ-src
+```
 
-必需的 GET/Ice/Boost 等源码随项目构建，无需另装旧 GET；基础编译工具和 Qt 仍需要安装。
-原版核心源码保持原样，少量入口适配保存在独立补丁中。
+### 3. 编译并安装
 
-当前可执行的软件测试不能代替实物采集验收；原生 macOS 编译和实机功能仍需对应主机验证。
+```bash
+python3 tools/verify-product-boundary.py
+python3 tools/verify-original-backends.py
+python3 tools/build-suite.py --profile full --jobs 2 --stage "$HOME/GetDAQ-1.0"
+python3 tools/build-suite.py --verify-stage "$HOME/GetDAQ-1.0"
+```
 
-Configuration and storage paths: [配置文件与数据目录说明](docs/CONFIGURATION_AND_DATA_PATHS.md).
+安装目录必须不存在；如已有同名目录，请换一个新目录。内存不足时将 `--jobs 2` 改为 `--jobs 1`。
 
-## 按项目目录启动与同步配置
+### 4. 启动
 
-主控选择配置源目录（默认安装目录 `config`），每台执行电脑选择 Project data folder。
-完整配置先分发到从机缓存，再自动同步到其项目目录；原版 SOAP ECC、DataExporter 或
-dataRouter、共享 Sentry 都在这个目录运行。控制 IP 与数据 IP 分开填写。
-Tools → Sync project configuration 可更新选定主机，活动配置确认后可同步，无须强制返回 Idle；同步不改变板卡已加载参数，原始数据保留。
-原日志区域可切换 Event / ECC / 接收器日志。[操作和目录说明](docs/CONFIGURATION_AND_DATA_PATHS.md)。
+```bash
+cd "$HOME/GetDAQ-1.0"
+./start-getdaq.sh
+```
 
-在线波形：**Tools → Online waveform viewer…**，独立进程从选择框使用当前配置的 DataExporter TCP export 端口
-（默认 46491），支持多个接收器、缓存事件及电子学通道选择。
-[操作、性能边界与控制警告](docs/ONLINE_WAVEFORM_AND_CONTROL.md)。
+`bin/` 保存 GUI 和后台程序，`config/` 携带项目的 26 个配置及配套文件，`docs/` 保存说明书。启动器自动定位程序，无需修改可执行文件路径。
 
-当前安装目录采用单一布局：`bin/` 放正式程序，启动器 `start-getdaq.sh` 自动定位本目录，不需要逐台修改可执行路径。各主机只保存自己的网络与数据目录设置，实验配置由主控分发。旧版本和历史验证记录从 GitHub 历史获取，不在安装目录保存多个 `runtime-*`。
+首次使用时，在软件中设置本机 IP、端口和项目数据目录，并核对 `config/` 中的 CoBo 地址、板卡拓扑和实验配置与实物一致。主控机将此目录选作配置源；从控机选择自己的数据目录并配对，由主控分发配置。已有 ECC / DataRouter 可直接连接。完整操作说明见软件 Configuration 菜单中的中英 Guide，或 [中文 PDF](docs/manual/GetDAQ-Quick-Guide.pdf)。
+
+## macOS 安装
+
+必须在 Mac 上编译，Ubuntu 的可执行文件不能直接运行。安装 Xcode Command Line Tools；已有 Homebrew 时安装构建依赖：
+
+```bash
+xcode-select --install
+brew install git cmake python qt@5 openssl@3
+git clone --branch v1.0 https://github.com/lfhCpp/GetDAQ.git GetDAQ-src
+cd GetDAQ-src
+./build-macos.command --jobs 2
+open dist-macos/GetDAQ.app
+```
+
+`dist-macos/config/` 包含这 26 个配置文件；首次设置时将其选作配置源，并填写 Mac 自己的网络和数据目录。不要复制 Ubuntu 的 `site/` 状态。输出目录需不存在；再次构建可使用 `./build-macos.command --output dist-macos-new --jobs 2`。独立 Qt 5 安装可通过 `--qmake /path/to/qmake` 指定。
+
+macOS 适配已提供，但实际 Mac 编译、启动和实物采集仍需目标机验证。详细说明见 [macOS 安装文档](docs/MACOS_INSTALL.md)。

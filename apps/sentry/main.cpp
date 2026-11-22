@@ -6,7 +6,7 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
-    app.setApplicationName("getdaq-sentry"); app.setApplicationVersion("0.1.0");
+    app.setApplicationName("getdaq-sentry"); app.setApplicationVersion("1.0");
     QCommandLineParser parser; parser.addHelpOption(); parser.addVersionOption();
     parser.setApplicationDescription("GET DAQ status and .graw catalog service (compatible /status and /catalog).");
     parser.addOption({{"c", "config"}, "JSON service configuration.", "path"});

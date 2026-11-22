@@ -1,0 +1,30 @@
+{
+  "files": [
+    "CoboFormats-Rev-0.xcfg",
+    "CoboFormats-Rev-1.xcfg",
+    "CoboFormats-Rev-2.xcfg",
+    "CoboFormats-Rev-3.xcfg",
+    "CoboFormats-Rev-4.xcfg",
+    "CoboFormats-Rev-5-Compact.xcfg",
+    "CoboFormats-Rev-5.xcfg",
+    "CoboFormats.xcfg",
+    "MergedDataFormats-ByEventId-Rev-1.xcfg",
+    "MergedDataFormats-ByEventTime-Rev-1.xcfg",
+    "configure-ExternalTrigger-2CoBo_1Mutant.xcfg",
+    "configure-pedestals.xcfg",
+    "configure-pulser.xcfg",
+    "describe-cobo0.xcfg",
+    "describe-mono-node.xcfg",
+    "describe-pedestals.xcfg",
+    "describe-pulser.xcfg",
+    "dhcpd.conf.shared",
+    "dhcpd.conf.tunnel",
+    "getHwServer.out",
+    "hardwareDescription_Mutant.xcfg",
+    "hardwareDescription_fullCoBoStandAlone.xcfg",
+    "log4j.properties",
+    "prepare-pedestals.xcfg",
+    "prepare-pulser.xcfg",
+    "startup.vxsh"
+  ]
+}

@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     QCoreApplication::setOrganizationName("GetDAQ");
     QCoreApplication::setApplicationName("GetDAQ");
-    QCoreApplication::setApplicationVersion("0.1.0");
+    QCoreApplication::setApplicationVersion("1.0");
     app.setStyle(QStyleFactory::create("Fusion"));
     QCommandLineParser parser;
     parser.setApplicationDescription("AT-TPC acquisition control console.");

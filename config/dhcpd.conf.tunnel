@@ -1,0 +1,127 @@
+#
+# DHCP Server Configuration file.
+#   see /usr/share/doc/dhcp*/dhcpd.conf.sample
+#   see 'man 5 dhcpd.conf'
+#
+# 2026-09-07 最终定论（用户实锤硬件：服务器有 4 个光口 + 2 个电口）：
+#   网段语义（从头到尾一直正确，无需反转）：
+#     40 段 = 控制网 = CoBo 控制口(02:..:XX) + MuTaNT(00:22:8f:..:1c)
+#     50 段 = 数据网 = CoBo 数据口(06:..:XX)
+#   硬件角色（用户实锤，按 NCT 标准"电口=控制、光口=数据"）：
+#     enp3s0f0（电口/GbE） = 40 段控制网 → 配 192.168.40.100
+#     enp3s0f1（电口/GbE） = 40 段控制网 → 同上（enp3s0 是一张双电口卡，任一口都行）
+#     eno1~eno4（光口/SFP） = 50 段数据网（任一口） → 配 192.168.50.200
+#   当前服务器实测状态（截图确认）：
+#     enp3s0f1 UP   192.168.40.100/24   ← 控制网
+#     eno1     UP   192.168.50.200/24   ← 数据网
+#     enp3s0f0 DOWN（备用，没插线）
+#     eno2~4   DOWN（备用，没插线）
+#   监听设置：INTERFACESv4="enp3s0f1 eno1"
+#   此前混淆全部源于误判"eno1=电口、enp3s0f1=光口"——实锤是 eno1=光口、enp3s0f1=电口。
+#
+
+
+default-lease-time 600;
+max-lease-time 7200;
+
+# Use this to enable / disable dynamic dns updates globally
+ddns-update-style none;
+
+authoritative;
+
+#log-facility local7;
+
+#option domain-name-servers 192.168.40.10;
+#
+shared-network test {
+	subnet 192.168.40.0 netmask 255.255.255.0
+	{
+
+	  range 192.168.40.10 192.168.40.254;
+	  option subnet-mask 255.255.255.0;
+	  option broadcast-address 192.168.40.255;
+	  option domain-name "getctrlnet";
+	  option domain-name-servers 192.168.40.10;
+
+		group
+		{
+			# CoBo 控制口（02:..:XX）→ 40 段 IP
+			host CoboCtl05
+			{
+				hardware ethernet  02:00:00:00:01:05;
+				fixed-address 192.168.40.64;
+				option host-name "CoboCtl05";
+			}
+			host CoboCtl06
+			{
+				hardware ethernet  02:00:00:00:01:06;
+				fixed-address 192.168.40.65;
+				option host-name "CoboCtl06";
+			}
+
+			host CoboCtl8f
+			{
+				hardware ethernet  02:00:00:00:00:8f;
+				fixed-address 192.168.40.72;
+				option host-name "CoboCtl8f";
+			}
+			# MuTaNT（trigger/clock master，纯控制设备，只走控制网 40 段）
+			# 注意：2026-09-04 抓包曾显示 MuTaNT MAC 末位是 1d，旧文件写 1c。
+			# 两者差最低 1 bit，需在 MuTaNT 上电时再抓一次包确认
+			#   sudo tcpdump -i enp3s0f1 -e -n port 67 or port 68
+			# 若末位确为 1d，把下面 1c 改成 1d。
+			host Mutant01
+			{
+				hardware ethernet  00:22:8f:00:01:1c;
+				fixed-address 192.168.40.51;
+				option host-name "Mutant01";
+			}
+			host MacMiniCtrl
+			{
+				hardware ethernet 1c:f6:4c:61:cf:bb;
+				fixed-address 192.168.40.16;
+				option host-name "MacMini";
+			}
+		}
+	}
+
+	# 50 段 = 数据网（CoBo 数据口 06:..:XX 在这里）
+	subnet 192.168.50.0 netmask 255.255.255.0
+	{
+
+	  # 兜底 range：防止未识别设备报 "no free leases"，正常设备走下面的 host 固定绑定
+	  range 192.168.50.10 192.168.50.254;
+	  option subnet-mask 255.255.255.0;
+	  option broadcast-address 192.168.50.255;
+	  option domain-name "getdatanet";
+	  option domain-name-servers 192.168.50.10;
+
+		group
+		{
+			# CoBo 数据口（06:..:XX）→ 50 段 IP（末位与控制口一致）
+			host CoboData05
+			{
+				hardware ethernet  06:00:00:00:01:05;
+				fixed-address 192.168.50.64;
+				option host-name "CoboData05";
+			}
+			host CoboData06
+			{
+				hardware ethernet  06:00:00:00:01:06;
+				fixed-address 192.168.50.65;
+				option host-name "CoboData06";
+			}
+			host CoboData8f
+			{
+				hardware ethernet  06:00:00:00:00:8f;
+				fixed-address 192.168.50.143;
+				option host-name "CoboData8f";
+			}
+		}
+
+	}
+	
+
+
+}
+

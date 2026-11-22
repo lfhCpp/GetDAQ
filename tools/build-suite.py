@@ -49,7 +49,7 @@ def write_json(path, value):
 
 def source_hashes():
     """Small tracked inputs, including Slice and local dependency archives."""
-    files = {ROOT / 'GetDAQ.pro', ROOT / 'build-macos.command', Path(__file__).resolve()}
+    files = {ROOT / 'GetDAQ.pro', ROOT / 'build-macos.command', ROOT / 'VERSION', ROOT / 'tools/project-config-files.json', Path(__file__).resolve()}
     files.update(ROOT / name for name in ('tools/verify-dependencies.py',
                  'third_party/dependencies.json', 'third_party/archives/SHA256SUMS',
                  'third_party/yaml-cpp/SHA256SUMS'))
@@ -217,6 +217,8 @@ def runtime_dependencies(program, name):
 def stage_files():
     """Only documented templates; never include private credentials or run data."""
     files = [(ROOT / 'README.md', 'README.md'),
+             (ROOT / 'README.en.md', 'README.en.md'),
+             (ROOT / 'VERSION', 'VERSION'),
              (ROOT / 'tools/start-getdaq.sh', 'start-getdaq.sh'),
              (ROOT / 'examples/ecc-control-mcp.example.json', 'share/config/ecc-control-mcp.example.json'),
              (ROOT / 'config/product-features.json', 'share/product-features.json'),
@@ -225,6 +227,11 @@ def stage_files():
              (ROOT / 'docs/manual/GetDAQ-Quick-Guide-zh.html', 'docs/manual/GetDAQ-Quick-Guide-zh.html'),
              (ROOT / 'docs/manual/GetDAQ-Quick-Guide-en.html', 'docs/manual/GetDAQ-Quick-Guide-en.html'),
              (ROOT / 'docs/manual/fonts/LICENSE', 'share/licenses/user-guide/OFL.txt')]
+    project_config = json.loads((ROOT / 'tools/project-config-files.json').read_text())['files']
+    for name in project_config:
+        if Path(name).name != name or not (ROOT / 'config' / name).is_file():
+            raise RuntimeError('Project configuration missing: ' + name)
+        files.append((ROOT / 'config' / name, 'config/' + name))
     files += [(p, 'docs/' + p.name) for p in sorted((ROOT / 'docs').glob('*'))
               if p.is_file() and p.suffix in ('.md', '.png')]
     for p in sorted((ROOT / 'config').rglob('*')):
@@ -366,7 +373,7 @@ def main():
         lock.mkdir()
     except FileExistsError:
         raise RuntimeError('Another build may use this profile. Check its process before removing ' + str(lock))
-    receipt = {'schema': 'getdaq.host-suite:1', 'status': 'building', 'profile': args.profile,
+    receipt = {'version': (ROOT / 'VERSION').read_text().strip(), 'schema': 'getdaq.host-suite:1', 'status': 'building', 'profile': args.profile,
                'platform': versions, 'created_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
                'board_services_rewritten': False, 'target_platform_and_hardware_accepted': False,
                'embedded_dependencies': dependency_verification,
