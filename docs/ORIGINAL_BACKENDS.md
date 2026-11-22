@@ -180,3 +180,11 @@ not itself prove the hardware stopped, reset hardware UNKNOWN, or complete a Run
 Do not delete deployment journals to get past an immutable-file or inspection
 error. Unknown original operations remain retained and are not automatically
 replayed. A stale prepared-recipe ID is rejected before starting processes.
+
+### Sentry process version and upgrades
+
+Installing a new GUI does not replace a running monitor. Original ATTPC Sentry rejects an existing Experiment/run_NNNN directory; its API has no overwrite policy. The bundled getdaq-sentry supports explicit overwrite and same-directory append, but that process must actually be running. Its /status advertises run_file_policies.
+
+Project monitor startup now resolves getdaq-sentry from the installation's site/gui-runtime.txt. Existing live monitors remain untouched and report monitor_update_pending when they differ from the selected runtime. After a normal project service stop, the next monitor starts from the selected installed runtime instead of the old prepared receiver recipe. Process identity records retain the actual executable and birth time.
+
+A local node may use agent_program to select an upgraded management executable within the same installation while retaining program_directory for the unchanged original ECC/DataExporter binaries. Pairing, node identity and old instance recipes remain intact. A live switch must check pending node operations, hold the archive directory lease and confirm there are no accepted HTTP clients before replacing the monitor; it must never kill ECC/DataExporter processes or delete an actual Run to test the upgrade.

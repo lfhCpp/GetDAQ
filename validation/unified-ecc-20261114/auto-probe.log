@@ -1,2 +1,0 @@
-soap Idle port= 8083
-Ice detected on port 46003. SOAP ECC verified on port 8083; the saved profile will use 8083. The SOAP namespace is detected automatically. No board commands were sent. Data target is not configured; connection and status only.

@@ -190,7 +190,7 @@ Run → Pause run is enabled when every ECC is stably Running and no command is 
 Run stop first waits for every ECC to confirm Ready; catalog, configuration backup and local finalization follow. Successful archive is usually <project>/<Experiment>/run\_NNNN/. On archive warning, files may remain in the incoming directory. A record failure is not proof of a hardware stop failure; a local message alone is not proof the boards stopped.
 
 \subsection*{Existing Run: three choices}
-Overwrite replaces old records/raw files. Keep and add files preserves this Run number and directory, adding timestamped files; raw files retain their original time-based names without extra suffixes. Cancel does nothing. GUI metadata history is under records-timestamp-ID. Raw archiving occurs after Stop and uses the updated file policy on new Sentry; old receivers use their original catalog interface.
+Overwrite replaces old records/raw files. Keep and add files preserves this Run number and directory, adding timestamped files; raw files retain their original time-based names without extra suffixes. Cancel does nothing. GUI metadata history is under records-timestamp-ID. Stop-time overwrite requires the updated Sentry process. GUI updates alone do not replace background processes; original Sentry rejects an existing Run directory.
 \subsection*{Warnings and continued operation}
 \begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
 Control / field & Meaning and effect \\\midrule

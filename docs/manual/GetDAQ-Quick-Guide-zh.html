@@ -120,7 +120,7 @@ Router host 填接收数据网卡，Router port 填<b>数据端口</b>，Sentry 
 归档成功通常在项目目录 <code>&lt;Experiment&gt;/run_NNNN/</code>；归档警告时数据可能仍在原目录，以实际文件和日志为准。
 <h2>同号 Run：覆盖、保留新增、取消</h2>
 Overwrite 替换同号旧记录与归档文件；Keep and add files 保留原文件，在同目录新增；Cancel 取消。本次 Run 编号不变，原始文件保持时间命名，不增加额外序号。<br/><br/>
-原始数据在 Stop 后归档；旧接收端沿用原有归档接口。旧 GUI 元数据放入同 Run 的 <code>records-时间-标识</code> 子目录，新元数据仍用 run.yml / journal.json / run.csv。
+Stop 后归档。Overwrite 需运行新版 Sentry；原版遇同号目录会拒绝。GUI 更新不等于后台进程更新。旧 GUI 元数据保存在同 Run 的 <code>records-时间-标识</code> 子目录。
 <h2>警告不再锁死操作</h2>
 <br/><br/> <table cellspacing="0" cellpadding="7"><tr><th>情况</th><th>行为</th></tr><tr><td>本地记录 / 备份失败</td><td>告警并保留已有记录，可手动开始下一次；不伪称已成功保存，自动续跑取消。</td></tr><tr><td>catalog 结果不确定</td><td>保留未知回执，不自动重试；确认 Ready 后允许关闭本地 Run 并继续手动操作。</td></tr><tr><td>状态过期、监控缺失</td><td>需要确认时弹出警告；硬件命令仍由 ECC 判断。</td></tr><tr><td>Start / Stop / Disconnect</td><td>连接后保持可用；正在执行的硬件命令串行处理，Stop 可排在当前命令后。</td></tr><tr><td>接收目录有旧文件</td><td>确认后归入本次 Run；不据此认定 Run 编号重复。</td></tr></table><br/><br/>
 <b>Start 观察到已经 Running 时只附着观察，不再重复 Start；停止外部开始的采集也可用 Stop。</b>

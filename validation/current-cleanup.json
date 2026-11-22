@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-22",
+  "product_tests": {
+    "passed": 69,
+    "failed": 0
+  },
+  "installed_programs_per_host": 16,
+  "installed_files_per_host": 73,
+  "target_old_runtime_directories_remaining": 0,
+  "target_deleted_bytes": 7156113562,
+  "local_pending_admin_cleanup": "build-ubuntu24-validation (root-owned Ubuntu test filesystem)",
+  "user_configuration_raw_data_run_records_and_pairing_preserved": true,
+  "main_window_layout_unchanged": true
+}

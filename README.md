@@ -50,3 +50,5 @@ Tools → Sync project configuration 可更新选定主机，活动配置确认�
 在线波形：**Tools → Online waveform viewer…**，独立进程从选择框使用当前配置的 DataExporter TCP export 端口
 （默认 46491），支持多个接收器、缓存事件及电子学通道选择。
 [操作、性能边界与控制警告](docs/ONLINE_WAVEFORM_AND_CONTROL.md)。
+
+当前安装目录采用单一布局：`bin/` 放正式程序，启动器 `start-getdaq.sh` 自动定位本目录，不需要逐台修改可执行路径。各主机只保存自己的网络与数据目录设置，实验配置由主控分发。旧版本和历史验证记录从 GitHub 历史获取，不在安装目录保存多个 `runtime-*`。

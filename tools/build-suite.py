@@ -217,6 +217,7 @@ def runtime_dependencies(program, name):
 def stage_files():
     """Only documented templates; never include private credentials or run data."""
     files = [(ROOT / 'README.md', 'README.md'),
+             (ROOT / 'tools/start-getdaq.sh', 'start-getdaq.sh'),
              (ROOT / 'examples/ecc-control-mcp.example.json', 'share/config/ecc-control-mcp.example.json'),
              (ROOT / 'config/product-features.json', 'share/product-features.json'),
              (ROOT / 'docs/manual/GetDAQ-Quick-Guide.pdf', 'docs/manual/GetDAQ-Quick-Guide.pdf'),

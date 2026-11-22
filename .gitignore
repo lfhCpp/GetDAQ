@@ -42,7 +42,7 @@ __pycache__/
 # Private integration fixture trees
 /validation/**/distributed-*/
 
-# Historical source is kept locally and excluded from publication
+# Historical trees are excluded; required build sources are in third_party.
 /source/
 .svn/
 
@@ -51,3 +51,6 @@ __pycache__/
 *.app/
 *.dSYM/
 .DS_Store
+
+# Local reference documents and preserved acquisition artifacts
+/docs/local-references/

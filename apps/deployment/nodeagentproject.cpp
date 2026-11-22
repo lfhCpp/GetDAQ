@@ -43,10 +43,10 @@ void NodeAgent::UpdateProjectRegistries(){
 }
 QJsonObject NodeAgent::StartProjectMonitor(const QJsonObject &request,bool *effects){
  const auto instance=Id(request["group_id"].toString()+'-'+request["receiver_id"].toString());const auto selected=Parse(Read(fRoot+"/instances/"+instance+".json"));Require(selected["release_id"]==request["release_id"] && selected["phase"]=="active","Start the selected receiver first");const auto config=Parse(Read(selected["config_file"].toString()));if(!config["project_mode"].toBool())return selected;
- const auto root=config["sentry_root"].toString(),record=root+"/process.json";const auto executable=config["sentry_program"].toString();
- if(QFile::exists(record) && SameLocalServiceProcess(Process(Parse(Read(record)))))return selected;
+ const auto root=config["sentry_root"].toString(),record=root+"/process.json";const auto executable=InstalledServiceProgram(fPrograms,"getdaq-sentry",config["sentry_program"].toString());
+ if(QFile::exists(record) && SameLocalServiceProcess(Process(Parse(Read(record))))){auto result=selected;const auto running=Parse(Read(record))["executable"].toString();result["monitor_program"]=running;result["monitor_update_pending"]=running!=executable;return result;}
  QProcess process;process.setProgram(executable);process.setArguments({"--config",config["sentry_config"].toString()});process.setWorkingDirectory(config["working_directory"].toString());process.setStandardOutputFile(root+"/sentry.log",QIODevice::Append);process.setStandardErrorFile(root+"/sentry.log",QIODevice::Append);qint64 pid=0;*effects=true;Require(process.startDetached(&pid),"Cannot start project Sentry");
- bool found=false;for(int i=0;i<30;++i){for(const auto &p:FindLocalServiceProcesses(executable,config["sentry_config"].toString()))if(p.pid==pid){Write(record,Json(Wire(p)));found=true;}if(found)break;QThread::msleep(100);}Require(found,"Project Sentry exited; inspect its log");
+ bool found=false;for(int i=0;i<30;++i){for(const auto &p:FindLocalServiceProcesses(executable,config["sentry_config"].toString()))if(p.pid==pid){auto identity=Wire(p);identity["configured_program"]=config["sentry_program"];identity["program_sha256"]=Sha(Read(executable,256*1024*1024));Write(record,Json(identity));found=true;}if(found)break;QThread::msleep(100);}Require(found,"Project Sentry exited; inspect its log");
  const auto settings=Parse(Read(config["sentry_config"].toString()));QTcpSocket socket;QElapsedTimer startup;startup.start();
  while(startup.elapsed()<5000){
   socket.connectToHost(settings["bind"].toString(),quint16(settings["port"].toInt()));

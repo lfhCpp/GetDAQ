@@ -236,7 +236,7 @@ Experiment & Run 名称及缺省 ID；节点明确填写的 ID 优先。\\\botto
 归档成功通常在项目目录 \code{<Experiment>/run\_NNNN/}；归档警告时数据可能仍在原目录，以实际文件和日志为准。
 \subsection*{同号 Run：覆盖、保留新增、取消}
 Overwrite 替换同号旧记录与归档文件；Keep and add files 保留原文件，在同目录新增；Cancel 取消。本次 Run 编号不变，原始文件保持时间命名，不增加额外序号。\par
-原始数据在 Stop 后归档；旧接收端沿用原有归档接口。旧 GUI 元数据放入同 Run 的 \code{records-时间-标识} 子目录，新元数据仍用 run.yml / journal.json / run.csv。
+Stop 后归档。Overwrite 需运行新版 Sentry；原版遇同号目录会拒绝。GUI 更新不等于后台进程更新。旧 GUI 元数据保存在同 Run 的 \code{records-时间-标识} 子目录。
 \subsection*{警告不再锁死操作}
 \par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{40mm}Y@{}}\toprule
 情况 & 行为 \\\midrule

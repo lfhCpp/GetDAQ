@@ -1,7 +1,0 @@
-....................
-----------------------------------------------------------------------
-Ran 20 tests in 0.438s
-
-OK
-Verified package: /tmp/getdaq-delivery-check-r01jkikf/package; 60 files
-Verified package: /tmp/getdaq-delivery-check-r01jkikf/package; 60 files

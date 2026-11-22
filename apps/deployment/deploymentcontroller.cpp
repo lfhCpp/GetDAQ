@@ -74,7 +74,9 @@ QJsonObject EnsureLocalNode(const QString &root,const QString &programs,const QS
     const auto initializer=QDir(programs).filePath("getdaq-node-agent"),configuration=root+"/node.json";
     Require(QFileInfo(initializer).isExecutable(),"Install getdaq-node-agent beside GetDAQ");
     if(!QFile::exists(configuration))Run(initializer,{"--initialize",root,"--programs",programs,"--bind",address,"--port",QString::number(port),"--data",dataDirectory});
-    const auto saved=Parse(Read(configuration));Require(saved["root"]==root,"Reuse the existing private cache directory");const auto servicePrograms=SavedPrograms(saved["program_directory"].toString(),programs);const auto executable=QDir(servicePrograms).filePath("getdaq-node-agent");Require(QFileInfo(executable).isExecutable(),"The saved node runtime is missing; restore that runtime before managing its instances");
+    const auto saved=Parse(Read(configuration));Require(saved["root"]==root,"Reuse the existing private cache directory");const auto servicePrograms=SavedPrograms(saved["program_directory"].toString(),programs);const auto executable=saved["agent_program"].toString(QDir(servicePrograms).filePath("getdaq-node-agent"));
+    if(saved.contains("agent_program"))Require(QFileInfo(executable).fileName()=="getdaq-node-agent" && InstallationForPrograms(QFileInfo(executable).absolutePath())==InstallationForPrograms(servicePrograms) && !InstallationForPrograms(servicePrograms).isEmpty(),"Saved management agent belongs to another installation");
+    Require(QFileInfo(executable).isExecutable(),"The saved node runtime is missing; restore that runtime before managing its instances");
     Require(saved["bind"]==address && saved["port"].toInt()==port && saved["data_directory"]==dataDirectory,"This node already has saved connection settings; reuse them before migrating it");
     if(FindLocalServiceProcesses(executable,configuration).isEmpty()){
         QProcess process;process.setProgram(executable);process.setArguments({"--config",configuration});process.setStandardOutputFile(root+"/agent.log",QIODevice::Append);process.setStandardErrorFile(root+"/agent.log",QIODevice::Append);qint64 pid=0;Require(process.startDetached(&pid),"Cannot start this computer's receiving agent");
@@ -164,7 +166,8 @@ QJsonObject ActivateProject(const QJsonObject &master,const QJsonArray &nodes,co
       const auto group=value.toObject();if(!group["project_mode"].toBool() || (!selectedGroups.isEmpty()?!selectedGroups.contains(group["id"].toString()):(!selectedGroup.isEmpty() && group["id"].toString()!=selectedGroup)))continue;
       for(const auto &rxValue:group["receivers"].toArray()){
         const auto rx=rxValue.toObject();Note(log,"Starting/checking shared project Sentry…");
-        Invoke(Node(nodes,rx["node_id"].toString()),{{"action","start-monitor"},{"release_id",active[group["id"].toString()+'-'+rx["id"].toString()].toObject()["release_id"]},{"group_id",group["id"]},{"role","receiver"},{"receiver_id",rx["id"]}},monitorJob,log);
+        const auto monitor=Invoke(Node(nodes,rx["node_id"].toString()),{{"action","start-monitor"},{"release_id",active[group["id"].toString()+'-'+rx["id"].toString()].toObject()["release_id"]},{"group_id",group["id"]},{"role","receiver"},{"receiver_id",rx["id"]}},monitorJob,log);
+        if(monitor["monitor_update_pending"].toBool())Note(log,"Sentry update is installed but its previous process is still running. Stop and restart this project's services to activate the current Sentry; its existing archive behavior remains in use.");
       }
     }
     Require(!receipts.isEmpty(),"Select a prepared control group");QJsonObject result{{"schema",1},{"release_id",release},{"receipts",receipts},{"reused_groups",reused},{"phase","active"},{"job",job}};Write(Root(master)+"/active-release.json",Json(result));context["phase"]="complete";Write(pendingFile,Json(context));Note(log,"Requested service identities verified. Other control groups were left running; no hardware commands sent.");return result;

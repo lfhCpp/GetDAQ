@@ -31,6 +31,7 @@ QByteArray Secret(const QString &path);
 void PrivateDirectory(const QString &path);
 void Write(const QString &path,const QByteArray &bytes,bool immutable=false);
 QByteArray Token();
+QString InstalledServiceProgram(const QString &programs,const QString &name,const QString &fallback);
 QString Address(const QString &address,bool local=false);
 int Port(int port,bool allowZero=false);
 QByteArray Run(const QString &program,const QStringList &arguments,int timeout=30000);

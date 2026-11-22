@@ -118,6 +118,14 @@ private slots:
         if(choice=="CancelBackendExit"){QVERIFY(window.isVisible());QVERIFY(window.isEnabled());}else QTRY_VERIFY_WITH_TIMEOUT(!window.isVisible(),5000);
     }
  }
+ void projectMonitorFollowsInstalledRuntimeWithoutChangingBoardPrograms(){
+    QTemporaryDir dir;const auto old=dir.filePath("runtime-old/bin"),current=dir.filePath("runtime-current/bin");QVERIFY(QDir().mkpath(old));QVERIFY(QDir().mkpath(current));QVERIFY(QDir().mkpath(dir.filePath("site")));
+    const auto executable=current+"/getdaq-sentry";QFile program(executable);QVERIFY(program.open(QIODevice::WriteOnly));program.write("#!/bin/sh\nexit 0\n");program.close();QVERIFY(program.setPermissions(QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner));
+    QCOMPARE(Deployment::InstalledServiceProgram(old,"getdaq-sentry",old+"/getdaq-sentry"),old+"/getdaq-sentry");
+    QFile selection(dir.filePath("site/gui-runtime.txt"));QVERIFY(selection.open(QIODevice::WriteOnly));selection.write("runtime-current\n");selection.close();QCOMPARE(Deployment::InstalledServiceProgram(old,"getdaq-sentry",old+"/getdaq-sentry"),executable);
+    QVERIFY(QDir().mkpath(dir.filePath("bin")));const auto installed=dir.filePath("bin/getdaq-sentry");QVERIFY(QFile::copy(executable,installed));QVERIFY(QFile::setPermissions(installed,QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner));QVERIFY(selection.open(QIODevice::WriteOnly|QIODevice::Truncate));selection.write("installed\n");selection.close();QCOMPARE(Deployment::InstalledServiceProgram(dir.filePath("bin"),"getdaq-sentry",executable),installed);
+    QVERIFY(selection.open(QIODevice::WriteOnly|QIODevice::Truncate));selection.write("../outside\n");selection.close();QVERIFY_EXCEPTION_THROWN(Deployment::InstalledServiceProgram(old,"getdaq-sentry",old+"/getdaq-sentry"),std::exception);
+ }
  void newDefaultPathsUseVisibleHomeWorkspace(){
     const auto previous=qgetenv("GETDAQ_WORKSPACE");qunsetenv("GETDAQ_WORKSPACE");QCOMPARE(DefaultWorkspaceDirectory(),QDir(QDir::homePath()).filePath("GetDAQ"));const auto defaults=RunConfig::Default();QCOMPARE(defaults.outputDir,QDir(QDir::homePath()).filePath("GetDAQ/runs"));QVERIFY(!defaults.configDir.contains("/.local/"));qputenv("GETDAQ_WORKSPACE",previous);QCOMPARE(DefaultWorkspaceDirectory(),fWorkspace.path());
     ConsoleLogStore log;QVERIFY(log.OpenApplicationLog());QVERIFY(log.ApplicationLogPath().startsWith(fWorkspace.path()+"/logs/sessions/"));

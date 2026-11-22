@@ -50,8 +50,8 @@ def launch(root):
     logs = root / 'logs'
     logs.mkdir(parents=True, exist_ok=True)
     runtime_file = root / 'site/gui-runtime.txt'
-    runtime = runtime_file.read_text().strip() if runtime_file.exists() else 'runtime-linux'
-    program = (root / runtime / 'bin/GetDAQ').resolve()
+    runtime = runtime_file.read_text().strip() if runtime_file.exists() else 'installed'
+    program = (root / ('bin/GetDAQ' if runtime == 'installed' else runtime + '/bin/GetDAQ')).resolve()
     if root.resolve() not in program.parents or not program.is_file():
         raise RuntimeError('GUI executable is missing: ' + str(program))
     if not os.environ.get('DISPLAY') and not os.environ.get('WAYLAND_DISPLAY'):
@@ -71,10 +71,7 @@ def launch(root):
             except (OSError, RuntimeError):
                 continue
         args = sys.argv[1:]
-        if '--config' not in args and not any(a.startswith('--config=') for a in args):
-            deployment = Path(os.environ.get('GETDAQ_DEPLOYMENT_DIR', str(root / 'site/acquisition-pedestals-cobo64')))
-            args = ['--config', str(deployment / 'envoy.yml')] + args
-        log_path = logs / 'GetDAQ-native.log'
+        log_path = logs / 'GetDAQ.log'
         with log_path.open('ab', buffering=0) as log:
             process = subprocess.Popen([str(program)] + args, cwd=str(root), stdin=subprocess.DEVNULL,
                                        stdout=log, stderr=log, close_fds=True, start_new_session=True)
