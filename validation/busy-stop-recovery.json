@@ -1,7 +1,7 @@
 {
   "scope": "disable production before pulser waits; independent Stop attempts; updated executable release and restart",
   "qt_tests": {
-    "passed": 84,
+    "passed": 85,
     "failed": 0
   },
   "original_stop_fault_probe": {
@@ -12,7 +12,7 @@
     "independent_failure_cases_passed": true
   },
   "original_distributed_lifecycle": {
-    "passed_checks": 11,
+    "passed_checks": 12,
     "blocked_ecc_termination": "explicit confirmation required; exact owned process only; no hardware-stopped claim"
   },
   "original_vendor_sources_unchanged": true,
@@ -33,6 +33,34 @@
       "transition": 0,
       "error_code": 0,
       "hardware_acquisition_restarted": false
+    },
+    "repeated_project_start": {
+      "passed": 2,
+      "first_start": {
+        "receiver_verified_files": 26,
+        "ecc_verified_files": 0,
+        "downloaded_objects": 0
+      },
+      "second_start": {
+        "receiver_verified_files": 0,
+        "ecc_verified_files": 0,
+        "downloaded_objects": 0
+      },
+      "ecc_state": "Idle",
+      "ecc_transition": 0,
+      "ecc_error_code": 0,
+      "hardware_acquisition_restarted": false
     }
+  },
+  "pending_activation_reuse": {
+    "direct_job_repeated": true,
+    "trailing_separator_normalized": true,
+    "nested_and_symlink_jobs_rejected": true
+  },
+  "shared_host_content_cache": {
+    "per_release_verification_once": true,
+    "second_role_downloaded_objects": 0,
+    "second_role_verified_files": 0,
+    "cache_limit_mib": 64
   }
 }

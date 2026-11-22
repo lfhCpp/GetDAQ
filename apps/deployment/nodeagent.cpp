@@ -48,8 +48,43 @@ QJsonObject NodeAgent::Execute(const QJsonObject &request,bool *effects){Operati
  const auto file=action=="activate"?preparedFile:fRoot+"/instances/"+instance+".json";
  if(QFile::exists(file) && Parse(Read(file))["backend"]=="original-soap"){const auto result=OriginalOperation(request,effects);UpdateProjectRegistries();if(action=="stop" || action=="terminate"){try{ApplyPendingProjects();}catch(const std::exception &error){qWarning().noquote()<<"Pending configuration retained:"<<error.what();}}return result;}
  }if(action=="activate")return Activate(request,effects);if(action=="release-terminated")return ReleaseTerminated(request,effects);return StopInstance(request,action=="terminate",effects);}
-QJsonObject NodeAgent::Prepare(const QJsonObject &request){Progress(request,"Connecting to master configuration repository");const auto master=Parse(Read(fRoot+"/master.json"));const Endpoint repository{master["repository_url"].toString(),master["certificate_sha256"].toString(),Secret(master["credential_file"].toString())};const auto release=Digest(request["release_id"].toString());Require(Get(repository,"/v1/identity")["repository_id"]==master["repository_id"],"Repository identity changed");const auto response=Request(repository,"GET","/v1/deployments/"+release);Require(response.code==200 && Sha(response.body)==release,"Release manifest download differs");const auto manifest=Parse(response.body);ValidateRelease(manifest);bool assigned=false;for(const auto &host:manifest["hosts"].toArray())if(host.toObject()["id"]==fNode)assigned=true;Require(assigned,"This node is not assigned to the release");const auto local=fRoot+"/releases/"+release;PrivateDirectory(local);QMap<QString,QByteArray> files;QJsonArray mappings;int fileIndex=0;const int fileCount=manifest["files"].toArray().size();for(const auto &value:manifest["files"].toArray()){Progress(request,QString("Verifying configuration (cached content reused): %1 / %2 files").arg(++fileIndex).arg(fileCount));const auto file=value.toObject();QMap<QString,QByteArray> objects;for(const auto &part:file["objects"].toArray()){const auto sha=Digest(part.toString()),cached=fRoot+"/objects/"+sha;if(!QFile::exists(cached)){const auto received=Request(repository,"GET","/v1/content/"+sha);Require(received.code==200 && !received.body.isEmpty() && received.body.size()<=32768 && Sha(received.body)==sha,"Content download differs");Write(cached,received.body,true);}const auto bytes=Read(cached,32768);Require(Sha(bytes)==sha,"Cached object changed");objects[sha]=bytes;}const auto bytes=Assemble(file,objects);const auto name=Id(file["id"].toString()),path=local+'/'+name;Write(path,bytes,true);files[name]=bytes;mappings.append(QJsonObject{{"id",name},{"path",path},{"sha256",Sha(bytes)}});}Write(local+"/manifest.json",response.body,true);const auto group=FindGroup(manifest,request["group_id"].toString());Require(group["backend"]=="original-soap","Recreate this retired native group as original SOAP ECC / DataExporter.");ValidateGroupFiles(group,files);const auto instance=InstanceId(request),directory=fRoot+"/deployments/"+release+'/'+instance;PrivateDirectory(directory);PrivateDirectory(directory+"/credentials");PrivateDirectory(directory+"/state");PrivateDirectory(directory+"/logs");return PrepareOriginal(request,group,files,directory);
+QJsonObject NodeAgent::Prepare(const QJsonObject &request){
+ Progress(request,"Checking master repository identity and configuration manifest");
+ const auto master=Parse(Read(fRoot+"/master.json"));const Endpoint repository{master["repository_url"].toString(),master["certificate_sha256"].toString(),Secret(master["credential_file"].toString())};
+ const auto release=Digest(request["release_id"].toString());Require(Get(repository,"/v1/identity")["repository_id"]==master["repository_id"],"Repository identity changed");
+ const auto response=Request(repository,"GET","/v1/deployments/"+release);Require(response.code==200 && Sha(response.body)==release,"Release manifest download differs");const auto manifest=Parse(response.body);ValidateRelease(manifest);
+ bool assigned=false;for(const auto &host:manifest["hosts"].toArray())if(host.toObject()["id"]==fNode)assigned=true;Require(assigned,"This node is not assigned to the release");
+ const auto local=fRoot+"/releases/"+release;PrivateDirectory(local);QMap<QString,QByteArray> files;
+ qint64 total=0;for(const auto &value:manifest["files"].toArray())total+=qint64(value.toObject()["bytes"].toDouble());Require(total<=64*1024*1024,"Release content exceeds 64 MiB");
+ const bool reused=fVerifiedRelease==release;int downloaded=0,verified=0;const int count=manifest["files"].toArray().size();
+ if(reused){
+  files=fVerifiedFiles;
+  Progress(request,QString("Using this host's verified configuration: %1 files; no repeated download or content verification. Preparing %2 service.").arg(count).arg(request["role"].toString()));
+ }else{
+  fVerifiedFiles.clear();fVerifiedRelease.clear();
+  for(const auto &value:manifest["files"].toArray()){
+   const auto file=value.toObject();QMap<QString,QByteArray> objects;
+   for(const auto &part:file["objects"].toArray()){
+    const auto sha=Digest(part.toString()),cached=fRoot+"/objects/"+sha;
+    if(!QFile::exists(cached)){
+     const auto received=Request(repository,"GET","/v1/content/"+sha);
+     Require(received.code==200 && !received.body.isEmpty() && received.body.size()<=32768 && Sha(received.body)==sha,"Content download differs");Write(cached,received.body,true);++downloaded;
+    }
+    const auto bytes=Read(cached,32768);Require(Sha(bytes)==sha,"Cached object changed");objects[sha]=bytes;
+   }
+   const auto bytes=Assemble(file,objects);const auto name=Id(file["id"].toString());Write(local+'/'+name,bytes,true);files[name]=bytes;
+   Progress(request,QString("Checking configuration: %1 / %2 files; downloaded %3 missing content objects.").arg(++verified).arg(count).arg(downloaded));
+  }
+  fVerifiedFiles=files;fVerifiedRelease=release;
+ }
+ Write(local+"/manifest.json",response.body,true);
+ const auto group=FindGroup(manifest,request["group_id"].toString());Require(group["backend"]=="original-soap","Recreate this retired native group as original SOAP ECC / DataExporter.");ValidateGroupFiles(group,files);
+ const auto instance=InstanceId(request),directory=fRoot+"/deployments/"+release+'/'+instance;PrivateDirectory(directory);PrivateDirectory(directory+"/credentials");PrivateDirectory(directory+"/state");PrivateDirectory(directory+"/logs");
+ auto result=PrepareOriginal(request,group,files,directory);
+ result["configuration_content"]=QJsonObject{{"host_cache_reused",reused},{"file_count",count},{"verified_files",verified},{"downloaded_objects",downloaded}};
+ return result;
 }
+
 QJsonObject NodeAgent::Activate(const QJsonObject &,bool *) {
     throw std::runtime_error("Native ECC startup has been retired. Recreate this group with original SOAP ECC / DataExporter.");
 }

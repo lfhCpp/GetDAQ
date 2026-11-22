@@ -64,6 +64,12 @@ using namespace GetDAQTestSupport;
 class ProductTests:public QObject {Q_OBJECT
  QTemporaryDir fWorkspace;
 private slots:
+ void currentPendingActivationCanBeResolvedRepeatedly(){
+    QTemporaryDir dir;const auto root=dir.path()+"/project",job=root+"/jobs/activate-original";Deployment::PrivateDirectory(job);
+    for(const auto &suffix:{QString(),QString("/")})for(int i=0;i<3;++i)QCOMPARE(Deployment::ResolvePendingActivationJob(QJsonObject{{"root",root+suffix}},QJsonObject{{"directory",job+suffix}}),job);
+    Deployment::PrivateDirectory(job+"/nested");QVERIFY_EXCEPTION_THROWN(Deployment::ResolvePendingActivationJob(QJsonObject{{"root",root}},QJsonObject{{"directory",job+"/nested"}}),std::exception);
+    QVERIFY(QFile::link(job,root+"/jobs/linked"));QVERIFY_EXCEPTION_THROWN(Deployment::ResolvePendingActivationJob(QJsonObject{{"root",root}},QJsonObject{{"directory",root+"/jobs/linked"}}),std::exception);
+ }
  void movedPendingActivationResolvesOnlyThroughRecordedRelocations(){
     QTemporaryDir dir;const auto old=dir.path()+"/old",middle=dir.path()+"/middle",current=dir.path()+"/current";
     for(const auto &root:{old,middle,current})Deployment::PrivateDirectory(root);

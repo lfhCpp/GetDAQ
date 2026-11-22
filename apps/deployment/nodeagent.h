@@ -18,6 +18,10 @@ private:
     QJsonObject fConfig;
     QString fRoot,fPrograms,fData,fNode;
     QByteArray fCredential;
+    // One bounded, immutable manifest snapshot per execution host. Mutating
+    // operations are serialized by fBusy; reads never access this cache.
+    QString fVerifiedRelease;
+    QMap<QString,QByteArray> fVerifiedFiles;
     HttpServer fServer;
     std::unique_ptr<QLockFile> fLock;
     bool fBusy=false,fFault=false;

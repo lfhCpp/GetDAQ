@@ -266,6 +266,25 @@ def main():
         ready=terminal(nodes[0],new_start);require(ready['phase']=='complete',json.dumps(ready))
         ready=terminal(nodes[0],dict(new_start,operation_id='stop-updated-ecc',action='stop'));require(ready['phase']=='complete',json.dumps(ready))
         checks.append('freshly prepared updated ECC restarts after inspected termination and stops normally')
+        require(ready['phase']=='complete','Updated ECC did not stop')
+        # A release shared by ECC and receiver on one execution host is checked
+        # once. Each role still receives its own immutable service recipe.
+        colocated=json.loads(manifest_bytes)
+        colocated['groups'][0]['receivers'][0]['node_id']=nodes[0]['id']
+        colocated_bytes=json.dumps(colocated,separators=(',',':')).encode();colocated_release=sha(colocated_bytes);chunks=[]
+        for offset in range(0,len(colocated_bytes),32768):
+            chunk=colocated_bytes[offset:offset+32768];digest=sha(chunk)
+            require(request(repository,'POST','/v1/objects/'+digest,chunk,admin,repository_id,True)[0]==200,'Shared-host manifest upload failed');chunks.append(digest)
+        require(request(repository,'POST','/v1/deployments',{'manifest_objects':chunks},admin,repository_id)[0]==200,'Shared-host deployment failed')
+        first=terminal(nodes[0],dict(prepare_receiver,operation_id='cohost-prepare-data',release_id=colocated_release))
+        second=terminal(nodes[0],dict(prepare_ecc,operation_id='cohost-prepare-ecc',release_id=colocated_release))
+        require(first['phase']==second['phase']=='complete',json.dumps([first,second]))
+        a=first['result']['configuration_content'];b=second['result']['configuration_content']
+        require(not a['host_cache_reused'] and a['verified_files']==len(colocated['files']),'First service did not verify its new release')
+        require(b['host_cache_reused'] and b['verified_files']==0 and b['downloaded_objects']==0,'Second service repeated content verification or download')
+        require(first['result']['config_file']!=second['result']['config_file'],'Shared cache merged independent service recipes')
+        checks.append('cohost receiver and ECC share verified release content without repeated download or content verification')
+
 
 
         (root / 'result.json').write_text(json.dumps({'passed': True, 'checks': checks, 'real_hardware': False,
