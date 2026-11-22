@@ -166,6 +166,17 @@ def main():
    project['nodes']=[dict(id=n['id'],name='Node '+str(i),url='https://127.0.0.1:'+str(n['port']),certificate_sha256=n['pin'],credential_file=str(root/'nodes'/(n['id']+'.token')),inventory=n['inventory']) for i,n in enumerate(nodes)]
    (root/'project.json').write_text(json.dumps(project))
    os.environ['QT_QPA_PLATFORM']='offscreen';output=root/'combined-logs.txt';run(args.log_panel_probe,root/'project.json',output);combined=output.read_text();require('EVENT LOG' in combined and 'ECC LOG' in combined and 'DATA LOG' in combined,'Combined log lacks source separators');checks.append('real GUI collector skips previous-session tails, collects new authenticated output on Event tab and exports a stable snapshot; Clear preserves this session history')
+  if args.controller_probe:
+   plan=json.loads(run(args.controller_probe,'exit-plan',root/'master.json'));require(not plan['errors'] and len(plan['targets'])==4,'Exit inspection did not find both managed ECC/data pairs');checks.append('exit inspection finds authenticated managed ECC and receiver instances across both hosts')
+   stopped_plan=json.loads(run(args.controller_probe,'exit-stop',root/'master.json','group2'));require(len(stopped_plan['targets'])==2,'Exit stop selected unrelated groups')
+   inventory=json.loads(request(nodes[0],'GET','/v1/inventory',token=nodes[0]['token'])[1]);require(any(i['instance_id']=='group1-ecc' and i['actual_pids'] for i in inventory['instances']),'Exit stop touched another ECC')
+   for node in nodes:
+    inventory=json.loads(request(node,'GET','/v1/inventory',token=node['token'])[1]);require(all(not i.get('actual_pids') for i in inventory['instances'] if i.get('group_id')=='group2'),'Exit stop left a selected backend running')
+   require((data_folder/'preserve.graw').read_bytes()==b'old-raw','Exit stop changed existing raw files');checks.append('exit stops selected ECC before receiver, preserves the other group/raw data and updates managed receipts')
+   restarted=json.loads(run(args.controller_probe,'start-selected',root/'master.json','group2'))
+   replacement={r['instance_id']:r for r in restarted['activation']['receipts']}
+   activated=[(node,dict(body,release_id=replacement.get(active['instance_id'],active)['release_id']),replacement.get(active['instance_id'],active)) for node,body,active in activated]
+   checks.append('normally stopped exit services restart without clearing node pairing or deployment cache')
   # With a foreign/uninspectable ECC still associated with live receivers, updates stay cached.
   ecc_active=[v for v in activated if v[1]['role']=='ecc'];os.kill(int(ecc_active[0][2]['processes'][0]['pid']),signal.SIGINT);time.sleep(.3)
   (source/'resource.dat').write_bytes(b'updated-resource');next_release=upload(groups)

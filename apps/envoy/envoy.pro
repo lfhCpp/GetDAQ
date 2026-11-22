@@ -47,3 +47,5 @@ HEADERS += logtimeline.h
 SOURCES += userguidewindow.cpp
 HEADERS += userguidewindow.h
 RESOURCES += userguide.qrc
+
+SOURCES += mainwindow_shutdown.cpp

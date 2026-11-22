@@ -249,7 +249,7 @@ Start / Stop / Disconnect & 连接后保持可用；正在执行的硬件命令�
 原 Event log 区域切换 \ui{Event log / ECC log / DataExporter log / DataRouter log}，右侧选择主机和实例；也可选择共享 Sentry。
 每次重新打开 GUI，新日志会话从空白开始，不加载之前的输出；首次附着后台日志后只收集新内容。Data log 右侧 Clear 清显示，导出仅含本次会话。
 Tools $\rightarrow$ Logs $\rightarrow$ \ui{Export combined logs…} 导出 TXT，按 GUI 接收时间与顺序号合并，分隔来源；远端原文时间保留，不能冒充完全同步的跨主机事件时钟。
-\note{关闭 GUI、Disconnect、Stop acquisition、Stop backend services 是四件事。需要关闭后台时使用实例管理，并先核对采集状态。}
+\note{关闭主界面时，若有托管后台，提示 Stop ECC + data and exit（停后台后退出）、Keep services running and exit（保留后台退出）或 Cancel。先 Run stop 再停后台；失败则保留界面。外部 ECC 不关闭。}
 
 \newpage
 \pagehead{7\quad 波形查看与 3D}{在线、离线使用相同的电子学通道和绘图方式，没有 pad 映射。}

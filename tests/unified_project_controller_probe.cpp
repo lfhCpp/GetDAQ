@@ -1,5 +1,6 @@
 #include "deploymentcontroller.h"
 #include "originaldeployment.h"
+#include "backendshutdown.h"
 #include <QCoreApplication>
 #include <QDir>
 #include <QJsonArray>
@@ -15,6 +16,10 @@ int main(int argc,char **argv){QCoreApplication app(argc,argv);try{
   project["groups"]=groups;Write(root+"/project.json",Json(project));const auto bundle=BuildBundle(project["project_id"].toString("unified-test"),hosts,groups,files);
   if(action=="sync"){QSet<QString> targets;if(argc==4)targets.insert(argv[3]);result=SyncProject(master,nodes,bundle,targets);}
   else {QSet<QString> selection;if(action=="start-selected" || action=="prepare-selected")for(int i=3;i<argc;++i)selection.insert(argv[i]);const auto prepared=PrepareProject(master,nodes,bundle,{},QString(),false,selection);if(action=="prepare-selected"){std::cout<<Json(prepared).constData()<<std::endl;return 0;}const auto active=ActivateProject(master,nodes,prepared,{},QString(),selection);if(action=="services"){result={{"preparation",prepared},{"activation",active}};std::cout<<Json(result).constData()<<std::endl;return 0;}auto base=RunConfig::Default();base.outputDir=root+"/gui-records";auto config=ConsoleConfiguration(master,prepared,active,groups[0].toObject()["id"].toString(),base,selection);result={{"preparation",prepared},{"activation",active},{"configuration",config.filePath},{"snapshot",config.configurationSnapshot},{"nodes",config.nodes.size()}};Write(root+"/probe-start.json",Json(result));}
+ }else if(action=="exit-plan" || action=="exit-stop"){
+  auto plan=ManagedBackendExitPlan(root+"/project.json",QString());
+  if(argc==4){QJsonArray targets;for(const auto &value:plan["targets"].toArray())if(value.toObject()["instance"].toObject()["group_id"]==QString(argv[3]))targets.append(value);plan["targets"]=targets;}
+  if(action=="exit-stop")StopManagedBackends(plan,root+"/exit-operations");result=plan;
  }else if(action=="join-local"){
   Require(argc==4,"Supply local node.json");const auto config=Parse(Read(argv[3]));const auto local=EnsureLocalNode(config["root"].toString(),config["program_directory"].toString(),config["bind"].toString(),config["port"].toInt(),config["data_directory"].toString());const auto joined=JoinLocalNodeToProject(master,local);result={{"node_id",joined["id"]},{"paired",joined["paired"]}};
  }else if(action=="refresh"){

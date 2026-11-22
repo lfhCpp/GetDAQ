@@ -113,7 +113,7 @@ Run stop first waits for every ECC to confirm Ready; catalog, configuration back
 <h2>Read, clear and export logs</h2>
 Use Event log / ECC log / Data log and the host/instance selector; shared Sentry is also selectable. Each GUI launch starts a new log session and attaches at the current end of backend logs. Clear affects the display, while export retains this session’s collected history. Tools → Logs → Export combined logs writes TXT ordered by GUI receipt time and sequence, with source separators and original remote timestamps.
 
-<blockquote>Closing the GUI, disconnecting, stopping acquisition and stopping backend processes are different actions. Use service management to stop backends after checking acquisition state.</blockquote>
+<blockquote>On main-window exit, managed backends offer Stop ECC + data and exit, Keep services running and exit, or Cancel. Stop acquisition first. A backend-stop failure keeps the GUI open. External ECC services are left running.</blockquote>
 
 <hr/>
 <a name="chapter-7"></a><h1 id="chapter-7">7  Waveforms and 3D</h1><p class="lead">Online and offline viewers use electronics channels; no pad mapping is assumed.</p>

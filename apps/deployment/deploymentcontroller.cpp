@@ -275,7 +275,7 @@ RunConfig ConsoleConfiguration(const QJsonObject &master,const QJsonObject &prep
   const auto active=activeMap[group["id"].toString()+"-ecc"].toObject();Require(active["phase"]=="active","Start selected ECC groups before using the unified Run");
   included.append(group["id"].toString());auto config=OriginalConsole(master,group,active,base);
   if(group["project_mode"].toBool() && group["sync_configuration"].toBool(true)){
-   config.configurationBackupWarning.clear();const auto snapshot=Root(master)+"/console/"+preparation["release_id"].toString()+'/'+group["id"].toString()+"/configuration-used";PrivateDirectory(snapshot);
+   config.configurationBackupWarning.clear();const auto snapshot=Root(master)+"/console/"+preparation["release_id"].toString()+'/'+group["id"].toString()+"/configuration-used";PrivateDirectory(QFileInfo(snapshot).absolutePath());PrivateDirectory(snapshot);
    const auto manifest=preparation["manifest"].toObject();QMap<QString,QJsonObject> entries;for(const auto &f:manifest["files"].toArray())entries[f.toObject()["id"].toString()]=f.toObject();
    for(const auto &value:group["repository_files"].toArray()){
     const auto f=value.toObject(),entry=entries[f["file"].toString()];QByteArray bytes;for(const auto &chunk:entry["objects"].toArray()){const auto part=Read(Root(master)+"/repository/objects/"+Digest(chunk.toString()),32768);Require(Sha(part)==chunk.toString(),"Stored project object changed");bytes+=part;}Require(Sha(bytes)==f["sha256"].toString(),"Configuration snapshot differs");Write(snapshot+'/'+f["path"].toString(),bytes,true);

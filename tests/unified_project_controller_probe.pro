@@ -9,3 +9,5 @@ SOURCES += unified_project_controller_probe.cpp ../apps/deployment/deploymentcon
 SOURCES += $$files($$PWD/../third_party/yaml-cpp/src/*.cpp) $$files($$PWD/../third_party/yaml-cpp/src/contrib/*.cpp)
 INCLUDEPATH += ../common/experiment
 SOURCES += ../common/experiment/strictjson.cpp ../common/experiment/configurationsha256.cpp
+
+SOURCES += ../apps/envoy/backendshutdown.cpp

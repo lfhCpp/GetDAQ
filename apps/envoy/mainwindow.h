@@ -117,6 +117,8 @@ private:
     QVector<Notification> fNotifications;
     void OpenStatusManagement();
     void RememberStartupConfiguration();
+    void RequestExit();
+    void FinishExit();
     bool fConnected = false;
     bool fBusy = false;
     bool fActive = false;

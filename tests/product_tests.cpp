@@ -1,4 +1,5 @@
 #include "distributeddeploymentwindow.h"
+#include "backendshutdown.h"
 #include "userguidewindow.h"
 #include <QListWidget>
 #include <QTextBrowser>
@@ -105,6 +106,17 @@ private slots:
     }
     settings.setValue(projectKey,dir.filePath("unrelated"));DistributedDeploymentWindow reopened(base);QCOMPARE(reopened.findChild<QLineEdit *>("MasterLocalRawDataRoot")->text(),chosen);
     QCOMPARE(Deployment::Parse(Deployment::Read(cache+"/node.json"))["data_directory"].toString(),previous);QCOMPARE(Deployment::Read(previous+"/keep.graw"),QByteArray("raw data"));
+ }
+ void closePromptAllowsCancelOrKeepWithoutStoppingBackends(){
+    QTemporaryDir dir;QSettings settings;const auto key=StartupConfigurationKey()+"/slave-cache-directory";const auto previous=settings.value(key);const bool quit=QApplication::quitOnLastWindowClosed();QApplication::setQuitOnLastWindowClosed(false);
+    std::unique_ptr<int,std::function<void(int *)>> restore(new int,[&](int *p){if(previous.isValid())settings.setValue(key,previous);else settings.remove(key);QApplication::setQuitOnLastWindowClosed(quit);delete p;});settings.setValue(key,dir.filePath("no-node"));
+    const auto empty=ManagedBackendExitPlan(QString(),dir.filePath("no-node"));QVERIFY(empty["targets"].toArray().isEmpty());QVERIFY(empty["errors"].toArray().isEmpty());
+    QVERIFY_EXCEPTION_THROWN(StopManagedBackends(QJsonObject{{"errors",QJsonArray{"offline"}}},dir.filePath("audit")),std::exception);QVERIFY(!QFile::exists(dir.filePath("audit")));
+    MainWindow window;auto config=RunConfig::Default();config.deploymentProject=dir.filePath("missing-project.json");window.SetConfig(config);window.show();
+    for(const auto &choice:{QString("CancelBackendExit"),QString("KeepBackendsAndExit")}){
+        bool handled=false,valid=false;QTimer timer;timer.setInterval(10);connect(&timer,&QTimer::timeout,&window,[&]{auto *prompt=window.findChild<QMessageBox *>("ManagedBackendExitPrompt");if(!prompt || !prompt->isVisible())return;auto *stop=prompt->findChild<QPushButton *>("StopBackendsAndExit"),*keep=prompt->findChild<QPushButton *>("KeepBackendsAndExit"),*cancel=prompt->findChild<QPushButton *>("CancelBackendExit");valid=stop && keep && cancel && !stop->isEnabled() && keep->isEnabled() && prompt->defaultButton()==cancel;handled=true;prompt->findChild<QPushButton *>(choice)->click();timer.stop();});timer.start();window.close();QTRY_VERIFY_WITH_TIMEOUT(handled,5000);QVERIFY(valid);
+        if(choice=="CancelBackendExit"){QVERIFY(window.isVisible());QVERIFY(window.isEnabled());}else QTRY_VERIFY_WITH_TIMEOUT(!window.isVisible(),5000);
+    }
  }
  void newDefaultPathsUseVisibleHomeWorkspace(){
     const auto previous=qgetenv("GETDAQ_WORKSPACE");qunsetenv("GETDAQ_WORKSPACE");QCOMPARE(DefaultWorkspaceDirectory(),QDir(QDir::homePath()).filePath("GetDAQ"));const auto defaults=RunConfig::Default();QCOMPARE(defaults.outputDir,QDir(QDir::homePath()).filePath("GetDAQ/runs"));QVERIFY(!defaults.configDir.contains("/.local/"));qputenv("GETDAQ_WORKSPACE",previous);QCOMPARE(DefaultWorkspaceDirectory(),fWorkspace.path());

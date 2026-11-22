@@ -143,13 +143,5 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (fCanClose) { event->accept(); return; }
     event->ignore();
     if (fClosing) return;
-    if (fActive || fBusy || fRemoteRunning) {
-        if (QMessageBox::question(this, tr("Acquisition may still be active"),
-            tr("Closing does not stop remote acquisition. An interrupted journal will be kept. Close the controller anyway?"),
-            QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) return;
-    }
-    fClosing = true;
-    if(fWaveformViewer)fWaveformViewer->close();
-    if(fDataTools)fDataTools->close();
-    setEnabled(false); emit ShutdownSignal();
+    RequestExit();
 }
