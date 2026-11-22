@@ -128,7 +128,36 @@ private slots:
  }
  void newDefaultPathsUseVisibleHomeWorkspace(){
     const auto previous=qgetenv("GETDAQ_WORKSPACE");qunsetenv("GETDAQ_WORKSPACE");QCOMPARE(DefaultWorkspaceDirectory(),QDir(QDir::homePath()).filePath("GetDAQ"));const auto defaults=RunConfig::Default();QCOMPARE(defaults.outputDir,QDir(QDir::homePath()).filePath("GetDAQ/runs"));QVERIFY(!defaults.configDir.contains("/.local/"));qputenv("GETDAQ_WORKSPACE",previous);QCOMPARE(DefaultWorkspaceDirectory(),fWorkspace.path());
-    ConsoleLogStore log;QVERIFY(log.OpenApplicationLog());QVERIFY(log.ApplicationLogPath().startsWith(fWorkspace.path()+"/logs/sessions/"));
+    ConsoleLogStore log;QVERIFY(log.OpenApplicationLog());QVERIFY(log.ApplicationLogPath().startsWith(fWorkspace.path()+"/runs/logs/sessions/"));
+ }
+ void sessionLogsFollowConfiguredGuiRecordsWithoutMixingSessions(){
+    QTemporaryDir dir;ConsoleLogStore log;const auto original=dir.path()+"/first",selected=dir.path()+"/selected";
+    QVERIFY(log.OpenApplicationLog(original));log.Append("before connection\n");QVERIFY(log.OpenConnectionLog());log.Append("before move\n");const auto old=log.ApplicationLogPath();QVERIFY(log.SetRecordsDirectory(selected));QVERIFY(log.ApplicationLogPath().startsWith(selected+"/logs/sessions/"));QVERIFY(log.ConnectionLogPath().startsWith(selected+"/logs/sessions/"));QVERIFY(!QFile::exists(old));log.Append("after move\n");
+    QFile app(log.ApplicationLogPath()),connection(log.ConnectionLogPath());QVERIFY(app.open(QIODevice::ReadOnly));QVERIFY(connection.open(QIODevice::ReadOnly));QCOMPARE(app.readAll(),QByteArray("before connection\nbefore move\nafter move\n"));QCOMPARE(connection.readAll(),QByteArray("before move\nafter move\n"));
+    QFile blocked(dir.path()+"/blocked");QVERIFY(blocked.open(QIODevice::WriteOnly));blocked.write("keep");blocked.close();QVERIFY(!log.SetRecordsDirectory(blocked.fileName()));log.Append("retained on failure\n");connection.seek(0);QVERIFY(connection.readAll().endsWith("retained on failure\n"));
+ }
+ void masterProjectRelocationPreservesPairingAndImmutableContent(){
+    QTemporaryDir dir;const auto source=dir.path()+"/old",destination=dir.path()+"/visible/projects/example";Deployment::PrivateDirectory(source+"/nodes");
+    Deployment::Write(source+"/nodes/node.token","same pairing secret");Deployment::Write(source+"/project.json",Deployment::Json({{"schema",1},{"nodes",QJsonArray{QJsonObject{{"id","node"},{"credential_file",source+"/nodes/node.token"}}}}}));
+    const QByteArray immutable="immutable release bytes";Deployment::PrivateDirectory(source+"/repository/objects");Deployment::Write(source+"/repository/objects/blob",immutable,true);
+    auto saved=RunConfig::Default();saved.deploymentProject=source+"/project.json";saved.outputDir=source+"/records";saved.configDir=source+"/xml";saved.configurationSnapshot=source+"/snapshot";saved.description="retain metadata";QString saveError;Deployment::PrivateDirectory(source+"/console");QVERIFY2(saved.Save(source+"/console/envoy.yml",&saveError),qPrintable(saveError));
+    const auto result=Deployment::RelocateMasterProject(source,destination,QString());QCOMPARE(result["directory"].toString(),destination);
+    const auto project=Deployment::Parse(Deployment::Read(destination+"/project.json"));QCOMPARE(project["nodes"].toArray()[0].toObject()["credential_file"].toString(),destination+"/nodes/node.token");QCOMPARE(Deployment::Read(destination+"/nodes/node.token"),QByteArray("same pairing secret"));QCOMPARE(Deployment::Read(destination+"/repository/objects/blob"),immutable);
+    QCOMPARE(Deployment::Parse(Deployment::Read(source+"/relocated-to.json"))["directory"].toString(),destination);
+    RunConfig redirected;QVERIFY(redirected.Load(source+"/console/envoy.yml",&saveError));QCOMPARE(redirected.filePath,destination+"/console/envoy.yml");QCOMPARE(redirected.deploymentProject,destination+"/project.json");QCOMPARE(redirected.outputDir,destination+"/records");QCOMPARE(redirected.configDir,destination+"/xml");QCOMPARE(redirected.configurationSnapshot,destination+"/snapshot");QCOMPARE(redirected.description,QString("retain metadata"));
+    Deployment::PrivateDirectory(destination+"/console/release/group");QVERIFY(!(QFileInfo(destination+"/console/release").permissions()&(QFile::ReadGroup|QFile::WriteGroup|QFile::ExeGroup|QFile::ReadOther|QFile::WriteOther|QFile::ExeOther)));
+    Deployment::PrivateDirectory(destination+"/console/release");
+    QVERIFY_EXCEPTION_THROWN(Deployment::RelocateMasterProject(source,destination,QString()),std::exception);
+ }
+ void liveMasterDirectoryMovePreservesEndpointAndCredentials(){
+    const auto programs=qEnvironmentVariable("GETDAQ_TEST_PROGRAMS");if(programs.isEmpty())QSKIP("Set GETDAQ_TEST_PROGRAMS to test real configuration-service relocation");
+    QTemporaryDir dir;const auto source=dir.path()+"/old",destination=dir.path()+"/visible/project";
+    QTcpServer port;QVERIFY(port.listen(QHostAddress::LocalHost,0));const int number=port.serverPort();port.close();
+    QJsonObject before,after;std::unique_ptr<int,std::function<void(int *)>> cleanup(new int,[&](int *p){for(const auto &master:{after,before})if(!master.isEmpty()){try{Deployment::StopMaster(master);}catch(...){}}delete p;});
+    before=Deployment::EnsureMaster(source,programs,"127.0.0.1",number);Deployment::Write(source+"/project.json",Deployment::Json({{"schema",1},{"nodes",QJsonArray()}}));
+    const auto credential=Deployment::Read(before["admin_credential"].toString());after=Deployment::RelocateMasterProject(source,destination,programs)["master"].toObject();
+    QCOMPARE(after["repository_id"],before["repository_id"]);QCOMPARE(after["certificate_sha256"],before["certificate_sha256"]);QCOMPARE(after["repository_url"],before["repository_url"]);QCOMPARE(Deployment::Read(after["admin_credential"].toString()),credential);
+    QVERIFY(after["admin_credential"].toString().startsWith(destination+'/'));
  }
  void existingNodeCacheIsReusedInsteadOfCreatingAnotherIdentity(){
     QTemporaryDir dir,workspace;const auto oldData=qgetenv("XDG_DATA_HOME"),oldWorkspace=qgetenv("GETDAQ_WORKSPACE");const bool dataWasSet=qEnvironmentVariableIsSet("XDG_DATA_HOME");std::unique_ptr<int,std::function<void(int *)>> restore(new int,[=](int *p){if(dataWasSet)qputenv("XDG_DATA_HOME",oldData);else qunsetenv("XDG_DATA_HOME");qputenv("GETDAQ_WORKSPACE",oldWorkspace);delete p;});qputenv("XDG_DATA_HOME",dir.path().toUtf8());qputenv("GETDAQ_WORKSPACE",workspace.path().toUtf8());

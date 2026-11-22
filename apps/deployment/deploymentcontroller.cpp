@@ -3,6 +3,7 @@
 #include "localserviceprocesses.h"
 #include <QFile>
 #include <QFileInfo>
+#include <QDirIterator>
 #include <QDir>
 #include <QUrl>
 #include <QProcess>
@@ -66,6 +67,32 @@ void InspectPriorActivation(const QJsonArray &nodes,const QJsonObject &context,c
 QString Job(const QJsonObject &master,const QString &prefix){const auto directory=Root(master)+"/jobs/"+prefix+'-'+QString::fromLatin1(Token().left(16));PrivateDirectory(directory);Write(Root(master)+"/latest-job.json",Json({{"directory",directory}}));return directory;}
 void Note(const Logger &log,const QString &text){if(log)log(text);}
 QJsonObject Snapshot(const QJsonArray &nodes,const QString &nodeId,const QString &instance){const auto inventory=NodeInventory(Node(nodes,nodeId));for(const auto &value:inventory["instances"].toArray())if(value.toObject()["instance_id"]==instance)return value.toObject();return {};}
+}
+QJsonObject RelocateMasterProject(const QString &source,const QString &destination,const QString &programs){
+ const auto from=QDir::cleanPath(source),to=QDir::cleanPath(destination);
+ Require(from!=to && !to.startsWith(from+'/') && !from.startsWith(to+'/'),"Choose a separate project directory");
+ PrivateDirectory(from);PrivateDirectory(to);Require(QDir(to).entryList(QDir::AllEntries|QDir::NoDotAndDotDot|QDir::Hidden).isEmpty(),"Choose an empty destination, or use Open existing project");
+ QLockFile lock(from+"/deployment.lock");Require(lock.tryLock(0),"Wait for the current project operation before moving its directory");
+ const auto oldMaster=QFile::exists(from+"/master.json")?Parse(Read(from+"/master.json")):QJsonObject();
+ if(!oldMaster.isEmpty())StopMaster(oldMaster);
+ try{
+  QDirIterator entries(from,QDir::AllEntries|QDir::NoDotAndDotDot|QDir::Hidden,QDirIterator::Subdirectories);
+  while(entries.hasNext()){
+   const auto path=entries.next();const auto relative=QDir(from).relativeFilePath(path);if(relative=="deployment.lock" || relative.endsWith(".lock"))continue;
+   const auto target=to+'/'+relative;Require(!QFileInfo(path).isSymLink(),"Project directory contains a symbolic link; choose a regular project directory");
+   if(QFileInfo(path).isDir())PrivateDirectory(target);else{PrivateDirectory(QFileInfo(target).absolutePath());Require(QFile::copy(path,target),"Cannot copy project file: "+relative);Require(QFile::setPermissions(target,QFileInfo(path).permissions()&(QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner)),"Cannot protect copied project file");}
+  }
+  std::function<QJsonValue(const QJsonValue &)> rewrite=[&](const QJsonValue &v)->QJsonValue{
+   if(v.isString()){const auto path=v.toString();return path==from || path.startsWith(from+'/')?to+path.mid(from.size()):path;}
+   if(v.isArray()){QJsonArray result;for(const auto &x:v.toArray())result.append(rewrite(x));return result;}
+   if(v.isObject()){auto result=v.toObject();for(auto i=result.begin();i!=result.end();++i)i.value()=rewrite(i.value());return result;}return v;
+  };
+  QStringList metadata{"master.json","project.json","latest-job.json"};for(const auto &name:QDir(to+"/paired-nodes").entryList({"*.json"},QDir::Files))metadata<<"paired-nodes/"+name;
+  for(const auto &name:metadata)if(QFile::exists(to+'/'+name))Write(to+'/'+name,Json(rewrite(Parse(Read(to+'/'+name,64*1024*1024))).toObject()));
+  QJsonObject master;if(!oldMaster.isEmpty())master=EnsureMaster(to,programs,oldMaster["address"].toString(),oldMaster["port"].toInt());
+  Write(from+"/relocated-to.json",Json({{"directory",to}}));
+  return {{"directory",to},{"master",master}};
+ }catch(...){if(!oldMaster.isEmpty()){try{EnsureMaster(from,programs,oldMaster["address"].toString(),oldMaster["port"].toInt());}catch(...){}}throw;}
 }
 QJsonObject EnsureMaster(const QString &root,const QString &programs,const QString &address,int port){PrivateDirectory(root);Address(address,true);Port(port);QLockFile lock(root+"/master-start.lock");Require(lock.tryLock(0),"Another master startup is in progress");QJsonObject master;const auto file=root+"/master.json";if(QFile::exists(file)){master=Parse(Read(file));Require(master["address"]==address && master["port"].toInt()==port,"Reuse the saved master endpoint; stop and explicitly migrate it before changing address/port");}else{CreateCertificate(root,"getdaq-master-"+QString::fromLatin1(Token().left(16)));for(const auto &name:{"admin","read"})Write(root+'/'+name+".token",Token()+'\n');if(!QFileInfo::exists(root+"/repository"))Run(QDir(programs).filePath("getdaq-config-repository"),{"initialize",root+"/repository"});master={{"schema",1},{"root",root},{"address",address},{"port",port},{"program_directory",programs},{"repository_url",QString("https://%1:%2").arg(address).arg(port)},{"certificate_sha256",CertificateFingerprint(root+"/tls.crt")},{"admin_credential",root+"/admin.token"},{"read_credential",root+"/read.token"}};Write(file,Json(master));}const auto servicePrograms=SavedPrograms(master["program_directory"].toString(),programs);const auto executable=QDir(servicePrograms).filePath("getdaq-config-service");Require(QFileInfo(executable).isExecutable(),"Install getdaq-config-service in this bin directory");if(FindLocalArgumentProcesses(executable,"--root",root+"/repository").isEmpty()){QTcpServer probe;Require(probe.listen(QHostAddress(address),quint16(port)),"Master port is already in use");probe.close();QProcess process;process.setProgram(executable);process.setArguments({"--root",root+"/repository","--credential",master["admin_credential"].toString(),"--read-credential",master["read_credential"].toString(),"--bind",address,"--port",QString::number(port),"--tls-certificate",root+"/tls.crt","--tls-key",root+"/tls.key"});process.setStandardOutputFile(root+"/repository.log",QIODevice::Append);process.setStandardErrorFile(root+"/repository.log",QIODevice::Append);qint64 pid=0;Require(process.startDetached(&pid),"Cannot start configuration repository");}Endpoint endpoint{master["repository_url"].toString(),master["certificate_sha256"].toString(),Secret(master["admin_credential"].toString())};QJsonObject identity;QString error;QElapsedTimer startup;startup.start();for(int i=0;i<30 && startup.elapsed()<5000;++i){CheckOperation();try{identity=Get(endpoint,"/v1/identity");error.clear();break;}catch(const std::exception &e){error=QString::fromUtf8(e.what());QThread::msleep(100);}}Require(error.isEmpty(),"Master service is not ready: "+error);if(master.contains("repository_id"))Require(master["repository_id"]==identity["repository_id"],"Master repository identity changed");master["repository_id"]=Digest(identity["repository_id"].toString());const auto capabilities=Get(endpoint,"/v1/deployment-capabilities");Require(capabilities["protocol"].toInt()==1 && capabilities["object_content"].toBool(),"Upgrade the installed configuration service for distributed deployment");Write(file,Json(master));return master;}
 void StopMaster(const QJsonObject &master){const auto program=QDir(master["program_directory"].toString()).filePath("getdaq-config-service");const auto processes=FindLocalArgumentProcesses(program,"--root",Root(master)+"/repository");for(const auto &process:processes)if(SameLocalServiceProcess(process))Require(!::kill(process.pid,SIGTERM),"Cannot stop this master repository");for(int i=0;i<50;++i){bool running=false;for(const auto &process:processes)running=running||SameLocalServiceProcess(process);if(!running)return;QThread::msleep(100);}throw std::runtime_error("Master is still finishing accepted work; it was not force killed");}

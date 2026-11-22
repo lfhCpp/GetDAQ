@@ -75,9 +75,9 @@ IPWindow::IPWindow(const RunConfig &config, QWidget *parent, const QVector<NodeS
         });return row;
     };
     form->addRow(tr("Configuration source folder (master)"), directoryRow(fConfigDir,"BrowseLocalConfigurationDirectory",tr("Choose local XML/XCFG directory")));
-    form->addRow(tr("GUI Run records root (not raw data)"), directoryRow(fOutputDir,"BrowseLocalRunRecordsDirectory",tr("Choose GUI Run records root")));
+    form->addRow(tr("GUI Run records and logs (not raw data)"), directoryRow(fOutputDir,"BrowseLocalRunRecordsDirectory",tr("Choose GUI Run records root")));
     auto *sync=new QCheckBox(tr("Sync configuration to project folders before starting services"),this);sync->setObjectName("SyncConfigurationToProjects");sync->setChecked(config.syncConfiguration);form->addRow(sync);
-    auto *pathHelp=new QLabel(tr("Type a path or Browse. Save and apply writes both paths to the current YAML; a new setup gets its own saved YAML automatically. Saving Nodes does not transfer XML/XCFG files. Use Tools > Sync project configuration, or start project services with sync enabled. Existing files are not moved and external ECC / receiver directories are not changed."),this);
+    auto *pathHelp=new QLabel(tr("Type a path or Browse. Save and apply writes both paths to the current YAML; a new setup gets its own saved YAML automatically. Saving Nodes does not transfer XML/XCFG files. Use Tools > Sync project configuration, or start project services with sync enabled. Existing Run records stay in place. This GUI session’s logs follow the selected records folder. External ECC / receiver directories are not changed."),this);
     pathHelp->setWordWrap(true);form->addRow(pathHelp);
     QStringList observedPaths;
     for(const auto &entry:status)if(!entry.dataPath.isEmpty())

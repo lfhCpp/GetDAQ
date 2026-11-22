@@ -61,7 +61,7 @@ void MainWindow::InitializePar()
     ui->Fields->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->Fields->setColumnWidth(0, 150);
     ui->Log->document()->setMaximumBlockCount(2000);
-    const bool applicationLogOpened=fLogStore.OpenApplicationLog();
+    const bool applicationLogOpened=fLogStore.OpenApplicationLog(fConfig.outputDir);
     InitializeRunControl();
     SetConfig(fConfig);
     ShowControlSlot("Disconnected", false, false, false);
@@ -121,7 +121,7 @@ void MainWindow::ResizeStatusTableToContents()
 void MainWindow::ExportVisibleLog()
 {
     const QString path=QFileDialog::getSaveFileName(this,tr("Export combined logs"),
-        QDir::home().filePath(QString("getdaq-log-%1.txt").arg(QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss"))),
+        QDir(fConfig.outputDir).filePath(QString("logs/getdaq-log-%1.txt").arg(QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss"))),
         tr("Text files (*.txt);;Log files (*.log);;All files (*)"));
     if(path.isEmpty())return;
     QSaveFile output(path);

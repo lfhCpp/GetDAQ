@@ -151,3 +151,20 @@ GUI records root 显示当前 GUI 设置，不再被上次准备生成的 YAML �
 已有 YAML、项目、配对缓存继续读取保存的目录。默认位置仍发现旧节点缓存时复用它，以保留节点身份、部署和运行进程；不会为了改默认路径重新创建一套节点。MCP 的既有操作回执目录也继续使用，防止丢失去重记录。
 
 Run 菜单的 **Pause run** 在所有 ECC 都在线、稳定 Running 且没有本地命令在执行时启用；**Resume run** 对应稳定 Paused。重连到外部已经开始的采集也可以操作，不要求当前 GUI 创建这次 Run。外部采集的暂停、恢复不会新建本地 Run、发 Start 或伪造归档记录；恢复延续原采集。Ready/未连接时两项灰色属于正常状态。
+
+## GUI records, logs and master project location
+
+The master project directory defaults to `~/GetDAQ/projects/<project>`. Its
+**Browse…** button opens an existing project or moves the current project to an
+empty folder, preserving credentials and the master service identity. ECC and
+receiver processes are left running. Legacy master projects under `.local` are
+copied to this visible location on opening; the old copy becomes historical and
+contains a redirect. Immutable releases and prior audit bytes are retained.
+
+**Nodes / Paths → GUI Run records and logs** selects the common root for GUI
+records and session logs. Logs are stored in `logs/sessions/<session>/` below
+that root; combined TXT export defaults to its `logs/` folder. Changing the root
+moves only this GUI session's logs, including connection logs; earlier Run
+records are retained at their previous location. If the chosen log directory is
+unwritable, logging continues in its previous location with a warning. Each GUI
+launch starts a separate log session and does not reload prior logs.

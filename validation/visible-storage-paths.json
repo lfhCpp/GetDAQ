@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-22",
+  "product_tests": {
+    "passed": 72,
+    "failed": 0,
+    "skipped": 0
+  },
+  "real_configuration_service_move": {
+    "endpoint_retained": true,
+    "repository_identity_retained": true,
+    "tls_fingerprint_retained": true,
+    "credentials_retained": true
+  },
+  "current_session_log_migration_verified": true,
+  "old_yaml_storage_path_redirect_verified": true,
+  "linux_builds": {
+    "local": {
+      "programs": 16,
+      "files": 101
+    },
+    "target": {
+      "programs": 16,
+      "files": 101
+    }
+  },
+  "installed_update": "GUI, guides and configuration templates; backend executable files retained",
+  "main_window_ui_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec",
+  "hardware_commands_sent": false
+}

@@ -9,7 +9,8 @@
 // Presentation, severity classification and connection state remain in MainWindow.
 class ConsoleLogStore {
 public:
-    bool OpenApplicationLog();
+    bool OpenApplicationLog(const QString &recordsRoot=QString());
+    bool SetRecordsDirectory(const QString &recordsRoot);
     bool OpenConnectionLog();
     void CloseConnectionLog();
     void Append(const QByteArray &line);
@@ -25,6 +26,8 @@ private:
     QFile fApplication;
     QFile fConnection;
     QString fApplicationDirectory;
+    QString fSession;
+    QString fRecordsRoot;
     QString fError;
     bool fUsedFallback=false;
 };

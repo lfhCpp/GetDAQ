@@ -41,6 +41,8 @@ private:
     QElapsedTimer fWaitClock;
     std::shared_ptr<std::atomic_bool> fCanceled;
     void SaveProject();
+    void ChooseProjectDirectory();
+    void MoveProjectDirectory(const QString &directory);
     void RefreshSourceFiles();
     void RefreshTables();
     void UpdatePathSummary();

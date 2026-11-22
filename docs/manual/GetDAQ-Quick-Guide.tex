@@ -161,7 +161,7 @@ Configuration source & 主控安装目录 \code{config/}。放整套实验 XML/X
 Project data folder & 默认 \code{/home/user/GetDAQ/data}。ECC、接收器、Sentry 在此工作，配置复制到此，原始 \code{.graw} 也写在此。\\
 GUI Run records root & 默认 \code{/home/user/GetDAQ/runs}。GUI YAML、journal、备份和元信息；不是原始数据目录。\\\bottomrule
 \end{tabularx}\par\smallskip
-新配置、项目、日志和缓存默认放在 Home 下可见的 GetDAQ 目录。已有项目沿用保存路径；安装目录没有 config 时，配置源默认 Home/GetDAQ/config。\par
+新配置、项目默认放在 Home/GetDAQ。主控目录右侧 Browse 可迁移已有项目并保留配对；旧版隐藏主控项目自动迁至可见目录。GUI 日志统一在所选记录根目录的 logs/sessions 下；改路径时本次日志一起迁移。\par
 \textbf{从哪启动接收器决定其工作目录。}受管模式会明确设置 Project data folder，不依赖打开 GUI 时终端所在目录。
 \subsection*{第二步：启动新的原版后台}
 \begin{enumerate}
@@ -249,7 +249,7 @@ Start / Stop / Disconnect & 连接后保持可用；正在执行的硬件命令�
 \textbf{Start 观察到已经 Running 时只附着观察，不再重复 Start；停止外部开始的采集也可用 Stop。}
 断开可在确认后脱离未完成工作，不停止远端采集。
 \subsection*{查看、清屏和导出日志}
-日志区切换 Event / ECC / Data log 与主机/实例。Clear 只清显示，导出仍含本次启动后收集的日志；重开 GUI 不加载旧日志。Tools $\rightarrow$ Logs $\rightarrow$ \ui{Export combined logs…} 导出 TXT，按接收时间与顺序号排列，保留来源和远端原文时间。
+日志区切换 Event / ECC / Data log 与主机/实例。Clear 只清显示，导出仍含本次启动后收集的日志；重开 GUI 不加载旧日志。日志及 TXT 默认放在 GUI Run records 下的 logs 中，可在 Nodes / Paths 选择根目录。Tools $\rightarrow$ Logs $\rightarrow$ \ui{Export combined logs…} 导出 TXT，按接收时间与顺序号排列，保留来源和远端原文时间。
 \note{关闭主界面时，若有托管后台，提示 Stop ECC + data and exit（停后台后退出）、Keep services running and exit（保留后台退出）或 Cancel。先 Run stop 再停后台；失败则保留界面。外部 ECC 不关闭。}
 
 \newpage

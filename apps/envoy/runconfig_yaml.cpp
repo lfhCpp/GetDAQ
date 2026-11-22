@@ -5,6 +5,9 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QSaveFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QStandardPaths>
 #include <yaml-cpp/yaml.h>
 
 namespace {
@@ -93,6 +96,18 @@ bool RunConfig::Load(const QString &path, QString *error)
             }
         }
         c.filePath = QFileInfo(path).absoluteFilePath();
+        if(c.outputDir==QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)+"/runs")c.outputDir=RunConfig::Default().outputDir;
+        if(!c.deploymentProject.isEmpty()){
+            const auto previous=QFileInfo(c.deploymentProject).absolutePath();QFile redirect(previous+"/relocated-to.json");
+            if(redirect.open(QIODevice::ReadOnly)){
+                const auto destination=QJsonDocument::fromJson(redirect.readAll()).object()["directory"].toString();
+                if(QDir::isAbsolutePath(destination) && QFileInfo(destination+"/project.json").isFile()){
+                    auto relocate=[&](QString &value){if(value==previous || value.startsWith(previous+'/'))value=destination+value.mid(previous.size());};
+                    relocate(c.deploymentProject);relocate(c.filePath);relocate(c.configurationSnapshot);relocate(c.configDir);relocate(c.outputDir);
+                }
+            }
+        }
+
         if (!c.Validate(error)) return false;
         *this = c;
         return true;

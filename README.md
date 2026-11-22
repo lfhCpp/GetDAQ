@@ -18,7 +18,7 @@ sudo apt install -y git build-essential cmake python3 qtbase5-dev libqt5svg5-dev
 ### 2. 获取源码
 
 ```bash
-git clone --branch v1.0 https://github.com/lfhCpp/GetDAQ.git GetDAQ-src
+git clone --branch main https://github.com/lfhCpp/GetDAQ.git GetDAQ-src
 cd GetDAQ-src
 ```
 
@@ -51,7 +51,7 @@ cd "$HOME/GetDAQ-1.0"
 ```bash
 xcode-select --install
 brew install git cmake python qt@5 openssl@3
-git clone --branch v1.0 https://github.com/lfhCpp/GetDAQ.git GetDAQ-src
+git clone --branch main https://github.com/lfhCpp/GetDAQ.git GetDAQ-src
 cd GetDAQ-src
 ./build-macos.command --jobs 2
 open dist-macos/GetDAQ.app

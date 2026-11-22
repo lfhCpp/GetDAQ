@@ -19,6 +19,7 @@ jobs:
       - name: Test GUI and SOAP lifecycle
         env:
           QT_QPA_PLATFORM: offscreen
+          GETDAQ_TEST_PROGRAMS: ${{ github.workspace }}/dist/bin
         run: build-tests/getdaq-tests
       - name: Test original receiver bytes and SOAP service
         run: python3 tests/original_backends_payload_smoke.py dist/bin

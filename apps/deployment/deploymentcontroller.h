@@ -8,6 +8,7 @@ namespace Deployment {
 using Logger=std::function<void(const QString &)>;
 QJsonObject EnsureMaster(const QString &root,const QString &programs,const QString &address,int port);
 void StopMaster(const QJsonObject &master);
+QJsonObject RelocateMasterProject(const QString &source,const QString &destination,const QString &programs);
 QJsonObject EnsureLocalNode(const QString &root,const QString &programs,const QString &address,int port,const QString &dataDirectory);
 QJsonObject PairNode(const QJsonObject &master,const QString &invitation);
 QJsonObject JoinLocalNodeToProject(const QJsonObject &master,const QJsonObject &local);

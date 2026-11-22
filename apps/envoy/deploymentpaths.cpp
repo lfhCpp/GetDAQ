@@ -14,5 +14,5 @@ QString DeploymentPathSummary(const QJsonObject &group,const QJsonArray &hosts,c
   }
  }};
  assignment(group["ecc"].toObject(),false);for(const auto &target:group["receivers"].toArray())assignment(target.toObject(),true);
- lines<<"GUI records root (YAML / journal / CSV / backups, not raw data): "+records;return lines.join('\n');
+ lines<<"GUI records and logs (YAML / journal / CSV / backups / logs, not raw data): "+records;return lines.join('\n');
 }

@@ -18,7 +18,7 @@ Required GET, Ice, Boost, CompoundConfig, Qwt, and other dependency sources are 
 ### 2. Get the source
 
 ```bash
-git clone --branch v1.0 https://github.com/lfhCpp/GetDAQ.git GetDAQ-src
+git clone --branch main https://github.com/lfhCpp/GetDAQ.git GetDAQ-src
 cd GetDAQ-src
 ```
 
@@ -51,7 +51,7 @@ Build on the Mac; Ubuntu executables cannot run on macOS. Install Xcode Command 
 ```bash
 xcode-select --install
 brew install git cmake python qt@5 openssl@3
-git clone --branch v1.0 https://github.com/lfhCpp/GetDAQ.git GetDAQ-src
+git clone --branch main https://github.com/lfhCpp/GetDAQ.git GetDAQ-src
 cd GetDAQ-src
 ./build-macos.command --jobs 2
 open dist-macos/GetDAQ.app

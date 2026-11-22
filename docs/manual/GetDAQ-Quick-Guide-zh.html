@@ -75,7 +75,7 @@ cd /Users/attpc/Documents/GetDAQ
 <a name="chapter-4"></a><h1 id="chapter-4">4  单机配置教程</h1><p class="lead">先选目录，再确认本机网卡，最后填实验 ID 和启动服务。</p>
 <h2>第一步：明确三个目录</h2>
 <br/><br/> <table cellspacing="0" cellpadding="7"><tr><th>目录</th><th>示例与含义</th></tr><tr><td>Configuration source</td><td>主控安装目录 <code>config/</code>。放整套实验 XML/XCFG、拓扑和引用资源。</td></tr><tr><td>Project data folder</td><td>默认 <code>/home/user/GetDAQ/data</code>。ECC、接收器、Sentry 在此工作，配置复制到此，原始 <code>.graw</code> 也写在此。</td></tr><tr><td>GUI Run records root</td><td>默认 <code>/home/user/GetDAQ/runs</code>。GUI YAML、journal、备份和元信息；不是原始数据目录。</td></tr></table><br/><br/>
-新配置、项目、日志和缓存默认放在 Home 下可见的 GetDAQ 目录。已有项目沿用保存路径；安装目录没有 config 时，配置源默认 Home/GetDAQ/config。<br/><br/>
+新配置、项目默认放在 Home/GetDAQ。主控目录右侧 Browse 可迁移已有项目并保留配对；旧版隐藏主控项目自动迁至可见目录。GUI 日志统一在所选记录根目录的 logs/sessions 下；改路径时本次日志一起迁移。<br/><br/>
 <b>从哪启动接收器决定其工作目录。</b>受管模式会明确设置 Project data folder，不依赖打开 GUI 时终端所在目录。
 <h2>第二步：启动新的原版后台</h2>
 <ol><li>在 Nodes / Paths 右侧的 <b>Master / Slave</b> 选择 <b>Master</b>，进入 <b>Create ECC / data services</b>。</li><li>首次使用点 <b>Use this computer (automatic)</b>，添加执行主机。</li><li>点 <b>Add boards / ECC…</b>，选择 Configuration source、Experiment ID，并指定 ECC host / Data receiver host 及该主机的 Project data folder。</li><li>填接收电脑的 Control IP、Data IP、Router control/data 端口、ECC SOAP 端口；核对 AsAd、AGET 和 CoBo 拓扑文件。</li><li>保留 <b>Sync configuration to project folders</b>，点击 <b>Start project services</b>。软件先分发配置，再在项目目录启动原版后台和共享 Sentry。</li></ol>
@@ -126,7 +126,7 @@ Stop 后归档。Overwrite 需运行新版 Sentry；原版遇同号目录会拒�
 <b>Start 观察到已经 Running 时只附着观察，不再重复 Start；停止外部开始的采集也可用 Stop。</b>
 断开可在确认后脱离未完成工作，不停止远端采集。
 <h2>查看、清屏和导出日志</h2>
-日志区切换 Event / ECC / Data log 与主机/实例。Clear 只清显示，导出仍含本次启动后收集的日志；重开 GUI 不加载旧日志。Tools → Logs → <b>Export combined logs…</b> 导出 TXT，按接收时间与顺序号排列，保留来源和远端原文时间。
+日志区切换 Event / ECC / Data log 与主机/实例。Clear 只清显示，导出仍含本次启动后收集的日志；重开 GUI 不加载旧日志。日志及 TXT 默认放在 GUI Run records 下的 logs 中，可在 Nodes / Paths 选择根目录。Tools → Logs → <b>Export combined logs…</b> 导出 TXT，按接收时间与顺序号排列，保留来源和远端原文时间。
 <blockquote>关闭主界面时，若有托管后台，提示 Stop ECC + data and exit（停后台后退出）、Keep services running and exit（保留后台退出）或 Cancel。先 Run stop 再停后台；失败则保留界面。外部 ECC 不关闭。</blockquote>
 
 <hr/>
@@ -193,7 +193,7 @@ args 为 <code>[&quot;--config&quot;, &quot;/absolute/path/to/mcp.json&quot;]</c
 <hr/>
 <a name="chapter-11"></a><h1 id="chapter-11">11  配置按钮：Nodes / Paths</h1><p class="lead">这里保存 GUI 连接设置；板卡的电子学参数仍在原版 XML/XCFG 中。</p>
 <h2>按钮与路径</h2>
-<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Configure and manage ECC / data services…</b></td><td>进入主从角色、已有 ECC 连接、后台创建/管理；接受配置后带回 Run Setup。</td></tr><tr><td><b>Add CoBo</b></td><td>在当前节点表新增一行，填写该节点对应 ECC 及接收器。不会启动一个 ECC 进程。</td></tr><tr><td><b>Remove selected</b></td><td>移除节点表当前行；不删除远端实例、配置文件或原始数据。</td></tr><tr><td><b>Browse…</b></td><td>选择它左边输入框的本机目录。配置源与 GUI 记录目录各有一个，不是远端目录浏览器。</td></tr><tr><td><b>Sync configuration to project folders before starting services</b></td><td>保存启动时的同步开关。勾选后由托管启动流程分发配置；仅勾选并保存 Nodes 不立即传文件。</td></tr><tr><td><b>Save and apply</b></td><td>检查节点/路径并保存到当前 YAML；新设置会创建自己的 YAML。应用到 GUI，不直接同步 XML 或配置硬件。</td></tr><tr><td><b>Cancel</b></td><td>放弃本窗口尚未保存的表格与路径修改。此前已接受的远端后台操作仍保留。</td></tr></table>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Configure and manage ECC / data services…</b></td><td>进入主从角色、已有 ECC 连接、后台创建/管理；接受配置后带回 Run Setup。</td></tr><tr><td><b>Add CoBo</b></td><td>在当前节点表新增一行，填写该节点对应 ECC 及接收器。不会启动一个 ECC 进程。</td></tr><tr><td><b>Remove selected</b></td><td>移除节点表当前行；不删除远端实例、配置文件或原始数据。</td></tr><tr><td><b>Browse…</b></td><td>选择它左边输入框的本机目录。配置源与 GUI 记录目录各有一个；主控目录 Browse 可迁移当前项目并保留配对，不是远端目录浏览器。</td></tr><tr><td><b>Sync configuration to project folders before starting services</b></td><td>保存启动时的同步开关。勾选后由托管启动流程分发配置；仅勾选并保存 Nodes 不立即传文件。</td></tr><tr><td><b>Save and apply</b></td><td>检查节点/路径并保存到当前 YAML；新设置会创建自己的 YAML。应用到 GUI，不直接同步 XML 或配置硬件。</td></tr><tr><td><b>Cancel</b></td><td>放弃本窗口尚未保存的表格与路径修改。此前已接受的远端后台操作仍保留。</td></tr></table>
 <h2>节点表：每一列填什么</h2>
 <table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>ID / Role / Name</b></td><td>GUI 唯一节点编号、cobo 或 mutant、显示名称。托管多 ECC 可各有 CoBo[0]，其实际板卡索引另行保留。</td></tr><tr><td><b>ECC host / ECC port</b></td><td>运行 SOAP ECC 的电脑地址及 SOAP 服务端口，例如 8083。这里不填 CoBo 的板卡 IP。</td></tr><tr><td><b>Sentry host / Sentry port</b></td><td>运行接收目录监控及归档服务的电脑地址、HTTP 端口，例如 8080。</td></tr><tr><td><b>Router host / Router port</b></td><td>板卡发送原始数据的接收地址及数据端口，例如数据网 IP:46005；不是接收器控制端口。</td></tr><tr><td><b>Legacy ECC target host / port</b></td><td>旧 ECC 可选第二条板卡数据目标。正常单入口配置端口留 0；这不是 DataExporter 的下游导出端口。</td></tr><tr><td><b>Describe / Prepare / Configure ID</b></td><td>ECC 用于匹配配置的 ID。例：cobo0 → describe-cobo0；pedestals → configure-pedestals。</td></tr><tr><td><b>Preview host / Preview TCP port</b></td><td>独立在线波形的 DataExporter TCP 导出地址，常见 46491；0 表示不配置预览。</td></tr></table>
 <blockquote>Configuration source folder 是本机 XML/XCFG 源目录；GUI Run records root 保存 YAML/journal/CSV/备份；Raw .graw folder 是 Sentry 返回的接收主机目录。三者用途不同。</blockquote>
