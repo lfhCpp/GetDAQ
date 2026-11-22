@@ -18,6 +18,8 @@ public:
     void RequestClose();
 protected:
     void reject() override;
+private slots:
+    void ApplyLocalProjectFolder();
 private:
     RunConfig fBase,fSelected;
     QJsonObject fMaster,fProject,fPreparation,fActivation;

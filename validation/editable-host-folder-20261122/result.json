@@ -1,0 +1,17 @@
+{
+  "feature": "Editable per-project local host data directory",
+  "qt_tests_passed": 61,
+  "qt_tests_failed": 0,
+  "checks": [
+    "initialized host Browse remains enabled",
+    "existing explicit project folder overrides node-agent default",
+    "local group recipes and host table update together",
+    "remote group folders preserved",
+    "project reload restores chosen folder",
+    "invalid relative folder rejected",
+    "node identity/configuration and old raw files preserved"
+  ],
+  "main_ui_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec",
+  "backend_services_restarted": false,
+  "hardware_commands_sent": false
+}

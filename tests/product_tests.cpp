@@ -84,6 +84,28 @@ private slots:
  void guideMenuStaysAvailableDuringAcquisition(){
     MainWindow window;auto *chinese=window.findChild<QAction *>("UserGuideChinese"),*english=window.findChild<QAction *>("UserGuideEnglish");QVERIFY(chinese && english);QVERIFY(QMetaObject::invokeMethod(&window,"ShowControlSlot",Qt::DirectConnection,Q_ARG(QString,QString("Running")),Q_ARG(bool,true),Q_ARG(bool,true),Q_ARG(bool,true)));QVERIFY(chinese->isEnabled() && english->isEnabled());english->trigger();auto *guide=window.findChild<QDialog *>("UserGuideWindow");QVERIFY(guide && guide->isVisible());auto *language=guide->findChild<QComboBox *>("GuideLanguage");QCOMPARE(language->currentData().toString(),QString("en"));chinese->trigger();QCOMPARE(language->currentData().toString(),QString("zh"));
  }
+ void initializedHostProjectFolderCanBeEditedAndSurvivesReload(){
+    QTemporaryDir dir;QSettings settings;const auto cacheKey=StartupConfigurationKey()+"/slave-cache-directory",projectKey=StartupConfigurationKey()+"/distributed-project";const auto oldCache=settings.value(cacheKey),oldProject=settings.value(projectKey);
+    std::unique_ptr<int,std::function<void(int *)>> restore(new int,[&](int *p){if(oldCache.isValid())settings.setValue(cacheKey,oldCache);else settings.remove(cacheKey);if(oldProject.isValid())settings.setValue(projectKey,oldProject);else settings.remove(projectKey);delete p;});
+    const auto cache=dir.filePath("cache"),project=dir.filePath("project"),source=dir.filePath("source"),previous=dir.filePath("old-data"),chosen=dir.filePath("chosen-data");
+    for(const auto &path:{cache,project,source,previous})Deployment::PrivateDirectory(path);
+    Deployment::Write(cache+"/node.json",Deployment::Json({{"data_directory",previous}}));Deployment::Write(previous+"/keep.graw","raw data");
+    for(const auto &name:{"describe-cobo0.xcfg","configure-pedestals.xcfg"})Deployment::Write(source+'/'+name,"<config/>");
+    settings.setValue(cacheKey,cache);
+    QJsonObject local{{"id","local"},{"name","This computer"},{"url","https://127.0.0.1:24260"},{"credential_file",project+"/nodes/local.token"},{"inventory",QJsonObject{{"data_directory",previous}}}};
+    QJsonObject remote{{"id","remote"},{"name","Slave"},{"url","https://192.0.2.99:24260"},{"credential_file",project+"/nodes/remote.token"},{"inventory",QJsonObject{{"data_directory","/remote/data"}}}};
+    QJsonObject group{{"id","group"},{"backend","original-soap"},{"project_mode",true},{"experiment","pedestals"},{"ecc",QJsonObject{{"node_id","local"}}},{"receivers",QJsonArray{QJsonObject{{"id","data"},{"node_id","remote"}}}},{"project_directories",QJsonObject{{"local",dir.filePath("existing-project-data")},{"remote","/remote/custom"}}}};
+    Deployment::Write(project+"/project.json",Deployment::Json({{"schema",1},{"kind","getdaq.distributed-project"},{"nodes",QJsonArray{local,remote}},{"groups",QJsonArray{group}},{"configuration_source",source}}));
+    auto base=RunConfig::Default();base.configDir=source;base.deploymentProject=project+"/project.json";
+    {DistributedDeploymentWindow window(base);auto *folder=window.findChild<QLineEdit *>("MasterLocalRawDataRoot");QVERIFY(folder && !folder->isReadOnly());QVERIFY(window.findChild<QPushButton *>("MasterBrowseRawDataRoot")->isEnabled());QCOMPARE(folder->text(),dir.filePath("existing-project-data"));
+     folder->setText(chosen);QVERIFY(QMetaObject::invokeMethod(&window,"ApplyLocalProjectFolder",Qt::DirectConnection));
+     const auto saved=Deployment::Parse(Deployment::Read(project+"/project.json"));QCOMPARE(saved["local_project_directory"].toString(),chosen);const auto paths=saved["groups"].toArray()[0].toObject()["project_directories"].toObject();QCOMPARE(paths["local"].toString(),chosen);QCOMPARE(paths["remote"].toString(),QString("/remote/custom"));
+     QCOMPARE(window.findChild<QTableWidget *>("DistributedHosts")->item(0,3)->text(),chosen);
+     folder->setText("relative-folder");QVERIFY(QMetaObject::invokeMethod(&window,"ApplyLocalProjectFolder",Qt::DirectConnection));QCOMPARE(Deployment::Parse(Deployment::Read(project+"/project.json"))["local_project_directory"].toString(),chosen);
+    }
+    settings.setValue(projectKey,dir.filePath("unrelated"));DistributedDeploymentWindow reopened(base);QCOMPARE(reopened.findChild<QLineEdit *>("MasterLocalRawDataRoot")->text(),chosen);
+    QCOMPARE(Deployment::Parse(Deployment::Read(cache+"/node.json"))["data_directory"].toString(),previous);QCOMPARE(Deployment::Read(previous+"/keep.graw"),QByteArray("raw data"));
+ }
  void newDefaultPathsUseVisibleHomeWorkspace(){
     const auto previous=qgetenv("GETDAQ_WORKSPACE");qunsetenv("GETDAQ_WORKSPACE");QCOMPARE(DefaultWorkspaceDirectory(),QDir(QDir::homePath()).filePath("GetDAQ"));const auto defaults=RunConfig::Default();QCOMPARE(defaults.outputDir,QDir(QDir::homePath()).filePath("GetDAQ/runs"));QVERIFY(!defaults.configDir.contains("/.local/"));qputenv("GETDAQ_WORKSPACE",previous);QCOMPARE(DefaultWorkspaceDirectory(),fWorkspace.path());
     ConsoleLogStore log;QVERIFY(log.OpenApplicationLog());QVERIFY(log.ApplicationLogPath().startsWith(fWorkspace.path()+"/logs/sessions/"));
