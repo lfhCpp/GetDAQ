@@ -1,0 +1,17 @@
+{
+  "scope": "bundled original configuration editor Windows build",
+  "qt_version": "5.14.2",
+  "compiler": "MinGW-w64 GCC 7.3.0 x86_64",
+  "execution": "Windows toolchain through WSL interoperability",
+  "build_exit_code": 0,
+  "program": "getdaq-cconfig-editor.exe",
+  "pe_machine": "x86_64",
+  "program_sha256": "bfcf55395385c28273c0f27933d962c9073ecc4c4993bf0a1b548e2e4d91cd8b",
+  "unmodified_boost_header_sha256": "ba177f9954e4729f3d9f9d85a49a47cbdd24db6da3613a9cb5d3010b9b30578d",
+  "smoke_test": "PASS original UI open / relative include / edit / undo / redo / save / reopen / metadata",
+  "shadow_build_platform_header_refresh_test": "passed",
+  "source_bundle_verified_files": 2517,
+  "full_windows_suite_rebuilt": false,
+  "independent_windows_computer_validated": false,
+  "hardware_acquisition_tested": false
+}

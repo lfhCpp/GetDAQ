@@ -17,7 +17,7 @@ are provenance strings, **not build input paths**. Original file contents and
 notices are preserved here. The existing compatibility adjustments happen in
 the build directory. Extraction follows the actual Linux build source lists,
 compiler dependencies, UI resources, format dictionaries and interface includes;
-it is not a copy of the entire historical tree. Clang/libc++/macOS conditional headers are also included. Native macOS validation
+it is not a copy of the entire historical tree. Clang/libc++/macOS and MinGW/Windows conditional headers are also included. Native macOS validation
 is tracked separately; source presence alone does not establish cross-platform compatibility.
 
 Run `python3 tools/verify-legacy-sources.py` from the project root to verify it.
