@@ -56,6 +56,10 @@ def prepare(build,ice):
     sources += [v/'mdaq/src/mdaq/daq'/(n+'.cpp') for n in ['CircularBuffer','DataProcessorCore','DataReceiver','TcpDataReceiver','IceDataReceiver','NetPerfProcessor','DataSender','IceDataSender']]
     sources += [v/'getbench/src/get'/p for p in ['asad/utl.cpp','mt/AlarmLogger.cpp','utl/Time.cpp','daq/FrameStorage.cpp','daq/ByteStorage.cpp','daq/FdtDataReceiver.cpp','daq/FrameCounter.cpp']]
     sources += [p for p in (v/'getbench/src/get/rc').glob('*.cpp') if p.name!='ConfigDatabaseManager.cpp']
+    # Bound stop RPC waits and preserve failed stops. Upstream source stays intact.
+    cobo_stop=build/'CoBoNode.cpp'
+    cobo_stop.write_text(patcher.apply_patch((v/'getbench/src/get/rc/CoBoNode.cpp').read_text(),(ROOT/'apps/original-backends/cobo-stop.patch').read_text()))
+    sources=[cobo_stop if p==v/'getbench/src/get/rc/CoBoNode.cpp' else p for p in sources]
     sources += list((v/'statemachine/src/dhsm').glob('*.cpp'))
     boost=v/'boost_1_55_0'
     sources += list((boost/'libs/program_options/src').glob('*.cpp'))

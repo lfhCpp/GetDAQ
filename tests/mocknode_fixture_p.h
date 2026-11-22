@@ -18,6 +18,7 @@ public:
     bool hangCatalog = false;
     bool deferState = false;
     bool deferStop = false;
+    bool busyStop = false;
     int catalogCount = 0;
     int replacementCatalogCount = 0;
     int replacementFinalizeCount = 0;

@@ -1,5 +1,6 @@
 #include "distributeddeploymentwindow.h"
 #include "backendshutdown.h"
+#include "runcontrol.h"
 #include "localserviceprocesses.h"
 #include "userguidewindow.h"
 #include <QListWidget>
@@ -63,6 +64,36 @@ using namespace GetDAQTestSupport;
 class ProductTests:public QObject {Q_OBJECT
  QTemporaryDir fWorkspace;
 private slots:
+ void movedPendingActivationResolvesOnlyThroughRecordedRelocations(){
+    QTemporaryDir dir;const auto old=dir.path()+"/old",middle=dir.path()+"/middle",current=dir.path()+"/current";
+    for(const auto &root:{old,middle,current})Deployment::PrivateDirectory(root);
+    Deployment::PrivateDirectory(current+"/jobs/activate-original");Deployment::Write(old+"/relocated-to.json",Deployment::Json({{"directory",middle}}));Deployment::Write(middle+"/relocated-to.json",Deployment::Json({{"directory",current}}));
+    const QJsonObject master{{"root",current}},context{{"directory",old+"/jobs/activate-original"}};
+    QCOMPARE(Deployment::ResolvePendingActivationJob(master,context),current+"/jobs/activate-original");
+    QVERIFY_EXCEPTION_THROWN(Deployment::ResolvePendingActivationJob(master,QJsonObject{{"directory",dir.path()+"/unrelated/jobs/activate-original"}}),std::exception);
+    Deployment::Write(middle+"/relocated-to.json",Deployment::Json({{"directory",old}}));QVERIFY_EXCEPTION_THROWN(Deployment::ResolvePendingActivationJob(master,context),std::exception);
+ }
+ void ownedProcessStillMatchesAfterAtomicExecutableUpdate(){
+    QTemporaryDir dir;const auto exe=dir.path()+"/backend",marker=dir.path()+"/service.json";
+    Deployment::Write(marker,"{}");QVERIFY(QFile::copy("/bin/sh",exe));QVERIFY(QFile::setPermissions(exe,QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner));
+    QProcess process;process.start(exe,{"-c","read value","--config",marker});QVERIFY(process.waitForStarted());
+    const auto found=FindLocalArgumentProcesses(exe,"--config",marker);QCOMPARE(found.size(),1);QVERIFY(SameLocalServiceProcess(found.first()));
+    QVERIFY(QFile::copy("/bin/sh",exe+".new"));QVERIFY(QFile::remove(exe));QVERIFY(QFile::rename(exe+".new",exe));
+    QVERIFY(SameLocalServiceProcess(found.first()));auto wrong=found.first();wrong.started+="0";QVERIFY(!SameLocalServiceProcess(wrong));process.terminate();QVERIFY(process.waitForFinished());
+ }
+ void busyStopIsObservedWithoutCommandReplay(){
+    QTemporaryDir dir;QStringList trace;GetDAQTestFixtures::MockNode node("CoBo",&trace);node.state=5;node.transition=5;node.busyStop=true;
+    auto config=GetDAQTestSupport::Config(dir.path());config.nodes.removeLast();config.simulation=false;config.nodes[0].host="127.0.0.1";config.nodes[0].eccPort=node.serverPort();config.nodes[0].sentryPort=node.serverPort();
+    RunControl control;QSignalSpy states(&control,&RunControl::StatusSignal),phase(&control,&RunControl::ControlSignal),logs(&control,&RunControl::LogSignal);
+    control.ConnectSlot(config);QTRY_VERIFY(GetDAQTestSupport::At(states,5));control.StopRunSlot();QTRY_COMPARE(trace.count("CoBo:Stop"),1);
+    for(int i=0;i<5;++i){control.StopRunSlot();QTest::qWait(25);}QCOMPARE(trace.count("CoBo:Stop"),1);QVERIFY(GetDAQTestSupport::Phase(phase)!="Error");
+    node.state=4;node.transition=0;QTRY_COMPARE(GetDAQTestSupport::Phase(phase),QString("Stopped (untracked run)"));QCOMPARE(trace.count("CoBo:Stop"),1);control.ShutdownSlot();
+ }
+ void busyStopDoesNotInventStoppedState(){
+    QTemporaryDir dir;QStringList trace;GetDAQTestFixtures::MockNode node("CoBo",&trace);node.state=5;node.transition=5;node.busyStop=true;
+    auto config=GetDAQTestSupport::Config(dir.path());config.nodes.removeLast();config.simulation=false;config.nodes[0].host="127.0.0.1";config.nodes[0].eccPort=node.serverPort();config.nodes[0].sentryPort=node.serverPort();config.stepTimeoutMs=300;
+    RunControl control;QSignalSpy states(&control,&RunControl::StatusSignal),phase(&control,&RunControl::ControlSignal);control.ConnectSlot(config);QTRY_VERIFY(GetDAQTestSupport::At(states,5));control.StopRunSlot();QTRY_COMPARE(GetDAQTestSupport::Phase(phase),QString("Error"));QCOMPARE(trace.count("CoBo:Stop"),1);QVERIFY(!GetDAQTestSupport::At(states,4));control.ShutdownSlot();
+ }
  void newAcquisitionReusesServicesWithoutOldMetadata(){
     auto old=RunConfig::Default();old.experiment="pedestals";old.runNumber=17;old.description="old notes";old.filePath="/tmp/old.yml";
     old.fields["Beam"]="old beam";old.autoRun.enabled=true;old.configurationBackupWarning="old warning";
@@ -142,7 +173,12 @@ private slots:
     Deployment::Write(source+"/nodes/node.token","same pairing secret");Deployment::Write(source+"/project.json",Deployment::Json({{"schema",1},{"nodes",QJsonArray{QJsonObject{{"id","node"},{"credential_file",source+"/nodes/node.token"}}}}}));
     const QByteArray immutable="immutable release bytes";Deployment::PrivateDirectory(source+"/repository/objects");Deployment::Write(source+"/repository/objects/blob",immutable,true);
     auto saved=RunConfig::Default();saved.deploymentProject=source+"/project.json";saved.outputDir=source+"/records";saved.configDir=source+"/xml";saved.configurationSnapshot=source+"/snapshot";saved.description="retain metadata";QString saveError;Deployment::PrivateDirectory(source+"/console");QVERIFY2(saved.Save(source+"/console/envoy.yml",&saveError),qPrintable(saveError));
+    const auto pending=Deployment::Json({{"phase","pending"},{"directory",source+"/jobs/activate-original"},{"release_id",QString(64,'a')}});
+    Deployment::PrivateDirectory(source+"/pending-activations");Deployment::PrivateDirectory(source+"/jobs/activate-original");Deployment::Write(source+"/pending-activations/all.json",pending);Deployment::Write(source+"/jobs/activate-original/activation-context.json",pending);
+    const QByteArray request="{\"path\":\""+source.toUtf8()+"/immutable-request\"}";Deployment::Write(source+"/jobs/activate-original/request.json",request,true);
     const auto result=Deployment::RelocateMasterProject(source,destination,QString());QCOMPARE(result["directory"].toString(),destination);
+    QCOMPARE(Deployment::Parse(Deployment::Read(destination+"/pending-activations/all.json"))["directory"].toString(),destination+"/jobs/activate-original");
+    QCOMPARE(Deployment::Read(destination+"/jobs/activate-original/request.json"),request);
     const auto project=Deployment::Parse(Deployment::Read(destination+"/project.json"));QCOMPARE(project["nodes"].toArray()[0].toObject()["credential_file"].toString(),destination+"/nodes/node.token");QCOMPARE(Deployment::Read(destination+"/nodes/node.token"),QByteArray("same pairing secret"));QCOMPARE(Deployment::Read(destination+"/repository/objects/blob"),immutable);
     QCOMPARE(Deployment::Parse(Deployment::Read(source+"/relocated-to.json"))["directory"].toString(),destination);
     RunConfig redirected;QVERIFY(redirected.Load(source+"/console/envoy.yml",&saveError));QCOMPARE(redirected.filePath,destination+"/console/envoy.yml");QCOMPARE(redirected.deploymentProject,destination+"/project.json");QCOMPARE(redirected.outputDir,destination+"/records");QCOMPARE(redirected.configDir,destination+"/xml");QCOMPARE(redirected.configurationSnapshot,destination+"/snapshot");QCOMPARE(redirected.description,QString("retain metadata"));

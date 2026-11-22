@@ -4,5 +4,5 @@
 // Only authenticated node-agent instance records are eligible. External ECC
 // endpoints and executable-name searches never confer ownership.
 QJsonObject ManagedBackendExitPlan(const QString &projectFile,const QString &localNodeRoot);
-void StopManagedBackends(const QJsonObject &plan,const QString &auditRoot,const Deployment::Logger &log={});
+void StopManagedBackends(const QJsonObject &plan,const QString &auditRoot,const Deployment::Logger &log={},bool force=false);
 #endif

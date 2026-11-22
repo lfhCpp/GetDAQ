@@ -23,7 +23,7 @@ bool SameLocalServiceProcess(const LocalServiceProcess &p) {
 #ifdef Q_OS_LINUX
     const QString proc=QString("/proc/%1").arg(p.pid);
     return p.pid>1 && QFileInfo(proc).ownerId()==::getuid() &&
-        QFileInfo(proc+"/exe").symLinkTarget()==p.executable && !p.started.isEmpty() && Birth(p.pid)==p.started;
+        (QFileInfo(proc+"/exe").symLinkTarget()==p.executable || QFileInfo(proc+"/exe").symLinkTarget()==p.executable+" (deleted)") && !p.started.isEmpty() && Birth(p.pid)==p.started;
 #else
     Q_UNUSED(p);return false;
 #endif

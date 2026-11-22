@@ -47,14 +47,18 @@ QJsonObject ManagedBackendExitPlan(const QString &projectFile,const QString &loc
     for(const auto &value:observedInstances){auto target=value.toObject();const auto entry=target["instance"].toObject();const auto group=entry["group_id"].toString();if(entry["backend"]=="original-soap" && entry["role"]=="ecc" && entry["phase"]=="stopped" && entry["stopped"].toBool() && entry["actual_pids"].toArray().isEmpty() && receiverGroups.contains(group) && !eccGroups.contains(group)){target["already_stopped"]=true;targets.append(target);eccGroups.insert(group);}}
     return {{"targets",targets},{"errors",errors},{"project_root",projectRoot}};
 }
-void StopManagedBackends(const QJsonObject &plan,const QString &auditRoot,const Logger &log){
-    Require(plan["errors"].toArray().isEmpty(),"Some managed services cannot be inspected; keep them running or cancel exit");
+void StopManagedBackends(const QJsonObject &plan,const QString &auditRoot,const Logger &log,bool force){
+    Require(force || plan["errors"].toArray().isEmpty(),"Some managed services cannot be inspected; keep them running or cancel exit");
     const auto projectRoot=plan["project_root"].toString();std::unique_ptr<QLockFile> lock;
     if(!projectRoot.isEmpty()){lock.reset(new QLockFile(projectRoot+"/deployment.lock"));Require(lock->tryLock(0),"A deployment operation is in progress; finish it before closing backend services");}
     const auto targets=plan["targets"].toArray();QSet<QString> confirmed;
     // Inspect every selected ECC before stopping any service. Node Stop repeats
     // the hardware-state check immediately before acting on its exact process.
     for(const auto &value:targets){const auto target=value.toObject(),entry=target["instance"].toObject(),node=target["node"].toObject();
+        if(force){
+            bool matched=false;for(const auto &value:NodeInventory(node)["instances"].toArray()){const auto current=value.toObject();if(current["instance_id"]!=entry["instance_id"])continue;Match(current,entry);matched=true;}
+            Require(matched,"Managed instance disappeared; refresh before forced termination");continue;
+        }
         if(target["already_stopped"].toBool()){
             bool stopped=false;for(const auto &value:NodeInventory(node)["instances"].toArray()){const auto current=value.toObject();if(current["instance_id"]!=entry["instance_id"])continue;Match(current,entry);stopped=current["phase"]=="stopped" && current["stopped"].toBool() && current["actual_pids"].toArray().isEmpty();}
             Require(stopped,"Previously stopped ECC changed; refresh before stopping its receiver");continue;
@@ -72,17 +76,18 @@ void StopManagedBackends(const QJsonObject &plan,const QString &auditRoot,const 
         if(target["already_stopped"].toBool()){confirmed.insert(entry["group_id"].toString());continue;}
         // A receiver may be on another host; require its group's ECC to have
         // stopped in this operation rather than inferring it from an old record.
-        if(role=="receiver")Require(confirmed.contains(entry["group_id"].toString()),"No stopped ECC was confirmed for this receiver; use service management to inspect it");
-        QJsonObject request{{"schema",1},{"operation_id","exit-"+QString::fromLatin1(Token().left(24))},{"action","stop"},{"release_id",entry["release_id"]},{"group_id",entry["group_id"]},{"role",role}};
+        if(!force && role=="receiver")Require(confirmed.contains(entry["group_id"].toString()),"No stopped ECC was confirmed for this receiver; use service management to inspect it");
+        QJsonObject request{{"schema",1},{"operation_id","exit-"+QString::fromLatin1(Token().left(24))},{"action",force?"terminate":"stop"},{"release_id",entry["release_id"]},{"group_id",entry["group_id"]},{"role",role}};
+        if(force)request["accepted_repair"]=true;
         if(role=="receiver"){request["receiver_id"]=entry["receiver_id"];request["ecc_stopped_confirmed"]=true;}
         const auto file=directory+'/'+Sha(Key(node,entry).toUtf8())+".json";Write(file,Json({{"node_id",node["id"]},{"request",request},{"phase","intent"}}));
         const auto endpoint=NodeEndpoint(node);Post(endpoint,"/v1/operations",request);QJsonObject status;QElapsedTimer clock;clock.start();
         do{CheckOperation();status=Get(endpoint,"/v1/operations/"+request["operation_id"].toString());Require(status["request_sha256"]==Sha(Json(request)) && status["operation_id"]==request["operation_id"],"Exit operation response differs from its saved request");Write(file,Json({{"node_id",node["id"]},{"request",request},{"result",status}}));if(status["phase"]=="complete" || status["phase"]=="failed" || status["phase"]=="unknown")break;QThread::msleep(100);}while(clock.elapsed()<30000);
         Require(status["phase"]=="complete",status["message"].toString("Service stop has not completed; inspect its saved exit operation before retrying"));
-        const auto result=status["result"].toObject();Match(result,entry);Require(result["phase"]=="stopped" && result["stopped"].toBool(),"Service did not confirm a normal stop");
+        const auto result=status["result"].toObject();Match(result,entry);Require(force?result["phase"]=="terminated-needs-inspection":(result["phase"]=="stopped" && result["stopped"].toBool()),"Service shutdown was not confirmed");
         if(role=="ecc")confirmed.insert(entry["group_id"].toString());
         const auto registry=projectRoot+"/active-instances.json";
         if(!projectRoot.isEmpty() && QFile::exists(registry)){auto active=Parse(Read(registry));const auto previous=active[entry["instance_id"].toString()].toObject();if(previous["node_id"]==node["id"] && previous["release_id"]==entry["release_id"]){active[entry["instance_id"].toString()]=result;Write(registry,Json(active));}}
-        if(log)log("Stopped managed "+role+": "+entry["instance_id"].toString());
+        if(log)log((force?QString("Force terminated managed "):QString("Stopped managed "))+role+": "+entry["instance_id"].toString());
     }
 }

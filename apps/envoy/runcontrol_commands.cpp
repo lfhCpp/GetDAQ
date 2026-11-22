@@ -64,6 +64,7 @@ void RunControl::StartRunSlot(bool replaceCompletedRun, bool acceptExistingIncom
         fAutoRun.ManualStart(fAutoClock.elapsed(),view);
     
     if(!fConnected || All().isEmpty()){emit LogSignal("Connect a valid ECC target first.");return;}
+    if(fBusy && fStep>=0 && fOperation=="Stop"){emit LogSignal("Stop is already pending; observing ECC without resending the command.");return;}
     if(fBusy && fStep>=0){fDeferredAction=[this,replaceCompletedRun,acceptExistingIncoming,requested]{StartRunSlot(replaceCompletedRun,acceptExistingIncoming,requested);};emit LogSignal("Start queued behind the in-flight hardware command.");return;}
     for(int id:Cobos())if(fStatus[id].sentryOnline && fStatus[id].totalGB>0 && fStatus[id].availableGB<=0){ReportLog("Receiver reports a full raw-data disk; correct raw recording before Start.",Diagnostics::Error);return;}
     QStringList warnings;
@@ -142,6 +143,7 @@ void RunControl::StopRunSlot()
     if(!fAutomaticDispatch)CancelAutoRun("Automatic Run canceled: manual Run stop");
     
     if(!fConnected || All().isEmpty()){emit LogSignal("No connected ECC targets for Stop.");return;}
+    if(fBusy && fStep>=0 && fOperation=="Stop"){emit LogSignal("Stop is already pending; observing ECC without resending the command.");return;}
     if(fBusy && fStep>=0){fDeferredAction=[this]{StopRunSlot();};emit LogSignal("Stop queued with priority behind the accepted hardware command.");return;}
     if(fBusy){++fSequence;fBusy=false;fAwaitCatalog.clear();fAwaitReplacementCleanup.clear();for(auto *s:fSentry)s->Cancel();}
     bool running = false;

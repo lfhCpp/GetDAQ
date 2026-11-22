@@ -203,7 +203,9 @@ Control / field & Meaning and effect \\\midrule
 \subsection*{Read, clear and export logs}
 Choose Event / ECC / Data log and host/instance. Clear affects display; export includes this launch’s collected history. Tools → Logs → Export combined logs writes TXT by receipt time and sequence, preserving sources and remote timestamps. A new GUI launch starts fresh.
 
-\note{On main-window exit, managed backends offer Stop ECC + data and exit, Keep services running and exit, or Cancel. Stop acquisition first. A backend-stop failure keeps the GUI open. External ECC services are left running.}
+\note{If Stop reports that the ECC state machine is busy, GetDAQ observes the accepted transition without replaying Stop. Only a fresh Ready with Transition=0 confirms stopped acquisition. Bundled SOAP ECC bounds each pulser-stop and sender-stop Ice call to 30 seconds; errors do not imply a completed Run. ECC and receiver preparation remain separate. On the same host, both reuse verified cached content; existing objects are not downloaded twice.}
+
+\note{On main-window exit, managed backends offer Stop ECC + data and exit, Keep services running and exit, or Cancel. Stop acquisition before normal backend shutdown. If ECC is unresponsive, Force terminate backends and exit… requires a second confirmation. After a 10-second graceful attempt, only remaining identity-matched managed processes are killed. This does not confirm CoBo stopped and may lose buffered data. Journals are retained. External ECC services are left running.}
 
 \newpage
 \pagehead{7\quad Waveforms and 3D}{Online and offline viewers use electronics channels; no pad mapping is assumed.}

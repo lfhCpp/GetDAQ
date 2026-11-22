@@ -107,6 +107,8 @@ QJsonObject RelocateMasterProject(const QString &source,const QString &destinati
    if(v.isObject()){auto result=v.toObject();for(auto i=result.begin();i!=result.end();++i)i.value()=rewrite(i.value());return result;}return v;
   };
   QStringList metadata{"master.json","project.json","latest-job.json"};for(const auto &name:QDir(to+"/paired-nodes").entryList({"*.json"},QDir::Files))metadata<<"paired-nodes/"+name;
+  for(const auto &name:QDir(to+"/pending-activations").entryList({"*.json"},QDir::Files))metadata<<"pending-activations/"+name;
+  for(const auto &name:QDir(to+"/jobs").entryList(QDir::Dirs|QDir::NoDotAndDotDot))metadata<<"jobs/"+name+"/activation-context.json";
   for(const auto &name:metadata)if(QFile::exists(to+'/'+name))Write(to+'/'+name,Json(rewrite(Parse(Read(to+'/'+name,64*1024*1024))).toObject()));
   QJsonObject master=QFile::exists(to+"/master.json")?Parse(Read(to+"/master.json")):QJsonObject();if(wasRunning)master=EnsureMaster(to,programs,oldMaster["address"].toString(),oldMaster["port"].toInt());
   Write(from+"/relocated-to.json",Json({{"directory",to}}));
@@ -182,6 +184,17 @@ QJsonObject SyncProject(const QJsonObject &master,const QJsonArray &nodes,const 
  }
  Require(!receipts.isEmpty(),"Choose a project-mode group and at least one execution host");return {{"release_id",release},{"receipts",receipts}};
 }
+QString ResolvePendingActivationJob(const QJsonObject &master,const QJsonObject &context){
+ const auto root=Root(master),recorded=QDir::cleanPath(context["directory"].toString());
+ if(recorded.startsWith(root+"/jobs/")){Require(QFileInfo(recorded).absolutePath()==root+"/jobs/","Invalid pending activation job");return recorded;}
+ const auto oldJobs=QFileInfo(recorded).absolutePath(),oldRoot=QFileInfo(oldJobs).absolutePath();
+ Require(QFileInfo(oldJobs).fileName()=="jobs" && QFile::exists(oldRoot+"/relocated-to.json"),"Pending activation escaped project");
+ QString relocated=oldRoot;QSet<QString> visited;
+ while(relocated!=root){Require(!visited.contains(relocated),"Project relocation cycle");visited.insert(relocated);relocated=Parse(Read(relocated+"/relocated-to.json"))["directory"].toString();Require(!relocated.isEmpty(),"Missing project relocation destination");}
+ const auto local=root+"/jobs/"+Id(QFileInfo(recorded).fileName());
+ Require(QFileInfo(local).isDir() && !QFileInfo(local).isSymLink() && QFileInfo(local).canonicalFilePath()==local,"Copied pending activation job is unavailable; inspect its original job");
+ return local;
+}
 QJsonObject ActivateProject(const QJsonObject &master,const QJsonArray &nodes,const QJsonObject &preparation,const Logger &log,const QString &selectedGroup,const QSet<QString> &selectedGroups){
     QLockFile lock(Root(master)+"/deployment.lock");Require(lock.tryLock(0),"Another project deployment operation is active");
     const auto manifest=preparation["manifest"].toObject();ValidateRelease(manifest);ValidateGroupSelection(manifest["groups"].toArray(),selectedGroups);Require(Sha(Json(manifest))==preparation["release_id"].toString(),"Prepared release manifest differs");
@@ -191,7 +204,7 @@ QJsonObject ActivateProject(const QJsonObject &master,const QJsonArray &nodes,co
         context=Parse(Read(pendingFile));
         if(context["phase"]=="pending"){
             Require(context["release_id"]==release,"This control group has an unfinished activation of another release. Observe and finish its original operation first.");
-            job=context["directory"].toString();Require(job.startsWith(Root(master)+"/jobs/"),"Pending activation escaped project");
+            job=ResolvePendingActivationJob(master,context);context["directory"]=job;
             if(PreparationChanged(context,binding)){
                 InspectPriorActivation(nodes,context,log);
                 context["phase"]="superseded-after-inspection";
@@ -239,7 +252,7 @@ QJsonObject ReleaseTerminatedGroup(const QJsonObject &master,const QJsonArray &n
     if(QFile::exists(pendingFile)) {
         pending=Parse(Read(pendingFile));
         if(pending["phase"]=="pending") {
-            const auto directory=pending["directory"].toString();Require(directory.startsWith(Root(master)+"/jobs/"),"Pending activation escaped project");
+            const auto directory=ResolvePendingActivationJob(master,pending);pending["directory"]=directory;
             for(const auto &name:QDir(directory).entryList({"*.json"},QDir::Files)) {
                 const auto record=Parse(Read(directory+'/'+name)),request=record["request"].toObject();if(request.isEmpty())continue;
                 const auto response=Request(NodeEndpoint(Node(nodes,record["node_id"].toString())),"GET","/v1/operations/"+Id(request["operation_id"].toString()));
@@ -283,9 +296,9 @@ QJsonObject ObserveDeployment(const QJsonObject &master,const QJsonArray &nodes)
         inventory["instances"]=instances;inventory["name"]=node["name"];inventory["online"]=true;hosts.append(inventory);
     }catch(const std::exception &error){hosts.append(QJsonObject{{"node_id",node["id"]},{"name",node["name"]},{"online",false},{"message",QString::fromUtf8(error.what())}});}}
     QSet<QString> jobs;const auto latest=Root(master)+"/latest-job.json";
-    if(QFile::exists(latest))jobs.insert(Parse(Read(latest))["directory"].toString());
+    if(QFile::exists(latest))jobs.insert(ResolvePendingActivationJob(master,Parse(Read(latest))));
     QMap<QString,QString> pendingFiles;
-    for(const auto &name:QDir(Root(master)+"/pending-activations").entryList({"*.json"},QDir::Files)){const auto file=Root(master)+"/pending-activations/"+name;const auto context=Parse(Read(file));if(context["phase"]=="pending"){const auto job=context["directory"].toString();jobs.insert(job);pendingFiles[job]=file;}}
+    for(const auto &name:QDir(Root(master)+"/pending-activations").entryList({"*.json"},QDir::Files)){const auto file=Root(master)+"/pending-activations/"+name;auto context=Parse(Read(file));if(context["phase"]=="pending"){const auto job=ResolvePendingActivationJob(master,context);context["directory"]=job;Write(file,Json(context));jobs.insert(job);pendingFiles[job]=file;}}
     const auto activeFile=Root(master)+"/active-instances.json";QJsonObject active;if(QFile::exists(activeFile))active=Parse(Read(activeFile));
     for(const auto &directory:jobs){Require(directory.startsWith(Root(master)+"/jobs/"),"Job directory escaped project");bool terminal=true;int count=0;
         for(const auto &name:QDir(directory).entryList({"*.json"},QDir::Files)){

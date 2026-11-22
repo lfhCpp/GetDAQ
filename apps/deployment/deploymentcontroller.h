@@ -17,6 +17,7 @@ Endpoint NodeEndpoint(const QJsonObject &node);
 QJsonObject NodeInventory(const QJsonObject &node);
 QJsonObject PrepareProject(const QJsonObject &master,const QJsonArray &nodes,const Bundle &bundle,const Logger &log={},const QString &selectedGroup=QString(),bool acceptConfigurationWarning=false,const QSet<QString> &selectedGroups={});
 QJsonObject SyncProject(const QJsonObject &master,const QJsonArray &nodes,const Bundle &bundle,const QSet<QString> &targets={},const Logger &log={},bool acceptConfigurationWarning=false);
+QString ResolvePendingActivationJob(const QJsonObject &master,const QJsonObject &context);
 QJsonObject ActivateProject(const QJsonObject &master,const QJsonArray &nodes,const QJsonObject &preparation,const Logger &log={},const QString &selectedGroup=QString(),const QSet<QString> &selectedGroups={});
 QJsonObject StopGroup(const QJsonObject &master,const QJsonArray &nodes,const QJsonObject &preparation,const QString &groupId,bool repair,const Logger &log={});
 QJsonObject ReleaseTerminatedGroup(const QJsonObject &master,const QJsonArray &nodes,const QString &groupId,const Logger &log={});

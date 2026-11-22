@@ -224,6 +224,24 @@ def main():
             stopped = terminal(node, stop_request)
             require(stopped['phase'] == 'complete', json.dumps(stopped))
         checks.append('both backends normally stopped without affecting node agents or repository')
+        # An ECC in blocked shutdown must be terminable without a SOAP reply.
+        restart = dict(activate_ecc, operation_id='restart-ecc-for-force-test', expected_previous=release)
+        restarted = terminal(nodes[0], restart)
+        require(restarted['phase'] == 'complete', json.dumps(restarted))
+        pid = int(restarted['result']['processes'][0]['pid'])
+        replacement = programs / 'getEccSoapServer.replacement'
+        shutil.copy2(programs / 'getEccSoapServer', replacement)
+        os.replace(replacement, programs / 'getEccSoapServer')
+        os.kill(pid, signal.SIGSTOP)
+        denied = terminal(nodes[0], dict(restart, operation_id='deny-unconfirmed-termination', action='terminate'))
+        require(denied['phase'] == 'failed', 'Unconfirmed force termination was accepted')
+        os.kill(pid, 0)
+        forced = terminal(nodes[0], dict(restart, operation_id='force-blocked-ecc', action='terminate', accepted_repair=True))
+        require(forced['phase'] == 'complete', json.dumps(forced))
+        require(forced['result']['phase'] == 'terminated-needs-inspection' and not forced['result']['stopped'], 'Force termination fabricated a normal hardware stop')
+        require(request(nodes[0], 'GET', '/v1/inventory', token=nodes[0]['token'])[0] == 200, 'Force termination killed node agent')
+        checks.append('explicit force termination kills only owned blocked ECC; unconfirmed request rejected; hardware stop remains unconfirmed')
+
         (root / 'result.json').write_text(json.dumps({'passed': True, 'checks': checks, 'real_hardware': False,
                                                     'physical_multi_host': False, 'release_id': release,
                                                     'program_sha256': {path.name: sha(path.read_bytes()) for path in programs.iterdir() if path.is_file()}}, indent=2) + '\n')

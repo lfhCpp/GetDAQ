@@ -53,7 +53,13 @@ void RunControl::EccReplySlot(int id, QString operation, int state, int transiti
             if (fAwaitState.isEmpty()) NextStep();
         }
     } else if (fAwaitAck.contains(id)) {
-        if (!error.isEmpty()) { s.error = error; s.eccOnline = false; Fail(QString("Node %1 %2: %3").arg(id).arg(operation, error)); }
+        if (operation == "Stop" && error.contains("The ECC state machine is busy!")) {
+            // Busy is not an acknowledgement of our Stop. Observe the already
+            // accepted transition; only a fresh Ready/NO_TRANS completes it.
+            fAwaitAck.remove(id);s.error = error;s.eccOnline = false;
+            emit LogSignal(QString("Node %1: ECC is busy; waiting for its actual state. Stop will not be replayed automatically.").arg(id));
+            fEcc[id]->Send("GetState");
+        } else if (!error.isEmpty()) { s.error = error; s.eccOnline = false; Fail(QString("Node %1 %2: %3").arg(id).arg(operation, error)); }
         else {
             fAwaitAck.remove(id);
             // 必须取得命令应答后的 GetState，不使用命令之前的状态。

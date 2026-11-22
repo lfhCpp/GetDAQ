@@ -1,0 +1,23 @@
+{
+  "scope": "busy Stop, owned backend termination and moved project activation",
+  "qt_tests": {
+    "passed": 83,
+    "failed": 0
+  },
+  "original_stop_fault_probe": {
+    "timeout_ms": 30001,
+    "stop_rpc_calls": 1,
+    "propagated_exception": "Ice::TimeoutException",
+    "physical_hardware": false
+  },
+  "original_distributed_lifecycle": {
+    "passed_checks": 9,
+    "blocked_ecc_termination": "explicit confirmation required; exact owned process only; no hardware-stopped claim"
+  },
+  "original_vendor_sources_unchanged": true,
+  "main_ui_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec",
+  "limitations": [
+    "Fault injection does not validate a high-volume physical CoBo Stop.",
+    "Killing ECC or a receiver cannot confirm the CoBo has stopped."
+  ]
+}

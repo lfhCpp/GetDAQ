@@ -10,7 +10,16 @@
  //_________________________________________________________________________________________________
  int ecc__ServerExit(struct soap *, ecc__Response & response)
  {
-@@ -154,6 +155,7 @@
+@@ -141,6 +142,8 @@
+ 		// On sedipcc212 (Ubuntu 14.04), it causes "Address family is not supported by protocol" socket exceptions when using wildcard address.
+ 		mdaq::utl::CmdLineArgs args = mdaq::utl::CmdLineArgs::build(argc, argv);
+ 		args.push_back("--Ice.IPv6=0");
++        args.push_back("--Ice.RetryIntervals=-1");
++        args.push_back("--Ice.Override.CloseTimeout=3000");
+ 
+ 		//args.push_back("--Ice.Trace.ThreadPool=1");
+ 
+@@ -154,6 +157,7 @@
  		getEccServer.createAlarmLogger(alarmPort);
  
  		eccService soap;

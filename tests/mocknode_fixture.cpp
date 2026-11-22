@@ -77,13 +77,14 @@ MockNode::MockNode(QString r, QStringList *t) : role(r), trace(t)
                     else if (operation == "Prepare") state = 3;
                     else if (operation == "Configure") state = 4;
                     else if (operation == "Start") { if (!deferState) state = 5; }
-                    else if (operation == "Stop") { if (!deferStop) state = 4; }
+                    else if (operation == "Stop") { if (busyStop) error = 5; else if (!deferStop) state = 4; }
                     else if (operation == "Pause" && state == 5) state = 6;
                     else if (operation == "Resume" && state == 6) state = 5;
                     else if (operation == "Breakup") state = 3;
                     else if (operation == "Undo") --state;
                     response = QString("<s:Envelope xmlns:s='http://schemas.xmlsoap.org/soap/envelope/' xmlns:ecc='urn:http://localhost:8083/'><s:Body><ecc:%4Response><ErrorCode>%1</ErrorCode><ErrorMessage>test</ErrorMessage><State>%2</State><Transition>%3</Transition></ecc:%4Response></s:Body></s:Envelope>").arg(error).arg(state).arg(transition).arg(operation.isEmpty() ? QString("Unknown") : operation).toUtf8();
                 }
+                if(busyStop)response.replace("<ErrorMessage>test</ErrorMessage>","<ErrorMessage>The ECC state machine is busy!</ErrorMessage>");
                 socket->write("HTTP/1.1 200 OK\r\nContent-Length: " + QByteArray::number(response.size()) + "\r\nConnection: close\r\n\r\n" + response);
                 socket->disconnectFromHost();
             });

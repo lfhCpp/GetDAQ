@@ -1,0 +1,41 @@
+--- a/CoBoNode.cpp
++++ b/CoBoNode.cpp
+@@ -698,7 +698,9 @@
+ 	try
+ 	{
+ 		// Stop periodic AsAd pulser
+-		asadPulserMgr()->stopPeriodicPulser();
++		NODE_INFO() << "Stopping periodic AsAd pulses (30 s timeout)...";
++        get::cobo::AsAdPulserMgrPrx::checkedCast(hwNode().hwServerCtrlPrx->ice_timeout(30000))->stopPeriodicPulser();
++        NODE_INFO() << "Periodic AsAd pulses stopped.";
+ 
+ 		// Read temperature of all active AsAd boards
+ 		readAsAdTemperatures();
+@@ -706,10 +708,12 @@
+ 	catch (mdaq::utl::CmdException & e)
+ 	{
+ 		NODE_ERROR() << e.reason;
++        throw;
+ 	}
+ 	catch (std::exception & e)
+ 	{
+ 		NODE_ERROR() << e.what();
++        throw;
+ 	}
+ }
+ // --------------------------------------------------------------------------------------------------------------------
+@@ -732,12 +736,13 @@
+ 
+ 		// Stop listening to interrupts and flush data
+ 		if (hwNode().dataSenderCtrlPrx)
+-			hwNode().dataSenderCtrlPrx->daqStop();
++			mdaq::DaqCtrlNodePrx::uncheckedCast(hwNode().dataSenderCtrlPrx->ice_timeout(30000))->daqStop();
+ 	}
+ 	// Protect against call on rebooted CoBo board ('ctrl' device no longer exist).
+ 	catch (const Ice::LocalException & e)
+ 	{
+ 		NODE_WARN() << "Error stopping CoBo board (" << e.ice_name() << ')';
++        throw;
+ 	}
+ }
+ // --------------------------------------------------------------------------------------------------------------------

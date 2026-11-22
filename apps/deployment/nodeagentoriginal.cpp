@@ -20,7 +20,8 @@ QJsonObject P(const LocalServiceProcess &p){return {{"pid",double(p.pid)},{"exec
 LocalServiceProcess P(const QJsonObject &p){LocalServiceProcess r;r.pid=qint64(p["pid"].toDouble());r.executable=p["executable"].toString();r.started=p["started"].toString().toLatin1();return r;}
 QString Executable(const QString &programs,const QString &name){const auto path=QDir(programs).filePath(name);Require(QFileInfo(path).isExecutable() && !QFileInfo(path).isSymLink(),"Install the bundled original backend first: "+name);return path;}
 void Free(const QString &ip,int port){QTcpServer probe;Require(probe.listen(QHostAddress(Address(ip,true)),quint16(Port(port))),QString("Port is already in use: %1:%2").arg(ip).arg(port));}
-void Exit(const QJsonArray &ps,int signal,bool *effects){for(const auto &v:ps){const auto p=P(v.toObject());if(SameLocalServiceProcess(p)){*effects=true;Require(::kill(p.pid,signal)==0,"Cannot signal selected original backend");}}QElapsedTimer timer;timer.start();while(timer.elapsed()<10000){bool running=false;for(const auto &v:ps)running=running||SameLocalServiceProcess(P(v.toObject()));if(!running)return;QThread::msleep(100);}Require(false,"Original backend has not exited; no unscoped process kill was used");}
+void Exit(const QJsonArray &ps,int signal,bool *effects,bool force=false){for(const auto &v:ps){const auto p=P(v.toObject());if(SameLocalServiceProcess(p)){*effects=true;Require(::kill(p.pid,signal)==0,"Cannot signal selected original backend");}}QElapsedTimer timer;timer.start();while(timer.elapsed()<10000){bool running=false;for(const auto &v:ps)running=running||SameLocalServiceProcess(P(v.toObject()));if(!running)return;QThread::msleep(100);}if(force){for(const auto &v:ps){const auto p=P(v.toObject());if(SameLocalServiceProcess(p)){*effects=true;Require(::kill(p.pid,SIGKILL)==0,"Cannot force terminate selected original backend");}}for(int i=0;i<50;++i){bool running=false;for(const auto &v:ps)running=running||SameLocalServiceProcess(P(v.toObject()));if(!running)return;QThread::msleep(100);}}
+ Require(false,"Original backend has not exited; inspect its exact process identity before retrying");}
 }
 QJsonObject NodeAgent::PrepareOriginal(const QJsonObject &request,const QJsonObject &group,const QMap<QString,QByteArray> &files,const QString &baseDirectory){
  // Experiment content releases are immutable, but runtime installation paths and
@@ -78,7 +79,7 @@ QJsonObject NodeAgent::OriginalOperation(const QJsonObject &request,bool *effect
    if(selected["role"]=="ecc"){const auto ecc=config["group"].toObject()["ecc"].toObject();const int state=OriginalEccState(ecc["address"].toString(),ecc["port"].toInt());Require(state!=5 && state!=6,"Stop acquisition in Run Control before closing original ECC");}
    else Require(request["ecc_stopped_confirmed"].toBool(),"Stop this group's ECC normally before closing DataExporter");
   }else Require(request["accepted_repair"].toBool(),"Confirm selected-instance termination first");
-  Exit(selected["processes"].toArray(),selected["role"]=="ecc"?SIGINT:SIGTERM,effects);
+  Exit(selected["processes"].toArray(),selected["role"]=="ecc"?SIGINT:SIGTERM,effects,action=="terminate");
   if(selected["role"]=="receiver" && config["project_mode"].toBool()){
    bool other=false;for(const auto &name:QDir(fRoot+"/instances").entryList({"*.json"},QDir::Files)){
     const auto prior=Parse(Read(fRoot+"/instances/"+name));if(prior["instance_id"]==selected["instance_id"] || prior["role"]!="receiver")continue;
