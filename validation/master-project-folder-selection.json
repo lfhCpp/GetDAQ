@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-22",
+  "product_tests": {
+    "passed": 79,
+    "failed": 0,
+    "skipped": 0
+  },
+  "verified_cases": [
+    "same location is a no-op",
+    "parent selection resolves to current project or a private subfolder",
+    "nonempty selected folders retain their files",
+    "Browse does not silently open a different project",
+    "empty writable folders are usable",
+    "symbolic folder aliases resolve to physical directories",
+    "nested relocation uses a fixed source snapshot",
+    "real HTTPS master can relocate into a descendant while retaining identity",
+    "dormant project relocation does not start a conflicting configuration service",
+    "unpaired unused project endpoint may change after failed startup",
+    "nested software state is excluded from configuration distribution"
+  ],
+  "installed_gui_and_guides": [
+    "local Linux",
+    "target Linux"
+  ],
+  "target_backend_processes_retained": 5,
+  "main_window_ui_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec",
+  "hardware_commands_sent": false
+}

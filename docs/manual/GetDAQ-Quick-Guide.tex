@@ -161,7 +161,7 @@ Configuration source & 主控安装目录 \code{config/}。放整套实验 XML/X
 Project data folder & 默认 \code{/home/user/GetDAQ/data}。ECC、接收器、Sentry 在此工作，配置复制到此，原始 \code{.graw} 也写在此。\\
 GUI Run records root & 默认 \code{/home/user/GetDAQ/runs}。GUI YAML、journal、备份和元信息；不是原始数据目录。\\\bottomrule
 \end{tabularx}\par\smallskip
-新配置、项目默认放在 Home/GetDAQ。主控目录右侧 Browse 可迁移已有项目并保留配对；旧版隐藏主控项目自动迁至可见目录。GUI 日志统一在所选记录根目录的 logs/sessions 下；改路径时本次日志一起迁移。\par
+新配置、项目默认放在 Home/GetDAQ。主控目录右侧 Browse 可自由选择文件夹，必要时自动建立项目子目录；选当前位置不更改，迁移保留配对；旧版隐藏主控项目自动迁至可见目录。GUI 日志统一在所选记录根目录的 logs/sessions 下；改路径时本次日志一起迁移。\par
 \textbf{从哪启动接收器决定其工作目录。}受管模式会明确设置 Project data folder，不依赖打开 GUI 时终端所在目录。
 \subsection*{第二步：启动新的原版后台}
 \begin{enumerate}

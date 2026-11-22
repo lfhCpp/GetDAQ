@@ -75,7 +75,7 @@ cd /Users/attpc/Documents/GetDAQ
 <a name="chapter-4"></a><h1 id="chapter-4">4  单机配置教程</h1><p class="lead">先选目录，再确认本机网卡，最后填实验 ID 和启动服务。</p>
 <h2>第一步：明确三个目录</h2>
 <br/><br/> <table cellspacing="0" cellpadding="7"><tr><th>目录</th><th>示例与含义</th></tr><tr><td>Configuration source</td><td>主控安装目录 <code>config/</code>。放整套实验 XML/XCFG、拓扑和引用资源。</td></tr><tr><td>Project data folder</td><td>默认 <code>/home/user/GetDAQ/data</code>。ECC、接收器、Sentry 在此工作，配置复制到此，原始 <code>.graw</code> 也写在此。</td></tr><tr><td>GUI Run records root</td><td>默认 <code>/home/user/GetDAQ/runs</code>。GUI YAML、journal、备份和元信息；不是原始数据目录。</td></tr></table><br/><br/>
-新配置、项目默认放在 Home/GetDAQ。主控目录右侧 Browse 可迁移已有项目并保留配对；旧版隐藏主控项目自动迁至可见目录。GUI 日志统一在所选记录根目录的 logs/sessions 下；改路径时本次日志一起迁移。<br/><br/>
+新配置、项目默认放在 Home/GetDAQ。主控目录右侧 Browse 可自由选择文件夹，必要时自动建立项目子目录；选当前位置不更改，迁移保留配对；旧版隐藏主控项目自动迁至可见目录。GUI 日志统一在所选记录根目录的 logs/sessions 下；改路径时本次日志一起迁移。<br/><br/>
 <b>从哪启动接收器决定其工作目录。</b>受管模式会明确设置 Project data folder，不依赖打开 GUI 时终端所在目录。
 <h2>第二步：启动新的原版后台</h2>
 <ol><li>在 Nodes / Paths 右侧的 <b>Master / Slave</b> 选择 <b>Master</b>，进入 <b>Create ECC / data services</b>。</li><li>首次使用点 <b>Use this computer (automatic)</b>，添加执行主机。</li><li>点 <b>Add boards / ECC…</b>，选择 Configuration source、Experiment ID，并指定 ECC host / Data receiver host 及该主机的 Project data folder。</li><li>填接收电脑的 Control IP、Data IP、Router control/data 端口、ECC SOAP 端口；核对 AsAd、AGET 和 CoBo 拓扑文件。</li><li>保留 <b>Sync configuration to project folders</b>，点击 <b>Start project services</b>。软件先分发配置，再在项目目录启动原版后台和共享 Sentry。</li></ol>

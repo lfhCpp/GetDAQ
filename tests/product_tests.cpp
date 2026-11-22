@@ -152,13 +152,42 @@ private slots:
  }
  void liveMasterDirectoryMovePreservesEndpointAndCredentials(){
     const auto programs=qEnvironmentVariable("GETDAQ_TEST_PROGRAMS");if(programs.isEmpty())QSKIP("Set GETDAQ_TEST_PROGRAMS to test real configuration-service relocation");
-    QTemporaryDir dir;const auto source=dir.path()+"/old",destination=dir.path()+"/visible/project";
+    QTemporaryDir dir;const auto source=dir.path()+"/old",destination=source+"/nested-project";
     QTcpServer port;QVERIFY(port.listen(QHostAddress::LocalHost,0));const int number=port.serverPort();port.close();
     QJsonObject before,after;std::unique_ptr<int,std::function<void(int *)>> cleanup(new int,[&](int *p){for(const auto &master:{after,before})if(!master.isEmpty()){try{Deployment::StopMaster(master);}catch(...){}}delete p;});
     before=Deployment::EnsureMaster(source,programs,"127.0.0.1",number);Deployment::Write(source+"/project.json",Deployment::Json({{"schema",1},{"nodes",QJsonArray()}}));
     const auto credential=Deployment::Read(before["admin_credential"].toString());after=Deployment::RelocateMasterProject(source,destination,programs)["master"].toObject();
     QCOMPARE(after["repository_id"],before["repository_id"]);QCOMPARE(after["certificate_sha256"],before["certificate_sha256"]);QCOMPARE(after["repository_url"],before["repository_url"]);QCOMPARE(Deployment::Read(after["admin_credential"].toString()),credential);
     QVERIFY(after["admin_credential"].toString().startsWith(destination+'/'));
+ }
+ void configurationSourceDoesNotDistributeNestedSoftwareState(){
+    QTemporaryDir dir;const auto root=dir.path()+"/config",project=root+"/project-state",node=root+"/agent-state";Deployment::PrivateDirectory(root);Deployment::Write(root+"/CoboFormats.xcfg","<formats/>");
+    Deployment::PrivateDirectory(project);Deployment::Write(project+"/project.json",Deployment::Json({{"kind","getdaq.distributed-project"}}));Deployment::Write(project+"/admin.token","private project credential");
+    Deployment::PrivateDirectory(node);Deployment::Write(node+"/node.json",Deployment::Json({{"root",node},{"node_id","node"},{"credential_file",node+"/agent.token"}}));Deployment::Write(node+"/agent.token","private agent credential");
+    Deployment::PrivateDirectory(root+"/resources");Deployment::Write(root+"/resources/project.json",Deployment::Json({{"kind","experiment-resource"}}));
+    QMap<QString,QByteArray> files;const auto mapped=Deployment::OriginalRepository(root,"group",&files);QStringList paths;for(const auto &v:mapped)paths<<v.toObject()["path"].toString();QVERIFY(paths.contains("CoboFormats.xcfg"));QVERIFY(paths.contains("resources/project.json"));for(const auto &path:paths)QVERIFY(!path.startsWith("project-state/") && !path.startsWith("agent-state/"));
+    const auto snapshot=project+"/configuration-used";Deployment::PrivateDirectory(snapshot);Deployment::Write(snapshot+"/CoboFormats.xcfg","<formats/>");files.clear();QCOMPARE(Deployment::OriginalRepository(snapshot,"group",&files).size(),1);
+ }
+ void projectFolderSelectionAcceptsCurrentParentAndNonemptyLocations(){
+    QTemporaryDir dir;const auto source=dir.path()+"/projects/example";Deployment::PrivateDirectory(source);Deployment::Write(source+"/project.json",Deployment::Json({{"project_id","example"}}));
+    QCOMPARE(Deployment::MasterProjectDestination(source,source),source);QCOMPARE(Deployment::MasterProjectDestination(source,dir.path()+"/projects"),source);QCOMPARE(Deployment::MasterProjectDestination(source,dir.path()),dir.path()+"/example");
+    const auto selected=dir.path()+"/chosen";QVERIFY(QDir().mkpath(selected));QCOMPARE(Deployment::MasterProjectDestination(source,selected),selected);QVERIFY(QFile::link(selected,dir.path()+"/alias"));QCOMPARE(Deployment::MasterProjectDestination(source,dir.path()+"/alias"),selected);QFile other(selected+"/retain.txt");QVERIFY(other.open(QIODevice::WriteOnly));other.write("keep");other.close();QCOMPARE(Deployment::MasterProjectDestination(source,selected),selected+"/example");QVERIFY(QFile::exists(other.fileName()));
+    QFile otherProject(selected+"/project.json");QVERIFY(otherProject.open(QIODevice::WriteOnly));otherProject.write(Deployment::Json({{"kind","getdaq.distributed-project"},{"project_id","other"}}));otherProject.close();QCOMPARE(Deployment::MasterProjectDestination(source,selected),selected+"/example");QVERIFY(!QFile::exists(selected+"/example/project.json"));
+    const auto child=source+"/nested";QVERIFY(QDir().mkpath(child));QCOMPARE(Deployment::MasterProjectDestination(source,child),child);
+ }
+ void projectFolderRelocationAcceptsSameAndNestedDestinations(){
+    QTemporaryDir dir;const auto source=dir.path()+"/project",destination=source+"/selected";Deployment::PrivateDirectory(source);const auto bytes=Deployment::Json({{"project_id","example"},{"record",source+"/file"}});Deployment::Write(source+"/project.json",bytes);Deployment::Write(source+"/file","content",true);
+    const auto same=Deployment::RelocateMasterProject(source,source,QString());QVERIFY(same["unchanged"].toBool());QCOMPARE(Deployment::Read(source+"/project.json"),bytes);QVERIFY(!QFile::exists(source+"/relocated-to.json"));
+    QVERIFY(QDir().mkpath(destination));QVERIFY(QFile::setPermissions(destination,QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner|QFile::ReadGroup|QFile::ExeGroup|QFile::ReadOther|QFile::ExeOther));
+    const auto moved=Deployment::RelocateMasterProject(source,destination,QString());QCOMPARE(moved["directory"].toString(),destination);QCOMPARE(Deployment::Read(destination+"/file"),QByteArray("content"));QCOMPARE(Deployment::Parse(Deployment::Read(destination+"/project.json"))["record"].toString(),destination+"/file");QVERIFY(!QFile::exists(destination+"/selected"));QVERIFY(!QFile::exists(destination+"/relocated-to.json"));
+ }
+ void dormantProjectDirectoryMoveDoesNotStartConflictingService(){
+    const auto programs=qEnvironmentVariable("GETDAQ_TEST_PROGRAMS");if(programs.isEmpty())QSKIP("Set GETDAQ_TEST_PROGRAMS for real dormant master relocation checks");
+    QTemporaryDir dir;auto freePort=[](){QTcpServer server;if(!server.listen(QHostAddress::LocalHost,0))return 0;return int(server.serverPort());};const int occupied=freePort();QVERIFY(occupied);int available=freePort();while(available==occupied)available=freePort();QVERIFY(available);
+    const auto liveRoot=dir.path()+"/live",source=dir.path()+"/draft",destination=dir.path()+"/selected";QJsonObject live,moved;std::unique_ptr<int,std::function<void(int *)>> cleanup(new int,[&](int *p){for(const auto &m:{moved,live})if(!m.isEmpty()){try{Deployment::StopMaster(m);}catch(...){}}delete p;});
+    live=Deployment::EnsureMaster(liveRoot,programs,"127.0.0.1",occupied);QVERIFY_EXCEPTION_THROWN(Deployment::EnsureMaster(source,programs,"127.0.0.1",occupied),std::exception);Deployment::Write(source+"/project.json",Deployment::Json({{"schema",1},{"nodes",QJsonArray()}}));
+    const auto result=Deployment::RelocateMasterProject(source,destination,programs);QVERIFY(!result["service_running"].toBool());QCOMPARE(result["master"].toObject()["root"].toString(),destination);QVERIFY(FindLocalArgumentProcesses(programs+"/getdaq-config-service","--root",destination+"/repository").isEmpty());QCOMPARE(FindLocalArgumentProcesses(programs+"/getdaq-config-service","--root",liveRoot+"/repository").size(),1);
+    moved=Deployment::EnsureMaster(destination,programs,"127.0.0.1",available);QCOMPARE(moved["port"].toInt(),available);QCOMPARE(moved["repository_id"].toString(),QString::fromLatin1(Deployment::Read(destination+"/repository/identity").trimmed()));QCOMPARE(moved["certificate_sha256"],result["master"].toObject()["certificate_sha256"]);
  }
  void missingAcquisitionProjectDoesNotOverrideSavedAvailableProject(){
     QTemporaryDir dir;const auto project=dir.path()+"/available";Deployment::PrivateDirectory(project);Deployment::Write(project+"/project.json",Deployment::Json({{"schema",1},{"kind","getdaq.distributed-project"},{"project_id","available"},{"nodes",QJsonArray()},{"groups",QJsonArray()},{"content_files",QJsonArray()}}));

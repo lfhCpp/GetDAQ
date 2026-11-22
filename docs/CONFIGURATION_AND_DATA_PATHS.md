@@ -155,8 +155,11 @@ Run 菜单的 **Pause run** 在所有 ECC 都在线、稳定 Running 且没有�
 ## GUI records, logs and master project location
 
 The master project directory defaults to `~/GetDAQ/projects/<project>`. Its
-**Browse…** button opens an existing project or moves the current project to an
-empty folder, preserving credentials and the master service identity. ECC and
+**Browse…** button accepts any selected folder. It uses an empty folder directly, or creates a project subfolder alongside
+other existing files. Browse changes storage without switching to another
+project; use **Open existing project…** to switch projects. Selecting the current location is a no-op. Parent locations
+and nested destination folders are supported without recursive copying, while
+credentials and the master service identity are preserved. ECC and
 receiver processes are left running. Legacy master projects under `.local` are
 copied to this visible location on opening; the old copy becomes historical and
 contains a redirect. Immutable releases and prior audit bytes are retained.
@@ -184,3 +187,10 @@ project when opening Master settings. A stale saved default cache path follows
 the visible node cache when it exists; explicit custom paths and existing paired
 identities are preserved. Use the software's directory migration and service
 controls rather than deleting active state folders to switch configurations.
+
+Moving an inactive project changes only its stored location; it does not start
+a configuration service or compete for another project's active port. An unused,
+unpaired project's saved IP/port can be changed after a failed first startup.
+Software project and node-agent state directories nested inside a configuration
+source are excluded from distribution, so internal credentials are not copied
+as experiment resources.

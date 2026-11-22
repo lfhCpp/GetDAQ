@@ -376,7 +376,7 @@ Control / field & Meaning and effect \\\midrule
 \ui{Project data folder on this computer / Browse…} & Edit and save the project folder for groups on this computer at any time. Stop and restart affected services to apply it; existing data and agent cache stay in place.\\
 \ui{Use this computer (automatic)} & Join/check the master computer as an execution host; also verifies local pairing and current-project credentials.\\
 \ui{Add slave} & Paste the slave’s complete one-time code. Re-pairing an existing identity updates its entry and preserves group references.\\
-\ui{Master project directory} & Private project state, credentials and receipts; not raw data. Browse opens an existing project or moves this one to an empty folder, retaining pairing. Legacy hidden master projects move to Home/GetDAQ/projects.\\
+\ui{Master project directory} & Private project state, credentials and receipts; not raw data. Browse accepts any folder, creating a project subfolder when needed; the current location is a no-op. Moving retains pairing and does not start an inactive service. Legacy hidden master projects move to Home/GetDAQ/projects.\\
 \ui{Master IP reachable from other hosts / Configuration service port} & Address reachable by slaves and configuration HTTPS port, commonly 24250.\\
 \bottomrule\end{tabularx}
 \note{The source is on the master; caches and project directories are local to each execution computer. Changing GUI records does not move backend data.}

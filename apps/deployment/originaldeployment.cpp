@@ -5,6 +5,7 @@
 #include <QTcpSocket>
 #include <QXmlStreamReader>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QSet>
 #include <QCoreApplication>
 namespace Deployment {
@@ -21,8 +22,19 @@ QString ConfigIdFor(const QJsonObject &group,const QString &kind){
 }
 QJsonArray OriginalRepository(const QString &directory,const QString &group,QMap<QString,QByteArray> *files){
     const QDir root(directory);Require(root.exists(),"Choose the original ECC configuration directory");QJsonArray entries;
+    QSet<QString> privateState,checkedDirectories;
+    auto softwareState=[&](const QString &folder){
+        if(privateState.contains(folder))return true;if(checkedDirectories.contains(folder))return false;checkedDirectories.insert(folder);
+        for(const auto &name:{"project.json","master.json","node.json"}){
+            const auto marker=folder+'/'+name;if(!QFileInfo::exists(marker))continue;QJsonObject object;try{object=QJsonDocument::fromJson(Read(marker,64*1024*1024)).object();}catch(const std::exception &){continue;}
+            const bool project=object["kind"]=="getdaq.distributed-project";
+            const bool master=object["root"].toString()==folder && object.contains("admin_credential") && object.contains("repository_url");
+            const bool node=object["root"].toString()==folder && object.contains("node_id") && object.contains("credential_file");
+            if(project || master || node){privateState.insert(folder);return true;}
+        }return false;
+    };
     QDirIterator it(directory,QDir::Files|QDir::Hidden,QDirIterator::Subdirectories);Q_UNUSED(group);
-    while(it.hasNext()){const auto path=it.next();Require(!QFileInfo(path).isSymLink(),"Configuration links must be copied into the master directory: "+path);const auto rel=root.relativeFilePath(path);Require(!rel.startsWith("../") && !rel.contains(':'),"Configuration path escaped the selected directory");const auto bytes=Read(path,16*1024*1024);const auto id="cfg-"+Sha(rel.toUtf8()+':'+Sha(bytes).toUtf8());files->insert(id,bytes);entries.append(QJsonObject{{"file",id},{"path",rel},{"sha256",Sha(bytes)}});}
+    while(it.hasNext()){const auto path=it.next();bool internal=false;auto ancestor=QFileInfo(path).absolutePath();const auto sourceRoot=root.absolutePath();while(ancestor==sourceRoot || ancestor.startsWith(sourceRoot+'/')){if(softwareState(ancestor)){internal=true;break;}if(ancestor==sourceRoot)break;ancestor=QFileInfo(ancestor).absolutePath();}if(internal)continue;Require(!QFileInfo(path).isSymLink(),"Configuration links must be copied into the master directory: "+path);const auto rel=root.relativeFilePath(path);Require(!rel.startsWith("../") && !rel.contains(':'),"Configuration path escaped the selected directory");const auto bytes=Read(path,16*1024*1024);const auto id="cfg-"+Sha(rel.toUtf8()+':'+Sha(bytes).toUtf8());files->insert(id,bytes);entries.append(QJsonObject{{"file",id},{"path",rel},{"sha256",Sha(bytes)}});}
     bool formats=false;for(const auto &value:entries)formats=formats || value.toObject()["path"]=="CoboFormats.xcfg";
     if(!formats){
       const QDir defaults(QCoreApplication::applicationDirPath()+"/../share/get-bench/format");
