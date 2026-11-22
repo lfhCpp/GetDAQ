@@ -82,7 +82,41 @@ def main():
   (root/'master.json').write_text(json.dumps(master));project=dict(project_id='unified-test',configuration_source=str(source),sync_configuration=True,groups=groups,nodes=[dict(id=n['id'],name='Node '+str(i),url='https://127.0.0.1:'+str(n['port']),certificate_sha256=n['pin'],credential_file=str(root/'nodes'/(n['id']+'.token')),inventory=dict(data_directory=folders[n['id']])) for i,n in enumerate(nodes)]);(root/'project.json').write_text(json.dumps(project))
   if args.controller_probe:
    synchronized=json.loads(run(args.controller_probe,'sync',root/'master.json'));require(len(synchronized['receipts'])==2,'Master did not sync both targets')
+   # Reproduce a partial startup: receiver succeeds, ECC port is occupied.
+   # Re-preparing the same release must inspect terminal results and create a
+   # fresh operation rather than reuse the old operation ID with a new recipe.
+   blocker=socket.socket();blocker.bind(('127.0.0.1',groups[0]['ecc']['port']));blocker.listen()
+   def attempt_start():
+    return subprocess.run([str(args.controller_probe),'start-selected',str(root/'master.json'),'group1'],capture_output=True,timeout=90)
+   try:
+    failed=attempt_start();require(failed.returncode!=0 and b'Port is already in use' in failed.stderr,'Fixture did not fail before starting ECC')
+    pending_file=next(p for p in (root/'pending-activations').glob('*.json') if json.loads(p.read_text()).get('phase')=='pending')
+    first_context=json.loads(pending_file.read_text());first_job=Path(first_context['directory']);require('preparation_binding' in first_context,'New context lacks prepared recipe binding')
+    receiver_before=json.loads((nodes[1]['root']/'instances/group1-data.json').read_text())['processes'][0]['pid']
+    failed_again=attempt_start();require(failed_again.returncode!=0 and b'Port is already in use' in failed_again.stderr,'New preparation was blocked by the old startup intent')
+    context=json.loads(pending_file.read_text());require(context['directory']!=str(first_job),'Changed preparation reused an operation ID');require((first_job/'activation-context.json').exists(),'Prior context audit was lost')
+    require(json.loads((nodes[1]['root']/'instances/group1-data.json').read_text())['processes'][0]['pid']==receiver_before,'Partial retry duplicated the running receiver')
+    checks.append('new prepared recipe supersedes verified terminal startup tasks; successful partial receiver is reused')
+   finally:blocker.close()
+   # Old installed versions did not save preparation_binding. Recover them too,
+   # but never bypass unknown/running results or a mismatching remote journal.
+   context=json.loads(pending_file.read_text());context.pop('preparation_binding',None);pending_file.write_text(json.dumps(context));old_job=Path(context['directory'])
+   old_records=[json.loads(p.read_text()) for p in old_job.glob('*.json') if json.loads(p.read_text()).get('request')]
+   failure=next(r for r in old_records if r['request']['role']=='ecc');op=nodes[0]['root']/'operations'/(failure['request']['operation_id']+'.json');original=op.read_bytes()
+   def activation_count():
+    return sum(json.loads(p.read_text()).get('action')=='activate' for n in nodes for p in (n['root']/'operations').glob('*.json'))
+   for phase in ['unknown','running','accepted']:
+    record=json.loads(original);record['phase']=phase;op.write_text(json.dumps(record));before=activation_count();rejected=attempt_start()
+    require(rejected.returncode!=0 and (b'unknown result' in rejected.stderr if phase=='unknown' else b'still pending' in rejected.stderr),'Unresolved original startup was bypassed')
+    require(activation_count()==before and json.loads(pending_file.read_text())['directory']==str(old_job),'Unresolved startup created another activation');op.write_bytes(original)
+   record=json.loads(original);record['request_sha256']='0'*64;op.write_text(json.dumps(record));before=activation_count();rejected=attempt_start();require(rejected.returncode!=0 and b'differs from its saved request' in rejected.stderr,'Changed remote journal was accepted');require(activation_count()==before,'Journal mismatch started another operation');op.write_bytes(original)
+   checks.append('legacy startup recovery blocks unknown, running, accepted and mismatching remote results without replay')
    single=json.loads(run(args.controller_probe,'start-selected',root/'master.json','group1'));require(single['nodes']==1,'One selected ECC must not require unrelated draft groups');require(single['preparation']['prepared_groups']==['group1'],'Unselected group was prepared');require(all(r['group_id']=='group1' for r in single['activation']['receipts']),'Unselected group was activated');checks.append('one selected ECC prepares, starts and binds without activating unrelated draft groups')
+   require(json.loads(pending_file.read_text())['directory']!=str(old_job),'Legacy pending task was reused after recipe changed')
+   for old in old_records:
+    file=next(p for p in old_job.glob('*.json') if json.loads(p.read_text()).get('request',{}).get('operation_id')==old['request']['operation_id']);saved=json.loads(file.read_text());require(saved['request']==old['request'] and saved['request_sha256']==old['request_sha256'],'Recovery rewrote original operation identity')
+   require(json.loads((nodes[1]['root']/'instances/group1-data.json').read_text())['processes'][0]['pid']==receiver_before,'Legacy recovery replaced a valid receiver');require((data_folder/'preserve.graw').read_bytes()==b'old-raw','Recovery altered existing raw data');checks.append('legacy failed startup recovers after re-prepare with old request hashes, partial processes and raw files preserved')
+
    started=json.loads(run(args.controller_probe,'start-selected',root/'master.json','group1','group2'));require(started['nodes']==2,'Unified console must contain both ECCs');release=started['preparation']['release_id'];groups=started['preparation']['manifest']['groups'];activated=[]
    for active in started['activation']['receipts']:
     node=next(n for n in nodes if n['id']==active['node_id']);body=dict(schema=1,group_id=active['group_id'],role=active['role'],release_id=active['release_id'],action='activate',expected_previous='')

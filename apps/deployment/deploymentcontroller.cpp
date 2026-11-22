@@ -27,6 +27,42 @@ QJsonObject Tokens(const QJsonObject &master,const QJsonObject &group){const aut
 QJsonObject Invoke(const QJsonObject &node,QJsonObject request,const QString &job,const Logger &log){const auto id=Name(request);request["schema"]=1;request["operation_id"]=Id(QFileInfo(job).fileName()+'-'+Sha(id.toUtf8()).left(16));const auto endpoint=NodeEndpoint(node);const auto legacy=job+'/'+id+".json";const auto path=QFile::exists(legacy) && Parse(Read(legacy))["node_id"]==node["id"]?legacy:job+'/'+Id(node["id"].toString())+'-'+id+".json";PrivateDirectory(job);QJsonObject record;if(QFile::exists(path)){record=Parse(Read(path));if(request["action"]=="activate")request["expected_previous"]=record["request"].toObject()["expected_previous"];Require(record["node_id"]==node["id"] && record["request_sha256"]==Sha(Json(request)),"Persisted deployment intent differs");}else {auto publicRequest=request;publicRequest.remove("secrets");record={{"node_id",node["id"]},{"request",publicRequest},{"request_sha256",Sha(Json(request))},{"phase","intent"}};Write(path,Json(record));try{const auto accepted=Post(endpoint,"/v1/operations",request);record["phase"]=accepted["phase"];Write(path,Json(record));}catch(...){record["phase"]="needs-observation";Write(path,Json(record));throw;}}
     if(log){log("Waiting for "+request["action"].toString()+" on "+node["name"].toString()+" ("+node["url"].toString()+")");}
     QString previousStage;QElapsedTimer clock;clock.start();while(clock.elapsed()<180000){CheckOperation();const auto status=Get(endpoint,"/v1/operations/"+request["operation_id"].toString());Require(status["request_sha256"]==record["request_sha256"] && status["operation_id"]==request["operation_id"],"Node operation response differs from original intent");record["node_result"]=status;record["phase"]=status["phase"];Write(path,Json(record));const auto phase=status["phase"].toString(),stage=status["stage"].toString();if(log && !stage.isEmpty() && stage!=previousStage){log(node["name"].toString()+" / "+id+": "+stage);previousStage=stage;}if(phase=="complete"){const auto result=status["result"].toObject();if(log && (request["action"]=="prepare" || request["action"]=="activate") && !result["startup_preview"].toString().isEmpty())log(result["startup_preview"].toString());return result;}if(phase=="failed" || phase=="unknown")throw std::runtime_error((QString("%1/%2: %3. Original operation: %4").arg(node["name"].toString(),id,status["message"].toString(),request["operation_id"].toString())).toStdString());QThread::msleep(100);}if(log)log("Operation result is pending; retain and inspect original operation "+request["operation_id"].toString());throw std::runtime_error("Deployment operation still pending; query its original ID before retrying");}
+// A release identifies configuration content, but repeated preparation creates a
+// different immutable service recipe. Never reuse one operation ID for both.
+QJsonObject PreparationBinding(const QJsonObject &preparation){
+    QJsonObject binding;
+    for(const auto &value:preparation["receipts"].toArray()){
+        const auto receipt=value.toObject();
+        binding[receipt["instance_id"].toString()]=receipt["preparation_id"].toString();
+    }
+    return binding;
+}
+bool PreparationChanged(const QJsonObject &context,const QJsonObject &binding){
+    if(context.contains("preparation_binding"))return context["preparation_binding"].toObject()!=binding;
+    // Upgrade old journals without rewriting their saved requests or hashes.
+    const auto job=context["directory"].toString();
+    for(const auto &name:QDir(job).entryList({"*.json"},QDir::Files)){
+        const auto request=Parse(Read(job+'/'+name))["request"].toObject();
+        if(request["action"]=="activate" && request["preparation_id"].toString()!=binding[Name(request)].toString())return true;
+    }
+    return false;
+}
+void InspectPriorActivation(const QJsonArray &nodes,const QJsonObject &context,const Logger &log){
+    const auto job=context["directory"].toString();
+    for(const auto &name:QDir(job).entryList({"*.json"},QDir::Files)){
+        const auto file=job+'/'+name;auto record=Parse(Read(file));const auto request=record["request"].toObject();
+        if(request.isEmpty())continue;
+        Require(request["action"]=="activate","Prior activation journal contains another action");
+        const auto status=Get(NodeEndpoint(Node(nodes,record["node_id"].toString())),"/v1/operations/"+Id(request["operation_id"].toString()));
+        Require(status["request_sha256"]==record["request_sha256"] && status["operation_id"]==request["operation_id"],"Prior activation result differs from its saved request");
+        const auto phase=status["phase"].toString();
+        Require(phase=="complete" || phase=="failed",phase=="unknown"?
+            "Prior service start has an unknown result. Inspect its instance before starting a new preparation":
+            "Prior service start is still pending. Refresh its original operation before starting a new preparation");
+        record["phase"]=phase;record["node_result"]=status;Write(file,Json(record));
+    }
+    if(log)log("Prior service-start operations are terminal and verified. Keeping their audit and creating a task for the new preparation; existing instances will be checked before reuse or startup.");
+}
 QString Job(const QJsonObject &master,const QString &prefix){const auto directory=Root(master)+"/jobs/"+prefix+'-'+QString::fromLatin1(Token().left(16));PrivateDirectory(directory);Write(Root(master)+"/latest-job.json",Json({{"directory",directory}}));return directory;}
 void Note(const Logger &log,const QString &text){if(log)log(text);}
 QJsonObject Snapshot(const QJsonArray &nodes,const QString &nodeId,const QString &instance){const auto inventory=NodeInventory(Node(nodes,nodeId));for(const auto &value:inventory["instances"].toArray())if(value.toObject()["instance_id"]==instance)return value.toObject();return {};}
@@ -96,7 +132,22 @@ QJsonObject ActivateProject(const QJsonObject &master,const QJsonArray &nodes,co
     QLockFile lock(Root(master)+"/deployment.lock");Require(lock.tryLock(0),"Another project deployment operation is active");
     const auto manifest=preparation["manifest"].toObject();ValidateRelease(manifest);ValidateGroupSelection(manifest["groups"].toArray(),selectedGroups);Require(Sha(Json(manifest))==preparation["release_id"].toString(),"Prepared release manifest differs");
     QString scopeName=selectedGroup;if(!selectedGroups.isEmpty()){auto names=selectedGroups.values();names.sort();scopeName="selection-"+Sha(names.join('\n').toUtf8()).left(24);}
-    const auto release=preparation["release_id"].toString(),activeFile=Root(master)+"/active-instances.json";const auto pendingFile=Root(master)+"/pending-activations/"+(scopeName.isEmpty()?QString("all"):Id(scopeName))+".json";QString job;QJsonObject context;if(QFile::exists(pendingFile)){context=Parse(Read(pendingFile));if(context["phase"]=="pending"){Require(context["release_id"]==release,"This control group has an unfinished activation of another release. Observe and finish its original operation first.");job=context["directory"].toString();Require(job.startsWith(Root(master)+"/jobs/"),"Pending activation escaped project");}}if(job.isEmpty()){job=Job(master,"activate");context={{"phase","pending"},{"release_id",release},{"selected_group",selectedGroup},{"directory",job}};Write(pendingFile,Json(context));}else Write(Root(master)+"/latest-job.json",Json({{"directory",job}}));
+    const auto release=preparation["release_id"].toString(),activeFile=Root(master)+"/active-instances.json";const auto pendingFile=Root(master)+"/pending-activations/"+(scopeName.isEmpty()?QString("all"):Id(scopeName))+".json";QString job;QJsonObject context;const auto binding=PreparationBinding(preparation);
+    if(QFile::exists(pendingFile)){
+        context=Parse(Read(pendingFile));
+        if(context["phase"]=="pending"){
+            Require(context["release_id"]==release,"This control group has an unfinished activation of another release. Observe and finish its original operation first.");
+            job=context["directory"].toString();Require(job.startsWith(Root(master)+"/jobs/"),"Pending activation escaped project");
+            if(PreparationChanged(context,binding)){
+                InspectPriorActivation(nodes,context,log);
+                context["phase"]="superseded-after-inspection";
+                Write(job+"/activation-context.json",Json(context));Write(pendingFile,Json(context));job.clear();
+            }
+        }
+    }
+    if(job.isEmpty()){
+        job=Job(master,"activate");context={{"phase","pending"},{"release_id",release},{"selected_group",selectedGroup},{"directory",job},{"preparation_binding",binding}};Write(pendingFile,Json(context));
+    }else{context["preparation_binding"]=binding;Write(pendingFile,Json(context));Write(Root(master)+"/latest-job.json",Json({{"directory",job}}));}
     QJsonObject active;if(QFile::exists(activeFile))active=Parse(Read(activeFile));QJsonArray receipts,reused;
     for(const auto &groupValue:manifest["groups"].toArray()){
         const auto group=groupValue.toObject();const auto groupId=group["id"].toString();if(!selectedGroups.isEmpty()?!selectedGroups.contains(groupId):(!selectedGroup.isEmpty() && groupId!=selectedGroup))continue;if(group["backend"]=="original-soap"){QSet<QString> required{group["ecc"].toObject()["node_id"].toString()};for(const auto &r:group["receivers"].toArray())required.insert(r.toObject()["node_id"].toString());for(const auto &id:required)Require(NodeInventory(Node(nodes,id))["original_backends"].toBool(),"Restart the updated node agent on this execution host before using original SOAP ECC / DataExporter: "+id);}if(preparation.contains("prepared_groups"))Require(preparation["prepared_groups"].toArray().contains(groupId),"Prepare the selected control group before activating it");
