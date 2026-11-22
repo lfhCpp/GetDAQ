@@ -1,0 +1,567 @@
+% !TeX program = xelatex
+% GetDAQ 简易说明书；使用 XeLaTeX 编译。字体与许可随本目录提供。
+\documentclass[11pt,a4paper]{article}
+\usepackage[top=19mm,bottom=18mm,left=19mm,right=19mm,headheight=15pt,headsep=5mm]{geometry}
+\usepackage{fontspec}
+\setmainfont[Path=fonts/,BoldFont=NotoSansCJKsc-Regular.otf,BoldFeatures={FakeBold=1.6}]{NotoSansCJKsc-Regular.otf}
+\setmonofont{Latin Modern Mono}[Scale=0.92]
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip=0pt plus 0.6pt minus 0.1pt
+\usepackage{xcolor,graphicx,tabularx,booktabs,array,enumitem,fancyhdr,titlesec,tcolorbox,tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage[unicode,colorlinks=true,urlcolor=blue!55!black,linkcolor=blue!55!black]{hyperref}
+\hypersetup{pdftitle={GetDAQ Installation and User Guide},pdfauthor={GetDAQ project},pdfsubject={Installation, configuration, operation and control reference}}
+\definecolor{navy}{HTML}{17364D}
+\definecolor{accent}{HTML}{087F8C}
+\definecolor{muted}{HTML}{526477}
+\definecolor{light}{HTML}{EFF5F8}
+\definecolor{signal}{HTML}{B14B30}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\color{navy}GetDAQ \quad User guide}
+\fancyhead[R]{\small\color{muted}2026-11-22}
+\fancyfoot[L]{\footnotesize\color{muted}Installation, configuration and operation}
+\fancyfoot[R]{\footnotesize\thepage\,/\,\pageref{guide-last}}
+\renewcommand{\headrulewidth}{0.4pt}
+\hyphenpenalty=10000\exhyphenpenalty=10000
+\setlength{\parindent}{0pt}\setlength{\parskip}{5pt}
+\setlist[itemize]{leftmargin=1.6em,itemsep=3pt,topsep=3pt}
+\setlist[enumerate]{leftmargin=1.8em,itemsep=4pt,topsep=4pt}
+\titleformat{\section}{\Large\bfseries\color{navy}}{}{0pt}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{accent}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{0pt}{8pt}
+\titlespacing*{\subsection}{0pt}{9pt}{3pt}
+\renewcommand{\arraystretch}{1.22}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\ui}[1]{\textbf{#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\note}[1]{\begin{tcolorbox}[colback=light,colframe=accent!40,boxrule=0.5pt,arc=2mm,left=8pt,right=8pt,top=5pt,bottom=5pt]#1\end{tcolorbox}}
+\newcommand{\pagehead}[2]{\pdfbookmark[1]{#1}{getdaq-guide-\thepage}\section*{#1}\textcolor{muted}{#2}\par\vspace{3pt}}
+\begin{document}
+\pdfbookmark[0]{GetDAQ User Guide}{getdaq-guide}
+\fontsize{9.2}{13.1}\selectfont
+
+\pagehead{1\quad GetDAQ installation and user guide}{Original SOAP ECC + DataExporter / DataRouter · 2026-11-22}
+\note{GetDAQ is the console. getEccSoapServer controls electronics. DataExporter / dataRouter receive raw frames and write to disk. Raw data does not pass through the GUI or the configuration distribution service.}
+\subsection*{Programs and responsibilities}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{GetDAQ} & Connect multiple ECCs; control acquisition; show state and receiver statistics; keep local Run records.\\
+\ui{getEccSoapServer} & Original SOAP control server: Describe, Prepare, Configure, Start, Stop, Pause and Resume.\\
+\ui{DataExporter / dataRouter} & Receive CoBo frames and write raw data. DataExporter also offers downstream TCP export for online preview.\\
+\ui{getdaq-sentry} & Monitor the project data directory, report files and throughput, and perform catalog/archive operations.\\
+\ui{Node agent / configuration service} & Pair execution hosts, distribute complete configuration folders, cache releases and manage independent backend instances.\\
+\ui{getdaq-control-mcp} & Independent stdio interface using the saved GUI YAML and original SOAP / Sentry clients.\\
+\bottomrule\end{tabularx}
+\subsection*{The usual sequence}
+Install → choose directories → set host IPs, ports and experiment IDs → start services or select existing services → Connect → Progress to Ready → Run start → Run stop.
+
+\subsection*{How to read this guide}
+Pages 2–8 explain installation and operation. Pages 9–20 explain the controls, with configuration concentrated on pages 11–18. Configuration → User guide opens either language inside the software, with an option to save its PDF.
+
+\note{Multiple instances mean multiple ECC / receiver backends, not multiple required GUI windows. Essential third-party source is bundled; system build tools and Qt 5 are still required. Historical source/ is not used for builds.}
+
+\newpage
+\pagehead{2\quad Ubuntu installation}{Compile on the target computer and use a new stage directory.}
+\subsection*{1. Install the system tools}
+\begin{verbatim}
+sudo apt update
+sudo apt install -y build-essential cmake python3 git openssl \
+  qtbase5-dev libqt5svg5-dev qttools5-dev-tools
+qmake -v
+\end{verbatim}
+\subsection*{Qt and optional tools}
+qmake should report Qt 5. With several Qt installations, pass --qmake /path/to/qmake. The full suite needs no separately installed old GET, Boost or Ice, and no ROOT installation.
+
+\subsection*{2. Obtain and verify the complete project}
+\begin{verbatim}
+git clone https://github.com/lfhCpp/GetDAQ.git
+cd GetDAQ
+python3 tools/verify-product-boundary.py
+python3 tools/verify-original-backends.py
+\end{verbatim}
+\subsection*{3. Build into a NEW directory}
+\begin{verbatim}
+python3 tools/build-suite.py --profile full --jobs 2 \
+  --stage "$PWD/dist-linux"
+python3 tools/build-suite.py --verify-stage "$PWD/dist-linux"
+./dist-linux/bin/GetDAQ
+\end{verbatim}
+\subsection*{Installed layout}
+bin/ contains 16 programs in a full build; share/ contains resources; docs/ contains both PDF guides. For a copied installation with sources under code/, cd code first. Use --jobs 1 on a low-memory computer. The control profile supports external ECC connections without the complete local backend suite.
+
+\subsection*{Upgrading an existing installation}
+Use start-getdaq.sh if that installation supplies it; a generic new stage can run bin/GetDAQ directly. Copy the whole compatible bin/, share/ and docs/ tree. Keep old runtimes, configuration, raw data, Run records and pairing caches. A Linux binary requires compatible system and Qt runtime libraries.
+
+\note{The first GUI launch does not reset or start boards. Complete the directory and network setup before starting backends or connecting existing ECCs.}
+
+\newpage
+\pagehead{3\quad macOS and network addresses}{Linux executables cannot run on macOS; compile native binaries on the Mac.}
+\subsection*{macOS build entry}
+\begin{verbatim}
+xcode-select --install
+brew install cmake python qt@5
+GETDAQ_QT5_PREFIX="$(brew --prefix qt@5)"
+export PATH="$GETDAQ_QT5_PREFIX/bin:$PATH"
+python3 tools/build-macos.py --help
+\end{verbatim}
+\subsection*{Packaging}
+Follow docs/MACOS.md for native build and GetDAQ.app packaging. Native Mac and real-hardware acceptance have not yet been completed. The app carries its helpers and embedded guides. Automated Master / Slave service management currently requires Linux; external SOAP ECC connections remain available on other platforms.
+
+\subsection*{Which IP belongs where?}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{ECC host} & Control-network address of the COMPUTER running getEccSoapServer.\\
+\ui{CoBo IP} & Address of the BOARD, defined in the original topology / describe XML/XCFG. The direct information tool also uses it.\\
+\ui{Receiver control IP} & Control-network address of the COMPUTER running the receiver.\\
+\ui{Receiver data IP} & Data-network interface reachable by CoBo. It is the board data destination.\\
+\ui{Management / SSH IP} & Address used for pairing, configuration distribution or SSH; it may be a different interface.\\
+\bottomrule\end{tabularx}
+\subsection*{Common ports: verify the actual listeners}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{8083 / 46011} & SOAP ECC / original ECC alarm callback.\\
+\ui{46003 / 46005} & Receiver control / incoming board-data TCP port.\\
+\ui{46491 / 8080} & DataExporter preview export / Sentry HTTP monitor.\\
+\ui{24260 / 24250} & Node HTTPS management / master configuration distribution.\\
+\bottomrule\end{tabularx}
+\note{Ports serve different purposes. Same-host backend instances need non-conflicting ports. A board hardware-control endpoint, often 46001, is not the SOAP ECC port.}
+
+\newpage
+\pagehead{4\quad Single-computer configuration}{Choose directories first, then interfaces, ports and configuration IDs.}
+\subsection*{Three directories to distinguish}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Configuration source} & Use the existing installation config/ folder. If absent, a new setup defaults to \textasciitilde{}/GetDAQ/config. Store complete XML/XCFG and referenced resources here.\\
+\ui{Project data folder} & Default \textasciitilde{}/GetDAQ/data. ECC, receiver and Sentry work here; configuration is copied here and raw .graw is written here.\\
+\ui{GUI Run records root} & Default \textasciitilde{}/GetDAQ/runs. Holds run.yml, journal, CSV and backups; it is separate from raw data.\\
+\bottomrule\end{tabularx}
+\subsection*{Visible defaults}
+New projects, connections and logs use visible \textasciitilde{}/GetDAQ subfolders. Existing projects keep saved paths and initialized node identities. Nodes / Paths lets you edit the GUI source and record directories.
+
+\subsection*{Start software-managed original backends}
+Select Master → Create ECC / data services. Choose the source folder. Click Use this computer (automatic), then Add boards / ECC. Select the execution hosts and project folders, receiver type and experiment. Fill control/data IPs and the respective ports. Keep configuration sync enabled, select the group(s), then Start project services or Start selected groups and use. The GUI applies the selected setup and connects for state queries; it does not start board acquisition.
+
+\subsection*{Equivalent working-directory relationship (illustration)}
+\begin{verbatim}
+cd /home/user/GetDAQ/data
+dataRouter 192.168.40.10 192.168.50.10 TCP FrameStorage
+getEccSoapServer --port 8083 --alarm-port 46011 \
+  --config-repo-url /home/user/GetDAQ/data
+\end{verbatim}
+\subsection*{Use existing ECC / DataRouter instead}
+Choose Connect existing ECC, set its actual SOAP host/port, Check connection, then Save and use in Run Setup. Router host is the receiving data interface and Router port is its DATA port. Existing external ECC keeps its repository/NFS settings; an external DataRouter does not need to be replaced by DataExporter.
+
+\note{The working directory determines receiver output. Managed startup sets it explicitly. Prepare success alone does not prove that the data destination is correct; inspect file growth.}
+
+\newpage
+\pagehead{5\quad Master / Slave and configuration sync}{Maintain experiment configuration on the master; select local folders on each slave.}
+\subsection*{Slave setup}
+Select Slave, choose its Configuration cache and Project data folder, and Enable / check slave. Copy pairing code to Add slave on the master. A code expires and is consumed after pairing. To change master, explicitly use Remove master connection; accepted work finishes, and backends, data and audit remain.
+
+\subsection*{Master setup and multiple ECCs}
+Add the slave or Use this computer. When creating a group, choose ECC execution host and Data execution host; these can differ. Their project folders are LOCAL to those hosts. The setup section is expanded by default. In ECC and boards, Ctrl/Shift selects multiple groups. Start selected groups and use starts only those groups and connects them in one Run Setup. Use independent ports on a shared computer.
+
+\note{Master source folder → immutable configuration release → execution-host cache → that host’s Project data folder. Relative resource paths are preserved. Raw data is not distributed with configuration.}
+\subsection*{How IDs select original files (.xml or .xcfg)}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Describe ID = cobo0} & Matches describe-cobo0.\\
+\ui{Prepare ID = pedestals} & Matches configure-pedestals; original Prepare uses Configure-type configuration.\\
+\ui{Configure ID = pedestals} & Matches configure-pedestals.\\
+\ui{Experiment} & Names the Run and supplies default IDs; explicit node IDs take priority.\\
+\bottomrule\end{tabularx}
+\subsection*{After editing XML/XCFG}
+Save in Configuration source. Use Tools → Sync project configuration, select the execution hosts, then Sync selected hosts. Active services require acknowledgment; stable Ready/Running can accept file updates without forced Idle. Known busy commands defer replacement. Synchronizing files does not apply new board parameters; use the relevant ECC Configure operation.
+
+\subsection*{Saved settings and paths}
+Save and apply in Nodes stores YAML, not an immediate XML transfer. Startup also rereads source files when sync is enabled. Path summaries show current settings and separately report old running/prepared paths. A normal backend restart applies a changed working directory. Removing a saved connection hides history while preserving files; a slave can hide inactive instance entries.
+
+
+\newpage
+\pagehead{6\quad Acquisition and logs}{Use actual ECC state to judge acquisition, and receiver files to judge recording.}
+\subsection*{Start}
+Check Experiment, Run number and notes; Save YAML. Connect queries actual state. If already Ready, do not force Idle just because the GUI reconnected. Progress all advances Describe → Prepare → Configure. At Ready, Run start, then observe Running, file growth, data rate and disk space.
+
+\subsection*{Pause / Resume}
+Run → Pause run is enabled when every ECC is stably Running and no command is in progress. Resume run corresponds to stable Paused. This also works after connecting to acquisition started outside this GUI. Resume continues the same acquisition; it does not start a new Run or fabricate local records.
+
+\subsection*{Stop}
+Run stop first waits for every ECC to confirm Ready; catalog, configuration backup and local finalization follow. Successful archive is usually <project>/<Experiment>/run\_NNNN/. On archive warning, files may remain in the incoming directory. A record failure is not proof of a hardware stop failure; a local message alone is not proof the boards stopped.
+
+\subsection*{Warnings and continued operation}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Local record / backup failure} & Warn and retain records; allow a manual next Run. Automatic continuation is canceled.\\
+\ui{Uncertain catalog result} & Keep the unknown receipt; no automatic replay. With Ready confirmed, close local Run processing and continue manually.\\
+\ui{Stale state / missing monitor} & Request acknowledgment where appropriate. The ECC decides whether hardware commands are valid.\\
+\ui{Existing Run / incoming files} & Require explicit confirmation; do not silently delete raw data.\\
+\ui{Start / Stop / Disconnect} & Remain available after connection. In-flight hardware commands are serialized. Disconnect detaches observation; it does not stop remote acquisition.\\
+\bottomrule\end{tabularx}
+\subsection*{Read, clear and export logs}
+Use Event log / ECC log / Data log and the host/instance selector; shared Sentry is also selectable. Each GUI launch starts a new log session and attaches at the current end of backend logs. Clear affects the display, while export retains this session’s collected history. Tools → Logs → Export combined logs writes TXT ordered by GUI receipt time and sequence, with source separators and original remote timestamps.
+
+\note{Closing the GUI, disconnecting, stopping acquisition and stopping backend processes are different actions. Use service management to stop backends after checking acquisition state.}
+
+\newpage
+\pagehead{7\quad Waveforms and 3D}{Online and offline viewers use electronics channels; no pad mapping is assumed.}
+\subsection*{Offline files}
+Tools → Waveform viewer opens .graw/.gmat. Open waveform selects a file; Event ID / Go to event chooses an event; Frame and AGET select its frame and chip. .gmat uses frame indices instead of real event IDs. Channels chooses visible channels; Export plot/data saves PNG or CSV.
+
+\subsection*{Online preview}
+Tools → Online waveform viewer starts an independent process. Select a current DataExporter or all configured exporters; it uses the configured preview export port, not the incoming board-data port. Then select Source, CoBo, AsAd and AGET. Follow latest tracks recent events; uncheck it or use Event ID / Go to freeze a cached event.
+
+\subsection*{Memory counters}
+Cache is current raw-frame payload, bounded by 100 events, 4096 frames or 256 MiB. Old events are evicted. Received total is only a cumulative byte counter. A frozen event, decoding and network buffers use additional bounded memory. New session clears preview frames; closing the viewer releases its process memory. Preview may drop frames; raw recording is independent.
+
+\subsection*{3D axes and controls}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Time (sample bucket)} & Buckets 0–511; not nanoseconds unless the sampling frequency has been established.\\
+\ui{Amplitude (ΔADC / ADC)} & Align baselines defaults on: subtract each channel median for display and align zero references. Uncheck for absolute ADC. All channels use one amplitude scale; 2D and CSV keep raw ADC.\\
+\ui{Channel number} & Depth uses actual selected channel numbers; no interpolation or filled waveform sheets.\\
+\ui{Drag / Ctrl+wheel / double-click} & Change depth angle / channel spacing / reset view. Normal wheel scrolls long channel plots.\\
+\bottomrule\end{tabularx}
+\begin{center}\includegraphics[width=0.92\linewidth,height=60mm,keepaspectratio]{../waveform-3d-example.png}\end{center}
+Eight synthetic channels with different baselines, displayed aligned. This is a rendering example, not hardware acquisition evidence.
+
+\newpage
+\pagehead{8\quad MCP and troubleshooting}{The independent stdio adapter uses the saved GUI YAML and original SOAP / Sentry.}
+\subsection*{MCP configuration example}
+\begin{verbatim}
+{
+  "schema": 2,
+  "run_config": "/absolute/path/to/envoy.yml",
+  "allow_control": false,
+  "request_timeout_ms": 30000
+}
+\end{verbatim}
+\subsection*{Client setup}
+Use the absolute bin/getdaq-control-mcp executable and arguments ["--config", "/absolute/path/to/mcp.json"]. On macOS it is inside GetDAQ.app/Contents/MacOS. Queries: ecc\_configuration, ecc\_status, ecc\_receivers and ecc\_operation. Control is disabled by default.
+
+\subsection*{Explicitly enabled control request}
+\begin{verbatim}
+{"node_id":0,"command":"stop","operation_id":"stop-001",
+ "confirmation":"I_CONFIRM_stop_stop-001"}
+\end{verbatim}
+\subsection*{Control receipts}
+Set allow\_control=true locally and restart the adapter before submitting control. Each operation needs its unique ID and matching confirmation. An uncertain result is not replayed with that ID; inspect status/receipts. Existing operation directories are reused to preserve deduplication. Full Run recording and archive remain GUI responsibilities; avoid concurrent controllers on the same board. See docs/MCP\_SETUP.md.
+
+\subsection*{Troubleshooting}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Connection refused} & Check the actual computer, listener and port purpose: SOAP, receiver control/data and preview are distinct.\\
+\ui{Node authentication required (401)} & A management credential expired. Startup checks local pairing; a remote slave needs explicit re-pair and Add slave to update its existing entry.\\
+\ui{Prepare timeout / Unknown} & Remote execution may already have occurred. Query state and inspect ECC log before repeating a command.\\
+\ui{No rate / no waveform} & First verify raw-file growth, then Sentry directory, data interface/port and preview export port.\\
+\ui{Missing configuration} & Check source, distribution targets, file IDs, ECC repository and NFS. Prepare selects configure-ID.\\
+\ui{Record / catalog warning} & After Ready is confirmed, manual acquisition can continue. Retain raw files and uncertain receipts.\\
+\bottomrule\end{tabularx}
+\note{Software tests do not replace real-board, data-quality or native macOS acceptance. The following pages explain every main control and configuration field.}
+
+\newpage
+\pagehead{9\quad Controls: main window and entry points}{Find controls by their actual English labels.}
+\subsection*{Run setup and menus}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Open YAML / Save YAML} & Read or save GUI connection and Run settings. This is not opening or distributing board XML.\\
+\ui{Nodes / Paths} & Edit node endpoints, configuration source, GUI records directory and timeouts.\\
+\ui{Master / Slave} & Choose this computer’s role. Single-computer use selects Master, then Use this computer.\\
+\ui{Configuration / User guide} & Open ECC management, the original configuration editor, or either embedded language guide.\\
+\ui{ECC / data service instances…} & Open the shared Master/Slave, existing-ECC and managed-backend window.\\
+\ui{GET configuration files...} & Launch the original configuration editor on Configuration source; disconnect before editing.\\
+\ui{Tools / ECC / data service manager…} & Tools provide sync, diagnostics, waveforms, conversion and logs. Service manager is the same backend-management entry.\\
+\ui{Run / Recovery} & Run contains Pause/Resume. Recovery → Status and warnings handles notifications and explicit Idle regression.\\
+\bottomrule\end{tabularx}
+\subsection*{Metadata}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Experiment / Run} & Experiment name and Run number. Explicit Describe/Prepare/Configure IDs select ECC files.\\
+\ui{Run description / note} & A note saved with the acquisition records.\\
+\ui{Add parameter / Remove selected} & Add or remove a selected Run-record metadata row. These are not board-register settings.\\
+\bottomrule\end{tabularx}
+\note{Existing backends: Master → Connect existing ECC. Managed backends: Master → Create ECC / data services. Slaves choose their local directories and enable their agent first.}
+
+\newpage
+\pagehead{10\quad Controls: acquisition and automatic Runs}{These commands affect boards or Run bookkeeping, not backend process lifetime.}
+\subsection*{Acquisition controls}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Connect / Disconnect} & Query hardware and receiver state / detach the GUI. Disconnect retains remote processes and acquisition.\\
+\ui{Progress all / Regress all} & Advance or undo one initialization stage for all nodes: Idle, Described, Prepared, Ready. Sends board commands.\\
+\ui{Progress selected node / Regress selected node} & Advance or undo only the selected node; first check the node selector.\\
+\ui{Run start} & Start acquisition and reserve records, or attach if already Running. Existing records/files require confirmation.\\
+\ui{Run stop} & Request board stop, confirm Ready, then perform archive, backup and local finalization. Backends remain running.\\
+\ui{Retry finalization} & Retry recoverable local bookkeeping, not an uncertain remote catalog action.\\
+\ui{Recover journal} & Load the original Run journal to resume interrupted bookkeeping; it does not prove board state.\\
+\ui{Resume failed catalog replacement} & Only available for a particular failed replacement in the original live session after checks pass.\\
+\bottomrule\end{tabularx}
+\subsection*{Automatic Run}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Enable / Time / File size} & Enable threshold rules. If both thresholds are selected, the first reached triggers the action.\\
+\ui{Stop / Next Run} & Stop at the threshold, or continue only after successful finalization and confirmed Ready.\\
+\ui{Runs / Unlimited} & Total sequence length including the first Run; zero means unlimited.\\
+\ui{Apply} & Apply rules before starting. Changed fields are pending until Apply; manual Run stop cancels continuation.\\
+\bottomrule\end{tabularx}
+\note{Usual sequence: Connect → Progress to Ready → Run start → Run stop. To close backend processes, use service management after stopping acquisition.}
+
+\newpage
+\pagehead{11\quad Configuration: Nodes / Paths}{Store GUI connection settings here; electronics parameters remain in original XML/XCFG.}
+\subsection*{Buttons and directories}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Configure and manage ECC / data services…} & Open role, existing connection and backend management; bring accepted settings back to Run Setup.\\
+\ui{Add CoBo / Remove selected} & Add a GUI node row or remove the current row. This does not create/delete a backend or raw files.\\
+\ui{Browse…} & Choose the local directory beside this button. It does not browse a remote host.\\
+\ui{Sync configuration to project folders before starting services} & Store the startup sync preference. Merely checking it and saving Nodes does not transfer XML.\\
+\ui{Save and apply / Cancel} & Validate and write YAML, or discard unsaved edits. Previously accepted backend work remains.\\
+\bottomrule\end{tabularx}
+\subsection*{Node columns}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{ID / Role / Name} & Unique GUI ID, cobo/mutant role and display label. Managed ECCs may each have their own physical CoBo[0].\\
+\ui{ECC host / ECC port} & SOAP ECC computer address and service port; not the board IP.\\
+\ui{Sentry host / Sentry port} & Receiver-directory monitor host and HTTP port, commonly 8080.\\
+\ui{Router host / Router port} & Primary board-data destination, e.g. data-network IP:46005; not receiver control port.\\
+\ui{Legacy ECC target host / port} & Optional old second board-data destination. Normally port 0. It is not downstream preview export.\\
+\ui{Describe / Prepare / Configure ID} & IDs selecting describe-ID / configure-ID files; original Prepare uses configure-ID.\\
+\ui{Preview host / Preview TCP port} & DataExporter online preview address, commonly 46491; zero disables preview configuration.\\
+\bottomrule\end{tabularx}
+\note{Configuration source is local XML/XCFG. GUI Run records root is local metadata. Raw .graw folder is reported by Sentry on the receiver host; these are distinct.}
+
+\newpage
+\pagehead{12\quad Configuration: an existing ECC}{Master → Connect existing ECC connects to a server that is already running.}
+\subsection*{Choose, check and save}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Saved ECC connections / New connection} & Load a saved profile or enter another. Saved history does not prove a service is online.\\
+\ui{Remove saved connection} & Forget that history item; keep YAML, remote processes and data.\\
+\ui{Existing receiver IP and data port} & Expand receiver, preview and record-directory settings. It does not start a receiver.\\
+\ui{Browse…} & Choose the GUI computer’s local Run-record directory.\\
+\ui{Check connection} & Detect SOAP compatibility and read ECC state only. Recheck after changing the inputs.\\
+\ui{Save and use in Run Setup} & After a successful check, save YAML and apply it to the console, which connects for observations.\\
+\ui{Stop waiting / Close (keep services running)} & End local waiting or close the window; existing services remain.\\
+\bottomrule\end{tabularx}
+\subsection*{Fields}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Instance name} & Friendly connection name, not a hardware configuration ID.\\
+\ui{ECC computer IP / ECC service port} & The running ECC computer and SOAP listener.\\
+\ui{Data receiver IP / port (SOAP ECC)} & Board-data destination. The real receiver must already listen there.\\
+\ui{Receiver type / TCP preview export port} & Describe the existing receiver and downstream preview port. This does not replace a remote program.\\
+\ui{Local Run records directory} & Local GUI metadata, separate from remote raw files.\\
+\bottomrule\end{tabularx}
+\note{External ECC continues reading its own --config-repo-url repository or NFS. This page does not upload local XML to an unmanaged external ECC.}
+
+\newpage
+\pagehead{13\quad Configuration: master, hosts and source}{Choose directories and execution hosts before creating board groups.}
+\subsection*{Master service and source}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Configuration source folder / Browse…} & Select the master’s complete XML/XCFG source and referenced resources.\\
+\ui{Sync configuration to project folders before starting services} & Distribute source before managed startup. If disabled, existing host files are used with an unverified-content warning.\\
+\ui{Sync project configuration…} & Select execution hosts and immediately distribute configuration, without starting acquisition.\\
+\ui{First-time setup / edit hosts and boards} & Expand Hosts, ECC and boards, and Advanced: master service. Checked by default; hiding pages does not stop services.\\
+\ui{Start / check master service} & Start/check configuration distribution, not SOAP ECC or board acquisition.\\
+\ui{Open existing project…} & Load a directory containing project.json. Refresh is still needed for actual service state.\\
+\ui{Stop project configuration service} & Stop distribution; keep ECC, receivers and node agents.\\
+\bottomrule\end{tabularx}
+\subsection*{Hosts and advanced fields}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Project data folder on this computer / Browse…} & Choose before enabling this execution host. Enabled hosts retain their saved working directory.\\
+\ui{Use this computer (automatic)} & Join/check the master computer as an execution host; also verifies local pairing and current-project credentials.\\
+\ui{Add slave} & Paste the slave’s complete one-time code. Re-pairing an existing identity updates its entry and preserves group references.\\
+\ui{Master project directory} & Private project, version, credential and receipt directory; not raw data.\\
+\ui{Master IP reachable from other hosts / Configuration service port} & Address reachable by slaves and configuration HTTPS port, commonly 24250.\\
+\bottomrule\end{tabularx}
+\note{The source is on the master; caches and project directories are local to each execution computer. Changing GUI records does not move backend data.}
+
+\newpage
+\pagehead{14\quad Configuration: groups and startup scope}{Ctrl-click adds individual groups; Shift-click selects a range.}
+\subsection*{Daily use and observation}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{ECC configuration} & Select one group in the top dropdown. Use the ECC and boards table for multiple groups.\\
+\ui{Start project services / Start selected groups and use} & Reread source, check host authentication, prepare and start only selected groups and receivers/shared Sentry; apply to Run Setup.\\
+\ui{Use this ECC in Run Setup} & Adopt selected prepared, active groups; does not start stopped groups.\\
+\ui{Refresh / check original operation} & Observe hosts, processes and accepted-operation receipts. A historical failed record is not current service state.\\
+\ui{Stop waiting} & Stop local waiting, not accepted remote work. Use Refresh afterwards.\\
+\bottomrule\end{tabularx}
+\subsection*{Group editing and shutdown}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Add boards / ECC… / Edit selected group…} & Create or edit one group draft. OK saves it without immediately starting services.\\
+\ui{Remove selected group from next release} & Remove the current group draft after normal stop or inspected release; retain raw data and audit.\\
+\ui{Save and sync only} & Save and prepare ALL project groups without activation; it does not use the selected startup subset.\\
+\ui{Stop selected group} & Normally stop the CURRENT single group, not every selected row. Stop acquisition first.\\
+\ui{Terminate selected group…} & Confirm termination of matching processes when normal stop cannot finish. Exited processes do not prove board stop.\\
+\ui{Review terminated group…} & After confirming board stop and preserved data, verify no matching process and release the old deployment lock.\\
+\ui{Stop project services} & Normally stop active managed project groups; Run stop first if acquiring.\\
+\ui{Close (keep services running)} & Close management and leave independent backends running.\\
+\bottomrule\end{tabularx}
+\note{Selected groups in one unified Run Setup use the same Experiment. Service startup does not execute hardware Describe, Prepare, Configure or Run start.}
+
+\newpage
+\pagehead{15\quad Configuration: Add / Edit ECC group fields}{Same-host instances need distinct ports; services on different hosts can reuse ports.}
+\subsection*{Identity, directory and hosts}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Instance name} & Friendly group identity for distinguishing ECC / receiver instances.\\
+\ui{Configuration source (master; edit above)} & Read-only here; edit the master source in the parent window.\\
+\ui{Experiment / configuration ID} & For example pedestals, with matching configure-pedestals.xml/.xcfg and describe configuration.\\
+\ui{ECC execution host / Project folder on ECC host} & Computer running SOAP ECC and its LOCAL working/configuration directory.\\
+\ui{Data execution host / Project folder on receiver host} & Computer running the receiver and its LOCAL raw-data working directory.\\
+\ui{Receiver} & Choose DataExporter or dataRouter; online preview requires an actual compatible export service.\\
+\bottomrule\end{tabularx}
+\subsection*{Network and board}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{ECC computer IP / SOAP ECC port} & Computer control interface and SOAP listener, commonly 8083.\\
+\ui{Alarm callback port} & Original ECC callback port; avoid same-host instance conflicts.\\
+\ui{Receiver control IP / Receiver control port} & Receiver control interface and management listener, commonly 46003.\\
+\ui{Receiver data IP / CoBo data destination port} & Interface reachable by CoBo and incoming data port, commonly 46005.\\
+\ui{Waveform TCP export port} & DataExporter downstream preview, commonly 46491. Unused by managed dataRouter.\\
+\ui{Sentry monitor port} & Project-directory HTTP monitor, commonly 8080. Shared per host/project folder.\\
+\ui{CoBo index} & Physical CoBo[N] within that ECC. Two different ECCs may each use index zero.\\
+\ui{Data folders (receiver host)} & Shows working/raw and expected successful archive paths for that host.\\
+\ui{OK / Cancel} & Validate/save the group draft or discard edits. Start/Sync applies the saved recipe later.\\
+\bottomrule\end{tabularx}
+\note{ECC instance names and SOAP ports distinguish servers; original XML/XCFG topology determines which physical CoBo IP they control.}
+
+\newpage
+\pagehead{16\quad Configuration: Slave controls}{Select local directories and enable the agent; maintain experiment XML on the master.}
+\subsection*{Buttons}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Slave: receive configuration and run backend services} & Use this computer as an execution node; received files are cached and applied locally.\\
+\ui{Browse…} & Choose the adjacent local cache or project-data folder. Cache selection adds getdaq-node-cache beneath the chosen folder.\\
+\ui{Enable / check slave} & Save/check node configuration and start management. This alone does not start ECC, receiver or acquisition.\\
+\ui{Copy pairing code} & Copy an unexpired unused invitation to Add slave on the master; disabled after pairing is normal.\\
+\ui{Renew pairing code / Renew / re-pair…} & Generate a fresh invitation for an unpaired/expired-code node; older UI may use the longer label.\\
+\ui{Remove master connection…} & Explicitly revoke the old master and generate a fresh code; retain accepted work, backends and data.\\
+\ui{Management network settings (optional)} & Expand management interface and port when defaults are unsuitable.\\
+\ui{Remove selected inactive entry} & Hide a no-process history item, preserving audit/data. Live instances stay visible.\\
+\ui{Close (keep services running)} & Close this window and retain independent services.\\
+\bottomrule\end{tabularx}
+\subsection*{Fields and observations}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Configuration cache (on this slave)} & Local pairing, versions and receipts. It is not a path on the master.\\
+\ui{Project data folder (on this slave)} & Backend working/raw-data directory; received configuration is copied here.\\
+\ui{Local management IP / port} & Address reachable by the master and HTTPS management port, commonly 24260.\\
+\ui{Instance / Type / Process / Local record} & Instance identity, role, matching-process observation and stored deployment phase.\\
+\ui{ECC configuration cache / Raw data} & Actual backend configuration and working-data paths to compare with the master summary.\\
+\bottomrule\end{tabularx}
+\note{A slave can run several ECC backends without several GUI windows. Pairing, backend startup, ECC connection and board acquisition are separate steps.}
+
+\newpage
+\pagehead{17\quad Configuration sync, timeouts and directories}{Saving YAML, copying XML and configuring boards are separate operations.}
+\subsection*{Sync controls}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Tools → Sync project configuration…} & Reread the complete master source and choose execution hosts, including this computer if desired.\\
+\ui{Host checkboxes / Sync selected hosts} & Download and verify an immutable version, then apply relative resources to each selected project folder with backups.\\
+\ui{OK / Cancel} & Confirmation is labelled Sync selected hosts. Cancel drops this selection, not earlier accepted synchronization.\\
+\ui{Active-instance confirmation} & Acknowledged stable Ready/Running can accept files; busy known commands defer replacement. No forced Idle.\\
+\bottomrule\end{tabularx}
+\subsection*{Nodes / Paths time settings (milliseconds)}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Status polling} & Observation interval. Smaller values generate more ECC/Sentry requests.\\
+\ui{HTTP timeout} & Ordinary HTTP request limit, not a complete hardware-transition deadline.\\
+\ui{Catalog timeout (server normally waits 30 s)} & Sentry archive request wait; server-side archive may itself wait about 30 seconds.\\
+\ui{Transition deadline} & Hardware transition plus state-confirmation limit. A timeout can leave remote completion uncertain.\\
+\ui{Post-stop settling time} & Wait after hardware stop before record/archive finalization.\\
+\bottomrule\end{tabularx}
+\subsection*{Directory map}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Configuration source folder (master)} & Editable complete experiment configuration used as the distribution source.\\
+\ui{Project data folder} & Execution-host cwd, ECC file copies, incoming .graw and archived Experiment/run\_NNNN.\\
+\ui{Configuration cache} & Private software version cache and deployment/pairing receipts.\\
+\ui{GUI Run records root} & GUI-local YAML, journal, CSV and configuration backups, separate from raw data.\\
+\bottomrule\end{tabularx}
+\note{After Nodes Save and apply, use explicit Sync or sync-enabled service startup to distribute XML. Configure through ECC to load board parameters; unmanaged external ECC keeps its existing NFS/repository.}
+
+\newpage
+\pagehead{18\quad Original configuration editor controls}{Configuration → GET configuration files... edits source files; synchronize after saving.}
+\subsection*{File, editing and display}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{New / Open} & Create a configuration document or open an existing file; not a new acquisition Run.\\
+\ui{Save / Save As... / Save All} & Save current, save to another name, or save all documents. Save within Configuration source for later distribution.\\
+\ui{Quit / tab close} & Exit or close the document; handle unsaved-edit prompts.\\
+\ui{Undo / Redo} & Undo/redo edits, including corresponding dialog icons; cannot undo commands already sent to boards.\\
+\ui{Find... / Find Next / Search...} & Search attributes or find the next result; Search is also on the tree context menu.\\
+\ui{Case sensitive / Whole words / Keep open} & Set matching preferences and keep the search window open after a result.\\
+\ui{Name / Value / Unit / Range} & Show/hide property columns; view settings do not change board registers.\\
+\ui{Backtrack level / Include URL} & Show inheritance depth and referenced-source URLs.\\
+\ui{Attribute builder / Insert / About} & Construct and insert a property / show original editor information.\\
+\bottomrule\end{tabularx}
+\subsection*{Tree context menu}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{New... / Override / Rename...} & Create, override an inherited item locally, or rename the current item.\\
+\ui{Delete / Copy / Cut / Paste} & Modify or transfer tree content; deletion changes the configuration when saved.\\
+\ui{Expand all / Collapse all} & Change tree visibility only.\\
+\ui{Import / Export → File...} & Import content or export selected configuration; distinguish from document Open/Save.\\
+\ui{Include → File...} & Add a reference; keep required relative resources in the complete source folder.\\
+\ui{Database...} & Original storage-plugin-dependent entries; not required for the XML workflow.\\
+\ui{Inheritance} & Inspect Overrides, Overriden by, Inherits, Inherited by and Defined in relationships.\\
+\bottomrule\end{tabularx}
+\note{Typical sequence: Open → edit Value → Save → master Sync → ECC Configure. Saving alone does not apply hardware parameters.}
+
+\newpage
+\pagehead{19\quad Waveform, log and warning controls}{Preview and display management remain independent of raw recording.}
+\subsection*{Waveforms}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Open waveform... / Previous / Next} & Open offline .graw/.gmat; navigate frames. Event ID / Go to event selects an event; Frame and AGET refine selection.\\
+\ui{Auto scan / Period} & Automatically advance offline frames at the chosen period.\\
+\ui{DataExporter / Refresh choices} & Select one/all configured online exporters; refresh the GUI-provided choices.\\
+\ui{Pause preview / Follow latest} & Pause preview connections / follow the latest cached event, or uncheck to inspect a fixed event.\\
+\ui{Event ID / Go / Source / CoBo / AsAd / AGET} & Choose a cached online event and electronics source. Read older uncached events offline.\\
+\ui{Channels… / All / None / OK / Cancel} & Choose visible channels, select all/none, apply or discard selection.\\
+\ui{3D / Align baselines / Export plot/data…} & Choose depth view and median baseline alignment (ΔADC) or absolute ADC. PNG reflects the view; CSV retains raw ADC.\\
+\ui{New session} & Clear online preview/frozen frames; retain acquisition and cumulative received counters.\\
+\bottomrule\end{tabularx}
+\subsection*{Logs and state management}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Event log / ECC log / Data log} & Choose the stream; right-side selector chooses host/instance or shared Sentry.\\
+\ui{Clear / Export combined logs…} & Clear current display or export this GUI session’s chronological, source-labelled TXT history.\\
+\ui{Acknowledge selected / Accept selected warning} & Mark a notification read or accept an ordinary warning; neither proves an uncertain action succeeded.\\
+\ui{Clear acknowledged notifications / Clear displayed log} & Remove acknowledged items or display text; retain persistent audit and controller state.\\
+\ui{Recheck state / Reset to Idle} & Update from the GUI’s current observations / explicitly regress stopped ECCs with Undo/Breakup after confirmation.\\
+\ui{Close} & Close state management without changing hardware.\\
+\bottomrule\end{tabularx}
+\note{Each GUI launch starts fresh log collection. Export orders by GUI receipt time and sequence, not a perfectly synchronized physical multi-host clock.}
+
+\newpage
+\pagehead{20\quad Data tools, direct CoBo and examples}{Use these tools alongside, rather than as replacements for, ECC control.}
+\subsection*{Data file tools…}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Mode selector} & Inspect raw frames, convert .gmat, merge .gmer, or use installed optional FITS/ROOT tools.\\
+\ui{Add files… / Remove selected} & Add completed local input files or remove list entries without deleting originals.\\
+\ui{Browse…} & Choose this tool’s output location; use a new output path for conversion.\\
+\ui{Run tool / Stop tool / Close} & Start/stop the independent tool process or close its window; follow prompts if still busy.\\
+\bottomrule\end{tabularx}
+\subsection*{CoBo information (direct, read-only)…}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Connect / refresh CoBo} & Query the BOARD hardware-control IP/port, not the SOAP ECC computer endpoint.\\
+\ui{Disconnect observation / Close} & Detach or close this read-only diagnostic window; it does not stop acquisition.\\
+\bottomrule\end{tabularx}
+\subsection*{Three common workflows}
+\begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
+Control / field & Meaning and effect \\\midrule
+\ui{Single computer} & Master → Create ECC / data services → source → Use this computer → Add boards / ECC → select groups → Start selected groups and use → Progress to Ready → Run start.\\
+\ui{Multiple hosts} & Slave chooses local folders and Enable → Copy pairing code → master Add slave → groups choose execution hosts → master selects and starts groups.\\
+\ui{Update electronics configuration} & Editor Save in source → Tools / Sync project configuration → select targets → Sync selected hosts → relevant ECC Configure.\\
+\bottomrule\end{tabularx}
+\note{OK/Yes accepts the described operation; Cancel/No declines. Stop waiting stops local waiting only. Consult Refresh and logs rather than repeating uncertain hardware commands.}
+\label{guide-last}
+\end{document}

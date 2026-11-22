@@ -1,4 +1,9 @@
 #include "distributeddeploymentwindow.h"
+#include "userguidewindow.h"
+#include <QListWidget>
+#include <QTextBrowser>
+#include <QTextCursor>
+#include <QTextDocument>
 #include "exportersources.h"
 #include "deploymentpaths.h"
 #include "existingeccconnection.h"
@@ -57,6 +62,13 @@ class ProductTests:public QObject {Q_OBJECT
  QTemporaryDir fWorkspace;
 private slots:
  void initTestCase(){QVERIFY(fWorkspace.isValid());qputenv("GETDAQ_WORKSPACE",fWorkspace.path().toUtf8());QCoreApplication::setOrganizationName("GetDAQ-Product-Tests");QCoreApplication::setApplicationName("OriginalBackendBaseline");qRegisterMetaType<QVector<NodeStatus>>();}
+ void bilingualGuideIsEmbeddedAndReadableWithoutInstalledDocuments(){
+    for(const auto &language:{QString("zh"),QString("en")}){QFile pdf(":/getdaq/manual/guide-"+language+".pdf");QVERIFY(pdf.open(QIODevice::ReadOnly));QVERIFY(pdf.read(5)==QByteArray("%PDF-"));QVERIFY(pdf.size()>100000);}
+    UserGuideWindow window("zh");auto *language=window.findChild<QComboBox *>("GuideLanguage");auto *chapters=window.findChild<QListWidget *>("GuideChapters");auto *text=window.findChild<QTextBrowser *>("GuideText");QVERIFY(language && chapters && text);QCOMPARE(text->document()->defaultFont().family(),QString("GetDAQ Guide Sans"));QCOMPARE(chapters->count(),20);QVERIFY(text->source().toString().startsWith("qrc:"));QVERIFY(text->toPlainText().contains(QString::fromUtf8("配置同步")));language->setCurrentIndex(language->findData("en"));QCOMPARE(chapters->count(),20);QVERIFY(text->toPlainText().contains("Start selected groups and use"));QVERIFY(text->toPlainText().contains("installation",Qt::CaseInsensitive));auto *search=window.findChild<QLineEdit *>("GuideSearch");search->setText("Node authentication required");window.findChild<QPushButton *>("GuideFindNext")->click();QCOMPARE(text->textCursor().selectedText(),QString("Node authentication required"));QVERIFY(QFile::exists(":/getdaq/waveform-3d-example.png"));
+ }
+ void guideMenuStaysAvailableDuringAcquisition(){
+    MainWindow window;auto *chinese=window.findChild<QAction *>("UserGuideChinese"),*english=window.findChild<QAction *>("UserGuideEnglish");QVERIFY(chinese && english);QVERIFY(QMetaObject::invokeMethod(&window,"ShowControlSlot",Qt::DirectConnection,Q_ARG(QString,QString("Running")),Q_ARG(bool,true),Q_ARG(bool,true),Q_ARG(bool,true)));QVERIFY(chinese->isEnabled() && english->isEnabled());english->trigger();auto *guide=window.findChild<QDialog *>("UserGuideWindow");QVERIFY(guide && guide->isVisible());auto *language=guide->findChild<QComboBox *>("GuideLanguage");QCOMPARE(language->currentData().toString(),QString("en"));chinese->trigger();QCOMPARE(language->currentData().toString(),QString("zh"));
+ }
  void newDefaultPathsUseVisibleHomeWorkspace(){
     const auto previous=qgetenv("GETDAQ_WORKSPACE");qunsetenv("GETDAQ_WORKSPACE");QCOMPARE(DefaultWorkspaceDirectory(),QDir(QDir::homePath()).filePath("GetDAQ"));const auto defaults=RunConfig::Default();QCOMPARE(defaults.outputDir,QDir(QDir::homePath()).filePath("GetDAQ/runs"));QVERIFY(!defaults.configDir.contains("/.local/"));qputenv("GETDAQ_WORKSPACE",previous);QCOMPARE(DefaultWorkspaceDirectory(),fWorkspace.path());
     ConsoleLogStore log;QVERIFY(log.OpenApplicationLog());QVERIFY(log.ApplicationLogPath().startsWith(fWorkspace.path()+"/logs/sessions/"));

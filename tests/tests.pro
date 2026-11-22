@@ -30,3 +30,7 @@ HEADERS += ../apps/envoy/logtimeline.h
 INCLUDEPATH += ../apps/onlinewaveform
 SOURCES += ../apps/onlinewaveform/onlinestore.cpp ../apps/onlinewaveform/onlinereceiver.cpp
 HEADERS += ../apps/onlinewaveform/onlinereceiver.h
+
+SOURCES += ../apps/envoy/userguidewindow.cpp
+HEADERS += ../apps/envoy/userguidewindow.h
+RESOURCES += ../apps/envoy/userguide.qrc

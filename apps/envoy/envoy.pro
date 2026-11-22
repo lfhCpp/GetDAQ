@@ -43,3 +43,7 @@ HEADERS += servicelogpanel.h
 
 SOURCES += logtimeline.cpp
 HEADERS += logtimeline.h
+
+SOURCES += userguidewindow.cpp
+HEADERS += userguidewindow.h
+RESOURCES += userguide.qrc

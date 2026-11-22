@@ -1,0 +1,13 @@
+<RCC>
+  <qresource prefix="/getdaq/manual">
+    <file alias="fonts/guide.otf">../../docs/manual/fonts/GetDAQGuideSans.otf</file>
+    <file alias="fonts/LICENSE">../../docs/manual/fonts/LICENSE</file>
+    <file alias="guide-zh.html">../../docs/manual/GetDAQ-Quick-Guide-zh.html</file>
+    <file alias="guide-en.html">../../docs/manual/GetDAQ-Quick-Guide-en.html</file>
+    <file alias="guide-zh.pdf">../../docs/manual/GetDAQ-Quick-Guide.pdf</file>
+    <file alias="guide-en.pdf">../../docs/manual/GetDAQ-Quick-Guide-en.pdf</file>
+  </qresource>
+  <qresource prefix="/getdaq">
+    <file alias="waveform-3d-example.png">../../docs/waveform-3d-example.png</file>
+  </qresource>
+</RCC>

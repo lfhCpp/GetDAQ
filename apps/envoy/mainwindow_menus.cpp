@@ -1,6 +1,7 @@
 #include <QTimer>
 #include "coboconnectionwindow.h"
 #include "mainwindow.h"
+#include "userguidewindow.h"
 #ifdef Q_OS_LINUX
 #include "distributeddeploymentwindow.h"
 #endif
@@ -119,6 +120,9 @@ void MainWindow::InitializeMenus()
     auto *localServices=toolsMenu->addAction(tr("ECC / data service manager…"));localServices->setObjectName("StartLocalServices");
     connect(localServices,&QAction::triggered,this,manageBackends);
     auto configuration = configurationMenu->addAction(tr("GET configuration files..."));
+    configurationMenu->addSeparator();auto *guide=configurationMenu->addMenu(tr("User guide"));guide->setObjectName("UserGuideMenu");
+    auto *chinese=guide->addAction(QString::fromUtf8("中文 (Chinese)"));chinese->setObjectName("UserGuideChinese");auto *english=guide->addAction(tr("English"));english->setObjectName("UserGuideEnglish");
+    connect(chinese,&QAction::triggered,this,[this]{OpenUserGuide(this,"zh");});connect(english,&QAction::triggered,this,[this]{OpenUserGuide(this,"en");});
     auto *boardInfo=toolsMenu->addAction(tr("CoBo information (direct, read-only)…"));
     boardInfo->setObjectName("DirectCoBoInformation");
     connect(boardInfo,&QAction::triggered,this,[this]{CoBoConnectionWindow window(this);window.exec();});

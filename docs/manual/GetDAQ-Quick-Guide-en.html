@@ -1,0 +1,256 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><title>GetDAQ User Guide</title><style>body {color:#17364d;font-family:GetDAQ Guide Sans;font-size:11pt;} h1 {color:#17364d;} h2 {color:#087f8c;} table {border-collapse:collapse;width:100%;margin-top:8px;margin-bottom:16px;} td,th {border:1px solid #cbd5df;vertical-align:top;} th {background-color:#eff5f8;text-align:left;} blockquote {background-color:#eff5f8;margin:12px 0;padding:12px;} pre,code {font-family:monospace;} pre {background-color:#f4f6f8;padding:10px;white-space:pre-wrap;} .lead {color:#526477;} hr {color:#cbd5df;}</style></head><body>
+
+
+
+<a name="chapter-1"></a><h1 id="chapter-1">1  GetDAQ installation and user guide</h1><p class="lead">Original SOAP ECC + DataExporter / DataRouter · 2026-11-22</p>
+<blockquote>GetDAQ is the console. getEccSoapServer controls electronics. DataExporter / dataRouter receive raw frames and write to disk. Raw data does not pass through the GUI or the configuration distribution service.</blockquote>
+<h2>Programs and responsibilities</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>GetDAQ</b></td><td>Connect multiple ECCs; control acquisition; show state and receiver statistics; keep local Run records.</td></tr><tr><td><b>getEccSoapServer</b></td><td>Original SOAP control server: Describe, Prepare, Configure, Start, Stop, Pause and Resume.</td></tr><tr><td><b>DataExporter / dataRouter</b></td><td>Receive CoBo frames and write raw data. DataExporter also offers downstream TCP export for online preview.</td></tr><tr><td><b>getdaq-sentry</b></td><td>Monitor the project data directory, report files and throughput, and perform catalog/archive operations.</td></tr><tr><td><b>Node agent / configuration service</b></td><td>Pair execution hosts, distribute complete configuration folders, cache releases and manage independent backend instances.</td></tr><tr><td><b>getdaq-control-mcp</b></td><td>Independent stdio interface using the saved GUI YAML and original SOAP / Sentry clients.</td></tr></table>
+<h2>The usual sequence</h2>
+Install → choose directories → set host IPs, ports and experiment IDs → start services or select existing services → Connect → Progress to Ready → Run start → Run stop.
+
+<h2>How to read this guide</h2>
+Pages 2–8 explain installation and operation. Pages 9–20 explain the controls, with configuration concentrated on pages 11–18. Configuration → User guide opens either language inside the software, with an option to save its PDF.
+
+<blockquote>Multiple instances mean multiple ECC / receiver backends, not multiple required GUI windows. Essential third-party source is bundled; system build tools and Qt 5 are still required. Historical source/ is not used for builds.</blockquote>
+
+<hr/>
+<a name="chapter-2"></a><h1 id="chapter-2">2  Ubuntu installation</h1><p class="lead">Compile on the target computer and use a new stage directory.</p>
+<h2>1. Install the system tools</h2>
+<pre>sudo apt update
+sudo apt install -y build-essential cmake python3 git openssl \
+  qtbase5-dev libqt5svg5-dev qttools5-dev-tools
+qmake -v</pre>
+<h2>Qt and optional tools</h2>
+qmake should report Qt 5. With several Qt installations, pass --qmake /path/to/qmake. The full suite needs no separately installed old GET, Boost or Ice, and no ROOT installation.
+
+<h2>2. Obtain and verify the complete project</h2>
+<pre>git clone https://github.com/lfhCpp/GetDAQ.git
+cd GetDAQ
+python3 tools/verify-product-boundary.py
+python3 tools/verify-original-backends.py</pre>
+<h2>3. Build into a NEW directory</h2>
+<pre>python3 tools/build-suite.py --profile full --jobs 2 \
+  --stage &quot;$PWD/dist-linux&quot;
+python3 tools/build-suite.py --verify-stage &quot;$PWD/dist-linux&quot;
+./dist-linux/bin/GetDAQ</pre>
+<h2>Installed layout</h2>
+bin/ contains 16 programs in a full build; share/ contains resources; docs/ contains both PDF guides. For a copied installation with sources under code/, cd code first. Use --jobs 1 on a low-memory computer. The control profile supports external ECC connections without the complete local backend suite.
+
+<h2>Upgrading an existing installation</h2>
+Use start-getdaq.sh if that installation supplies it; a generic new stage can run bin/GetDAQ directly. Copy the whole compatible bin/, share/ and docs/ tree. Keep old runtimes, configuration, raw data, Run records and pairing caches. A Linux binary requires compatible system and Qt runtime libraries.
+
+<blockquote>The first GUI launch does not reset or start boards. Complete the directory and network setup before starting backends or connecting existing ECCs.</blockquote>
+
+<hr/>
+<a name="chapter-3"></a><h1 id="chapter-3">3  macOS and network addresses</h1><p class="lead">Linux executables cannot run on macOS; compile native binaries on the Mac.</p>
+<h2>macOS build entry</h2>
+<pre>xcode-select --install
+brew install cmake python qt@5
+GETDAQ_QT5_PREFIX=&quot;$(brew --prefix qt@5)&quot;
+export PATH=&quot;$GETDAQ_QT5_PREFIX/bin:$PATH&quot;
+python3 tools/build-macos.py --help</pre>
+<h2>Packaging</h2>
+Follow docs/MACOS.md for native build and GetDAQ.app packaging. Native Mac and real-hardware acceptance have not yet been completed. The app carries its helpers and embedded guides. Automated Master / Slave service management currently requires Linux; external SOAP ECC connections remain available on other platforms.
+
+<h2>Which IP belongs where?</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>ECC host</b></td><td>Control-network address of the COMPUTER running getEccSoapServer.</td></tr><tr><td><b>CoBo IP</b></td><td>Address of the BOARD, defined in the original topology / describe XML/XCFG. The direct information tool also uses it.</td></tr><tr><td><b>Receiver control IP</b></td><td>Control-network address of the COMPUTER running the receiver.</td></tr><tr><td><b>Receiver data IP</b></td><td>Data-network interface reachable by CoBo. It is the board data destination.</td></tr><tr><td><b>Management / SSH IP</b></td><td>Address used for pairing, configuration distribution or SSH; it may be a different interface.</td></tr></table>
+<h2>Common ports: verify the actual listeners</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>8083 / 46011</b></td><td>SOAP ECC / original ECC alarm callback.</td></tr><tr><td><b>46003 / 46005</b></td><td>Receiver control / incoming board-data TCP port.</td></tr><tr><td><b>46491 / 8080</b></td><td>DataExporter preview export / Sentry HTTP monitor.</td></tr><tr><td><b>24260 / 24250</b></td><td>Node HTTPS management / master configuration distribution.</td></tr></table>
+<blockquote>Ports serve different purposes. Same-host backend instances need non-conflicting ports. A board hardware-control endpoint, often 46001, is not the SOAP ECC port.</blockquote>
+
+<hr/>
+<a name="chapter-4"></a><h1 id="chapter-4">4  Single-computer configuration</h1><p class="lead">Choose directories first, then interfaces, ports and configuration IDs.</p>
+<h2>Three directories to distinguish</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Configuration source</b></td><td>Use the existing installation config/ folder. If absent, a new setup defaults to ~/GetDAQ/config. Store complete XML/XCFG and referenced resources here.</td></tr><tr><td><b>Project data folder</b></td><td>Default ~/GetDAQ/data. ECC, receiver and Sentry work here; configuration is copied here and raw .graw is written here.</td></tr><tr><td><b>GUI Run records root</b></td><td>Default ~/GetDAQ/runs. Holds run.yml, journal, CSV and backups; it is separate from raw data.</td></tr></table>
+<h2>Visible defaults</h2>
+New projects, connections and logs use visible ~/GetDAQ subfolders. Existing projects keep saved paths and initialized node identities. Nodes / Paths lets you edit the GUI source and record directories.
+
+<h2>Start software-managed original backends</h2>
+Select Master → Create ECC / data services. Choose the source folder. Click Use this computer (automatic), then Add boards / ECC. Select the execution hosts and project folders, receiver type and experiment. Fill control/data IPs and the respective ports. Keep configuration sync enabled, select the group(s), then Start project services or Start selected groups and use. The GUI applies the selected setup and connects for state queries; it does not start board acquisition.
+
+<h2>Equivalent working-directory relationship (illustration)</h2>
+<pre>cd /home/user/GetDAQ/data
+dataRouter 192.168.40.10 192.168.50.10 TCP FrameStorage
+getEccSoapServer --port 8083 --alarm-port 46011 \
+  --config-repo-url /home/user/GetDAQ/data</pre>
+<h2>Use existing ECC / DataRouter instead</h2>
+Choose Connect existing ECC, set its actual SOAP host/port, Check connection, then Save and use in Run Setup. Router host is the receiving data interface and Router port is its DATA port. Existing external ECC keeps its repository/NFS settings; an external DataRouter does not need to be replaced by DataExporter.
+
+<blockquote>The working directory determines receiver output. Managed startup sets it explicitly. Prepare success alone does not prove that the data destination is correct; inspect file growth.</blockquote>
+
+<hr/>
+<a name="chapter-5"></a><h1 id="chapter-5">5  Master / Slave and configuration sync</h1><p class="lead">Maintain experiment configuration on the master; select local folders on each slave.</p>
+<h2>Slave setup</h2>
+Select Slave, choose its Configuration cache and Project data folder, and Enable / check slave. Copy pairing code to Add slave on the master. A code expires and is consumed after pairing. To change master, explicitly use Remove master connection; accepted work finishes, and backends, data and audit remain.
+
+<h2>Master setup and multiple ECCs</h2>
+Add the slave or Use this computer. When creating a group, choose ECC execution host and Data execution host; these can differ. Their project folders are LOCAL to those hosts. The setup section is expanded by default. In ECC and boards, Ctrl/Shift selects multiple groups. Start selected groups and use starts only those groups and connects them in one Run Setup. Use independent ports on a shared computer.
+
+<blockquote>Master source folder → immutable configuration release → execution-host cache → that host’s Project data folder. Relative resource paths are preserved. Raw data is not distributed with configuration.</blockquote>
+<h2>How IDs select original files (.xml or .xcfg)</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Describe ID = cobo0</b></td><td>Matches describe-cobo0.</td></tr><tr><td><b>Prepare ID = pedestals</b></td><td>Matches configure-pedestals; original Prepare uses Configure-type configuration.</td></tr><tr><td><b>Configure ID = pedestals</b></td><td>Matches configure-pedestals.</td></tr><tr><td><b>Experiment</b></td><td>Names the Run and supplies default IDs; explicit node IDs take priority.</td></tr></table>
+<h2>After editing XML/XCFG</h2>
+Save in Configuration source. Use Tools → Sync project configuration, select the execution hosts, then Sync selected hosts. Active services require acknowledgment; stable Ready/Running can accept file updates without forced Idle. Known busy commands defer replacement. Synchronizing files does not apply new board parameters; use the relevant ECC Configure operation.
+
+<h2>Saved settings and paths</h2>
+Save and apply in Nodes stores YAML, not an immediate XML transfer. Startup also rereads source files when sync is enabled. Path summaries show current settings and separately report old running/prepared paths. A normal backend restart applies a changed working directory. Removing a saved connection hides history while preserving files; a slave can hide inactive instance entries.
+
+
+<hr/>
+<a name="chapter-6"></a><h1 id="chapter-6">6  Acquisition and logs</h1><p class="lead">Use actual ECC state to judge acquisition, and receiver files to judge recording.</p>
+<h2>Start</h2>
+Check Experiment, Run number and notes; Save YAML. Connect queries actual state. If already Ready, do not force Idle just because the GUI reconnected. Progress all advances Describe → Prepare → Configure. At Ready, Run start, then observe Running, file growth, data rate and disk space.
+
+<h2>Pause / Resume</h2>
+Run → Pause run is enabled when every ECC is stably Running and no command is in progress. Resume run corresponds to stable Paused. This also works after connecting to acquisition started outside this GUI. Resume continues the same acquisition; it does not start a new Run or fabricate local records.
+
+<h2>Stop</h2>
+Run stop first waits for every ECC to confirm Ready; catalog, configuration backup and local finalization follow. Successful archive is usually &lt;project&gt;/&lt;Experiment&gt;/run_NNNN/. On archive warning, files may remain in the incoming directory. A record failure is not proof of a hardware stop failure; a local message alone is not proof the boards stopped.
+
+<h2>Warnings and continued operation</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Local record / backup failure</b></td><td>Warn and retain records; allow a manual next Run. Automatic continuation is canceled.</td></tr><tr><td><b>Uncertain catalog result</b></td><td>Keep the unknown receipt; no automatic replay. With Ready confirmed, close local Run processing and continue manually.</td></tr><tr><td><b>Stale state / missing monitor</b></td><td>Request acknowledgment where appropriate. The ECC decides whether hardware commands are valid.</td></tr><tr><td><b>Existing Run / incoming files</b></td><td>Require explicit confirmation; do not silently delete raw data.</td></tr><tr><td><b>Start / Stop / Disconnect</b></td><td>Remain available after connection. In-flight hardware commands are serialized. Disconnect detaches observation; it does not stop remote acquisition.</td></tr></table>
+<h2>Read, clear and export logs</h2>
+Use Event log / ECC log / Data log and the host/instance selector; shared Sentry is also selectable. Each GUI launch starts a new log session and attaches at the current end of backend logs. Clear affects the display, while export retains this session’s collected history. Tools → Logs → Export combined logs writes TXT ordered by GUI receipt time and sequence, with source separators and original remote timestamps.
+
+<blockquote>Closing the GUI, disconnecting, stopping acquisition and stopping backend processes are different actions. Use service management to stop backends after checking acquisition state.</blockquote>
+
+<hr/>
+<a name="chapter-7"></a><h1 id="chapter-7">7  Waveforms and 3D</h1><p class="lead">Online and offline viewers use electronics channels; no pad mapping is assumed.</p>
+<h2>Offline files</h2>
+Tools → Waveform viewer opens .graw/.gmat. Open waveform selects a file; Event ID / Go to event chooses an event; Frame and AGET select its frame and chip. .gmat uses frame indices instead of real event IDs. Channels chooses visible channels; Export plot/data saves PNG or CSV.
+
+<h2>Online preview</h2>
+Tools → Online waveform viewer starts an independent process. Select a current DataExporter or all configured exporters; it uses the configured preview export port, not the incoming board-data port. Then select Source, CoBo, AsAd and AGET. Follow latest tracks recent events; uncheck it or use Event ID / Go to freeze a cached event.
+
+<h2>Memory counters</h2>
+Cache is current raw-frame payload, bounded by 100 events, 4096 frames or 256 MiB. Old events are evicted. Received total is only a cumulative byte counter. A frozen event, decoding and network buffers use additional bounded memory. New session clears preview frames; closing the viewer releases its process memory. Preview may drop frames; raw recording is independent.
+
+<h2>3D axes and controls</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Time (sample bucket)</b></td><td>Buckets 0–511; not nanoseconds unless the sampling frequency has been established.</td></tr><tr><td><b>Amplitude (ΔADC / ADC)</b></td><td>Align baselines defaults on: subtract each channel median for display and align zero references. Uncheck for absolute ADC. All channels use one amplitude scale; 2D and CSV keep raw ADC.</td></tr><tr><td><b>Channel number</b></td><td>Depth uses actual selected channel numbers; no interpolation or filled waveform sheets.</td></tr><tr><td><b>Drag / Ctrl+wheel / double-click</b></td><td>Change depth angle / channel spacing / reset view. Normal wheel scrolls long channel plots.</td></tr></table>
+<p><img src="../waveform-3d-example.png" width="660"/></p>
+Eight synthetic channels with different baselines, displayed aligned. This is a rendering example, not hardware acquisition evidence.
+
+<hr/>
+<a name="chapter-8"></a><h1 id="chapter-8">8  MCP and troubleshooting</h1><p class="lead">The independent stdio adapter uses the saved GUI YAML and original SOAP / Sentry.</p>
+<h2>MCP configuration example</h2>
+<pre>{
+  &quot;schema&quot;: 2,
+  &quot;run_config&quot;: &quot;/absolute/path/to/envoy.yml&quot;,
+  &quot;allow_control&quot;: false,
+  &quot;request_timeout_ms&quot;: 30000
+}</pre>
+<h2>Client setup</h2>
+Use the absolute bin/getdaq-control-mcp executable and arguments [&quot;--config&quot;, &quot;/absolute/path/to/mcp.json&quot;]. On macOS it is inside GetDAQ.app/Contents/MacOS. Queries: ecc_configuration, ecc_status, ecc_receivers and ecc_operation. Control is disabled by default.
+
+<h2>Explicitly enabled control request</h2>
+<pre>{&quot;node_id&quot;:0,&quot;command&quot;:&quot;stop&quot;,&quot;operation_id&quot;:&quot;stop-001&quot;,
+ &quot;confirmation&quot;:&quot;I_CONFIRM_stop_stop-001&quot;}</pre>
+<h2>Control receipts</h2>
+Set allow_control=true locally and restart the adapter before submitting control. Each operation needs its unique ID and matching confirmation. An uncertain result is not replayed with that ID; inspect status/receipts. Existing operation directories are reused to preserve deduplication. Full Run recording and archive remain GUI responsibilities; avoid concurrent controllers on the same board. See docs/MCP_SETUP.md.
+
+<h2>Troubleshooting</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Connection refused</b></td><td>Check the actual computer, listener and port purpose: SOAP, receiver control/data and preview are distinct.</td></tr><tr><td><b>Node authentication required (401)</b></td><td>A management credential expired. Startup checks local pairing; a remote slave needs explicit re-pair and Add slave to update its existing entry.</td></tr><tr><td><b>Prepare timeout / Unknown</b></td><td>Remote execution may already have occurred. Query state and inspect ECC log before repeating a command.</td></tr><tr><td><b>No rate / no waveform</b></td><td>First verify raw-file growth, then Sentry directory, data interface/port and preview export port.</td></tr><tr><td><b>Missing configuration</b></td><td>Check source, distribution targets, file IDs, ECC repository and NFS. Prepare selects configure-ID.</td></tr><tr><td><b>Record / catalog warning</b></td><td>After Ready is confirmed, manual acquisition can continue. Retain raw files and uncertain receipts.</td></tr></table>
+<blockquote>Software tests do not replace real-board, data-quality or native macOS acceptance. The following pages explain every main control and configuration field.</blockquote>
+
+<hr/>
+<a name="chapter-9"></a><h1 id="chapter-9">9  Controls: main window and entry points</h1><p class="lead">Find controls by their actual English labels.</p>
+<h2>Run setup and menus</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Open YAML / Save YAML</b></td><td>Read or save GUI connection and Run settings. This is not opening or distributing board XML.</td></tr><tr><td><b>Nodes / Paths</b></td><td>Edit node endpoints, configuration source, GUI records directory and timeouts.</td></tr><tr><td><b>Master / Slave</b></td><td>Choose this computer’s role. Single-computer use selects Master, then Use this computer.</td></tr><tr><td><b>Configuration / User guide</b></td><td>Open ECC management, the original configuration editor, or either embedded language guide.</td></tr><tr><td><b>ECC / data service instances…</b></td><td>Open the shared Master/Slave, existing-ECC and managed-backend window.</td></tr><tr><td><b>GET configuration files...</b></td><td>Launch the original configuration editor on Configuration source; disconnect before editing.</td></tr><tr><td><b>Tools / ECC / data service manager…</b></td><td>Tools provide sync, diagnostics, waveforms, conversion and logs. Service manager is the same backend-management entry.</td></tr><tr><td><b>Run / Recovery</b></td><td>Run contains Pause/Resume. Recovery → Status and warnings handles notifications and explicit Idle regression.</td></tr></table>
+<h2>Metadata</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Experiment / Run</b></td><td>Experiment name and Run number. Explicit Describe/Prepare/Configure IDs select ECC files.</td></tr><tr><td><b>Run description / note</b></td><td>A note saved with the acquisition records.</td></tr><tr><td><b>Add parameter / Remove selected</b></td><td>Add or remove a selected Run-record metadata row. These are not board-register settings.</td></tr></table>
+<blockquote>Existing backends: Master → Connect existing ECC. Managed backends: Master → Create ECC / data services. Slaves choose their local directories and enable their agent first.</blockquote>
+
+<hr/>
+<a name="chapter-10"></a><h1 id="chapter-10">10  Controls: acquisition and automatic Runs</h1><p class="lead">These commands affect boards or Run bookkeeping, not backend process lifetime.</p>
+<h2>Acquisition controls</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Connect / Disconnect</b></td><td>Query hardware and receiver state / detach the GUI. Disconnect retains remote processes and acquisition.</td></tr><tr><td><b>Progress all / Regress all</b></td><td>Advance or undo one initialization stage for all nodes: Idle, Described, Prepared, Ready. Sends board commands.</td></tr><tr><td><b>Progress selected node / Regress selected node</b></td><td>Advance or undo only the selected node; first check the node selector.</td></tr><tr><td><b>Run start</b></td><td>Start acquisition and reserve records, or attach if already Running. Existing records/files require confirmation.</td></tr><tr><td><b>Run stop</b></td><td>Request board stop, confirm Ready, then perform archive, backup and local finalization. Backends remain running.</td></tr><tr><td><b>Retry finalization</b></td><td>Retry recoverable local bookkeeping, not an uncertain remote catalog action.</td></tr><tr><td><b>Recover journal</b></td><td>Load the original Run journal to resume interrupted bookkeeping; it does not prove board state.</td></tr><tr><td><b>Resume failed catalog replacement</b></td><td>Only available for a particular failed replacement in the original live session after checks pass.</td></tr></table>
+<h2>Automatic Run</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Enable / Time / File size</b></td><td>Enable threshold rules. If both thresholds are selected, the first reached triggers the action.</td></tr><tr><td><b>Stop / Next Run</b></td><td>Stop at the threshold, or continue only after successful finalization and confirmed Ready.</td></tr><tr><td><b>Runs / Unlimited</b></td><td>Total sequence length including the first Run; zero means unlimited.</td></tr><tr><td><b>Apply</b></td><td>Apply rules before starting. Changed fields are pending until Apply; manual Run stop cancels continuation.</td></tr></table>
+<blockquote>Usual sequence: Connect → Progress to Ready → Run start → Run stop. To close backend processes, use service management after stopping acquisition.</blockquote>
+
+<hr/>
+<a name="chapter-11"></a><h1 id="chapter-11">11  Configuration: Nodes / Paths</h1><p class="lead">Store GUI connection settings here; electronics parameters remain in original XML/XCFG.</p>
+<h2>Buttons and directories</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Configure and manage ECC / data services…</b></td><td>Open role, existing connection and backend management; bring accepted settings back to Run Setup.</td></tr><tr><td><b>Add CoBo / Remove selected</b></td><td>Add a GUI node row or remove the current row. This does not create/delete a backend or raw files.</td></tr><tr><td><b>Browse…</b></td><td>Choose the local directory beside this button. It does not browse a remote host.</td></tr><tr><td><b>Sync configuration to project folders before starting services</b></td><td>Store the startup sync preference. Merely checking it and saving Nodes does not transfer XML.</td></tr><tr><td><b>Save and apply / Cancel</b></td><td>Validate and write YAML, or discard unsaved edits. Previously accepted backend work remains.</td></tr></table>
+<h2>Node columns</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>ID / Role / Name</b></td><td>Unique GUI ID, cobo/mutant role and display label. Managed ECCs may each have their own physical CoBo[0].</td></tr><tr><td><b>ECC host / ECC port</b></td><td>SOAP ECC computer address and service port; not the board IP.</td></tr><tr><td><b>Sentry host / Sentry port</b></td><td>Receiver-directory monitor host and HTTP port, commonly 8080.</td></tr><tr><td><b>Router host / Router port</b></td><td>Primary board-data destination, e.g. data-network IP:46005; not receiver control port.</td></tr><tr><td><b>Legacy ECC target host / port</b></td><td>Optional old second board-data destination. Normally port 0. It is not downstream preview export.</td></tr><tr><td><b>Describe / Prepare / Configure ID</b></td><td>IDs selecting describe-ID / configure-ID files; original Prepare uses configure-ID.</td></tr><tr><td><b>Preview host / Preview TCP port</b></td><td>DataExporter online preview address, commonly 46491; zero disables preview configuration.</td></tr></table>
+<blockquote>Configuration source is local XML/XCFG. GUI Run records root is local metadata. Raw .graw folder is reported by Sentry on the receiver host; these are distinct.</blockquote>
+
+<hr/>
+<a name="chapter-12"></a><h1 id="chapter-12">12  Configuration: an existing ECC</h1><p class="lead">Master → Connect existing ECC connects to a server that is already running.</p>
+<h2>Choose, check and save</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Saved ECC connections / New connection</b></td><td>Load a saved profile or enter another. Saved history does not prove a service is online.</td></tr><tr><td><b>Remove saved connection</b></td><td>Forget that history item; keep YAML, remote processes and data.</td></tr><tr><td><b>Existing receiver IP and data port</b></td><td>Expand receiver, preview and record-directory settings. It does not start a receiver.</td></tr><tr><td><b>Browse…</b></td><td>Choose the GUI computer’s local Run-record directory.</td></tr><tr><td><b>Check connection</b></td><td>Detect SOAP compatibility and read ECC state only. Recheck after changing the inputs.</td></tr><tr><td><b>Save and use in Run Setup</b></td><td>After a successful check, save YAML and apply it to the console, which connects for observations.</td></tr><tr><td><b>Stop waiting / Close (keep services running)</b></td><td>End local waiting or close the window; existing services remain.</td></tr></table>
+<h2>Fields</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Instance name</b></td><td>Friendly connection name, not a hardware configuration ID.</td></tr><tr><td><b>ECC computer IP / ECC service port</b></td><td>The running ECC computer and SOAP listener.</td></tr><tr><td><b>Data receiver IP / port (SOAP ECC)</b></td><td>Board-data destination. The real receiver must already listen there.</td></tr><tr><td><b>Receiver type / TCP preview export port</b></td><td>Describe the existing receiver and downstream preview port. This does not replace a remote program.</td></tr><tr><td><b>Local Run records directory</b></td><td>Local GUI metadata, separate from remote raw files.</td></tr></table>
+<blockquote>External ECC continues reading its own --config-repo-url repository or NFS. This page does not upload local XML to an unmanaged external ECC.</blockquote>
+
+<hr/>
+<a name="chapter-13"></a><h1 id="chapter-13">13  Configuration: master, hosts and source</h1><p class="lead">Choose directories and execution hosts before creating board groups.</p>
+<h2>Master service and source</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Configuration source folder / Browse…</b></td><td>Select the master’s complete XML/XCFG source and referenced resources.</td></tr><tr><td><b>Sync configuration to project folders before starting services</b></td><td>Distribute source before managed startup. If disabled, existing host files are used with an unverified-content warning.</td></tr><tr><td><b>Sync project configuration…</b></td><td>Select execution hosts and immediately distribute configuration, without starting acquisition.</td></tr><tr><td><b>First-time setup / edit hosts and boards</b></td><td>Expand Hosts, ECC and boards, and Advanced: master service. Checked by default; hiding pages does not stop services.</td></tr><tr><td><b>Start / check master service</b></td><td>Start/check configuration distribution, not SOAP ECC or board acquisition.</td></tr><tr><td><b>Open existing project…</b></td><td>Load a directory containing project.json. Refresh is still needed for actual service state.</td></tr><tr><td><b>Stop project configuration service</b></td><td>Stop distribution; keep ECC, receivers and node agents.</td></tr></table>
+<h2>Hosts and advanced fields</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Project data folder on this computer / Browse…</b></td><td>Choose before enabling this execution host. Enabled hosts retain their saved working directory.</td></tr><tr><td><b>Use this computer (automatic)</b></td><td>Join/check the master computer as an execution host; also verifies local pairing and current-project credentials.</td></tr><tr><td><b>Add slave</b></td><td>Paste the slave’s complete one-time code. Re-pairing an existing identity updates its entry and preserves group references.</td></tr><tr><td><b>Master project directory</b></td><td>Private project, version, credential and receipt directory; not raw data.</td></tr><tr><td><b>Master IP reachable from other hosts / Configuration service port</b></td><td>Address reachable by slaves and configuration HTTPS port, commonly 24250.</td></tr></table>
+<blockquote>The source is on the master; caches and project directories are local to each execution computer. Changing GUI records does not move backend data.</blockquote>
+
+<hr/>
+<a name="chapter-14"></a><h1 id="chapter-14">14  Configuration: groups and startup scope</h1><p class="lead">Ctrl-click adds individual groups; Shift-click selects a range.</p>
+<h2>Daily use and observation</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>ECC configuration</b></td><td>Select one group in the top dropdown. Use the ECC and boards table for multiple groups.</td></tr><tr><td><b>Start project services / Start selected groups and use</b></td><td>Reread source, check host authentication, prepare and start only selected groups and receivers/shared Sentry; apply to Run Setup.</td></tr><tr><td><b>Use this ECC in Run Setup</b></td><td>Adopt selected prepared, active groups; does not start stopped groups.</td></tr><tr><td><b>Refresh / check original operation</b></td><td>Observe hosts, processes and accepted-operation receipts. A historical failed record is not current service state.</td></tr><tr><td><b>Stop waiting</b></td><td>Stop local waiting, not accepted remote work. Use Refresh afterwards.</td></tr></table>
+<h2>Group editing and shutdown</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Add boards / ECC… / Edit selected group…</b></td><td>Create or edit one group draft. OK saves it without immediately starting services.</td></tr><tr><td><b>Remove selected group from next release</b></td><td>Remove the current group draft after normal stop or inspected release; retain raw data and audit.</td></tr><tr><td><b>Save and sync only</b></td><td>Save and prepare ALL project groups without activation; it does not use the selected startup subset.</td></tr><tr><td><b>Stop selected group</b></td><td>Normally stop the CURRENT single group, not every selected row. Stop acquisition first.</td></tr><tr><td><b>Terminate selected group…</b></td><td>Confirm termination of matching processes when normal stop cannot finish. Exited processes do not prove board stop.</td></tr><tr><td><b>Review terminated group…</b></td><td>After confirming board stop and preserved data, verify no matching process and release the old deployment lock.</td></tr><tr><td><b>Stop project services</b></td><td>Normally stop active managed project groups; Run stop first if acquiring.</td></tr><tr><td><b>Close (keep services running)</b></td><td>Close management and leave independent backends running.</td></tr></table>
+<blockquote>Selected groups in one unified Run Setup use the same Experiment. Service startup does not execute hardware Describe, Prepare, Configure or Run start.</blockquote>
+
+<hr/>
+<a name="chapter-15"></a><h1 id="chapter-15">15  Configuration: Add / Edit ECC group fields</h1><p class="lead">Same-host instances need distinct ports; services on different hosts can reuse ports.</p>
+<h2>Identity, directory and hosts</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Instance name</b></td><td>Friendly group identity for distinguishing ECC / receiver instances.</td></tr><tr><td><b>Configuration source (master; edit above)</b></td><td>Read-only here; edit the master source in the parent window.</td></tr><tr><td><b>Experiment / configuration ID</b></td><td>For example pedestals, with matching configure-pedestals.xml/.xcfg and describe configuration.</td></tr><tr><td><b>ECC execution host / Project folder on ECC host</b></td><td>Computer running SOAP ECC and its LOCAL working/configuration directory.</td></tr><tr><td><b>Data execution host / Project folder on receiver host</b></td><td>Computer running the receiver and its LOCAL raw-data working directory.</td></tr><tr><td><b>Receiver</b></td><td>Choose DataExporter or dataRouter; online preview requires an actual compatible export service.</td></tr></table>
+<h2>Network and board</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>ECC computer IP / SOAP ECC port</b></td><td>Computer control interface and SOAP listener, commonly 8083.</td></tr><tr><td><b>Alarm callback port</b></td><td>Original ECC callback port; avoid same-host instance conflicts.</td></tr><tr><td><b>Receiver control IP / Receiver control port</b></td><td>Receiver control interface and management listener, commonly 46003.</td></tr><tr><td><b>Receiver data IP / CoBo data destination port</b></td><td>Interface reachable by CoBo and incoming data port, commonly 46005.</td></tr><tr><td><b>Waveform TCP export port</b></td><td>DataExporter downstream preview, commonly 46491. Unused by managed dataRouter.</td></tr><tr><td><b>Sentry monitor port</b></td><td>Project-directory HTTP monitor, commonly 8080. Shared per host/project folder.</td></tr><tr><td><b>CoBo index</b></td><td>Physical CoBo[N] within that ECC. Two different ECCs may each use index zero.</td></tr><tr><td><b>Data folders (receiver host)</b></td><td>Shows working/raw and expected successful archive paths for that host.</td></tr><tr><td><b>OK / Cancel</b></td><td>Validate/save the group draft or discard edits. Start/Sync applies the saved recipe later.</td></tr></table>
+<blockquote>ECC instance names and SOAP ports distinguish servers; original XML/XCFG topology determines which physical CoBo IP they control.</blockquote>
+
+<hr/>
+<a name="chapter-16"></a><h1 id="chapter-16">16  Configuration: Slave controls</h1><p class="lead">Select local directories and enable the agent; maintain experiment XML on the master.</p>
+<h2>Buttons</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Slave: receive configuration and run backend services</b></td><td>Use this computer as an execution node; received files are cached and applied locally.</td></tr><tr><td><b>Browse…</b></td><td>Choose the adjacent local cache or project-data folder. Cache selection adds getdaq-node-cache beneath the chosen folder.</td></tr><tr><td><b>Enable / check slave</b></td><td>Save/check node configuration and start management. This alone does not start ECC, receiver or acquisition.</td></tr><tr><td><b>Copy pairing code</b></td><td>Copy an unexpired unused invitation to Add slave on the master; disabled after pairing is normal.</td></tr><tr><td><b>Renew pairing code / Renew / re-pair…</b></td><td>Generate a fresh invitation for an unpaired/expired-code node; older UI may use the longer label.</td></tr><tr><td><b>Remove master connection…</b></td><td>Explicitly revoke the old master and generate a fresh code; retain accepted work, backends and data.</td></tr><tr><td><b>Management network settings (optional)</b></td><td>Expand management interface and port when defaults are unsuitable.</td></tr><tr><td><b>Remove selected inactive entry</b></td><td>Hide a no-process history item, preserving audit/data. Live instances stay visible.</td></tr><tr><td><b>Close (keep services running)</b></td><td>Close this window and retain independent services.</td></tr></table>
+<h2>Fields and observations</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Configuration cache (on this slave)</b></td><td>Local pairing, versions and receipts. It is not a path on the master.</td></tr><tr><td><b>Project data folder (on this slave)</b></td><td>Backend working/raw-data directory; received configuration is copied here.</td></tr><tr><td><b>Local management IP / port</b></td><td>Address reachable by the master and HTTPS management port, commonly 24260.</td></tr><tr><td><b>Instance / Type / Process / Local record</b></td><td>Instance identity, role, matching-process observation and stored deployment phase.</td></tr><tr><td><b>ECC configuration cache / Raw data</b></td><td>Actual backend configuration and working-data paths to compare with the master summary.</td></tr></table>
+<blockquote>A slave can run several ECC backends without several GUI windows. Pairing, backend startup, ECC connection and board acquisition are separate steps.</blockquote>
+
+<hr/>
+<a name="chapter-17"></a><h1 id="chapter-17">17  Configuration sync, timeouts and directories</h1><p class="lead">Saving YAML, copying XML and configuring boards are separate operations.</p>
+<h2>Sync controls</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Tools → Sync project configuration…</b></td><td>Reread the complete master source and choose execution hosts, including this computer if desired.</td></tr><tr><td><b>Host checkboxes / Sync selected hosts</b></td><td>Download and verify an immutable version, then apply relative resources to each selected project folder with backups.</td></tr><tr><td><b>OK / Cancel</b></td><td>Confirmation is labelled Sync selected hosts. Cancel drops this selection, not earlier accepted synchronization.</td></tr><tr><td><b>Active-instance confirmation</b></td><td>Acknowledged stable Ready/Running can accept files; busy known commands defer replacement. No forced Idle.</td></tr></table>
+<h2>Nodes / Paths time settings (milliseconds)</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Status polling</b></td><td>Observation interval. Smaller values generate more ECC/Sentry requests.</td></tr><tr><td><b>HTTP timeout</b></td><td>Ordinary HTTP request limit, not a complete hardware-transition deadline.</td></tr><tr><td><b>Catalog timeout (server normally waits 30 s)</b></td><td>Sentry archive request wait; server-side archive may itself wait about 30 seconds.</td></tr><tr><td><b>Transition deadline</b></td><td>Hardware transition plus state-confirmation limit. A timeout can leave remote completion uncertain.</td></tr><tr><td><b>Post-stop settling time</b></td><td>Wait after hardware stop before record/archive finalization.</td></tr></table>
+<h2>Directory map</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Configuration source folder (master)</b></td><td>Editable complete experiment configuration used as the distribution source.</td></tr><tr><td><b>Project data folder</b></td><td>Execution-host cwd, ECC file copies, incoming .graw and archived Experiment/run_NNNN.</td></tr><tr><td><b>Configuration cache</b></td><td>Private software version cache and deployment/pairing receipts.</td></tr><tr><td><b>GUI Run records root</b></td><td>GUI-local YAML, journal, CSV and configuration backups, separate from raw data.</td></tr></table>
+<blockquote>After Nodes Save and apply, use explicit Sync or sync-enabled service startup to distribute XML. Configure through ECC to load board parameters; unmanaged external ECC keeps its existing NFS/repository.</blockquote>
+
+<hr/>
+<a name="chapter-18"></a><h1 id="chapter-18">18  Original configuration editor controls</h1><p class="lead">Configuration → GET configuration files... edits source files; synchronize after saving.</p>
+<h2>File, editing and display</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>New / Open</b></td><td>Create a configuration document or open an existing file; not a new acquisition Run.</td></tr><tr><td><b>Save / Save As... / Save All</b></td><td>Save current, save to another name, or save all documents. Save within Configuration source for later distribution.</td></tr><tr><td><b>Quit / tab close</b></td><td>Exit or close the document; handle unsaved-edit prompts.</td></tr><tr><td><b>Undo / Redo</b></td><td>Undo/redo edits, including corresponding dialog icons; cannot undo commands already sent to boards.</td></tr><tr><td><b>Find... / Find Next / Search...</b></td><td>Search attributes or find the next result; Search is also on the tree context menu.</td></tr><tr><td><b>Case sensitive / Whole words / Keep open</b></td><td>Set matching preferences and keep the search window open after a result.</td></tr><tr><td><b>Name / Value / Unit / Range</b></td><td>Show/hide property columns; view settings do not change board registers.</td></tr><tr><td><b>Backtrack level / Include URL</b></td><td>Show inheritance depth and referenced-source URLs.</td></tr><tr><td><b>Attribute builder / Insert / About</b></td><td>Construct and insert a property / show original editor information.</td></tr></table>
+<h2>Tree context menu</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>New... / Override / Rename...</b></td><td>Create, override an inherited item locally, or rename the current item.</td></tr><tr><td><b>Delete / Copy / Cut / Paste</b></td><td>Modify or transfer tree content; deletion changes the configuration when saved.</td></tr><tr><td><b>Expand all / Collapse all</b></td><td>Change tree visibility only.</td></tr><tr><td><b>Import / Export → File...</b></td><td>Import content or export selected configuration; distinguish from document Open/Save.</td></tr><tr><td><b>Include → File...</b></td><td>Add a reference; keep required relative resources in the complete source folder.</td></tr><tr><td><b>Database...</b></td><td>Original storage-plugin-dependent entries; not required for the XML workflow.</td></tr><tr><td><b>Inheritance</b></td><td>Inspect Overrides, Overriden by, Inherits, Inherited by and Defined in relationships.</td></tr></table>
+<blockquote>Typical sequence: Open → edit Value → Save → master Sync → ECC Configure. Saving alone does not apply hardware parameters.</blockquote>
+
+<hr/>
+<a name="chapter-19"></a><h1 id="chapter-19">19  Waveform, log and warning controls</h1><p class="lead">Preview and display management remain independent of raw recording.</p>
+<h2>Waveforms</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Open waveform... / Previous / Next</b></td><td>Open offline .graw/.gmat; navigate frames. Event ID / Go to event selects an event; Frame and AGET refine selection.</td></tr><tr><td><b>Auto scan / Period</b></td><td>Automatically advance offline frames at the chosen period.</td></tr><tr><td><b>DataExporter / Refresh choices</b></td><td>Select one/all configured online exporters; refresh the GUI-provided choices.</td></tr><tr><td><b>Pause preview / Follow latest</b></td><td>Pause preview connections / follow the latest cached event, or uncheck to inspect a fixed event.</td></tr><tr><td><b>Event ID / Go / Source / CoBo / AsAd / AGET</b></td><td>Choose a cached online event and electronics source. Read older uncached events offline.</td></tr><tr><td><b>Channels… / All / None / OK / Cancel</b></td><td>Choose visible channels, select all/none, apply or discard selection.</td></tr><tr><td><b>3D / Align baselines / Export plot/data…</b></td><td>Choose depth view and median baseline alignment (ΔADC) or absolute ADC. PNG reflects the view; CSV retains raw ADC.</td></tr><tr><td><b>New session</b></td><td>Clear online preview/frozen frames; retain acquisition and cumulative received counters.</td></tr></table>
+<h2>Logs and state management</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Event log / ECC log / Data log</b></td><td>Choose the stream; right-side selector chooses host/instance or shared Sentry.</td></tr><tr><td><b>Clear / Export combined logs…</b></td><td>Clear current display or export this GUI session’s chronological, source-labelled TXT history.</td></tr><tr><td><b>Acknowledge selected / Accept selected warning</b></td><td>Mark a notification read or accept an ordinary warning; neither proves an uncertain action succeeded.</td></tr><tr><td><b>Clear acknowledged notifications / Clear displayed log</b></td><td>Remove acknowledged items or display text; retain persistent audit and controller state.</td></tr><tr><td><b>Recheck state / Reset to Idle</b></td><td>Update from the GUI’s current observations / explicitly regress stopped ECCs with Undo/Breakup after confirmation.</td></tr><tr><td><b>Close</b></td><td>Close state management without changing hardware.</td></tr></table>
+<blockquote>Each GUI launch starts fresh log collection. Export orders by GUI receipt time and sequence, not a perfectly synchronized physical multi-host clock.</blockquote>
+
+<hr/>
+<a name="chapter-20"></a><h1 id="chapter-20">20  Data tools, direct CoBo and examples</h1><p class="lead">Use these tools alongside, rather than as replacements for, ECC control.</p>
+<h2>Data file tools…</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Mode selector</b></td><td>Inspect raw frames, convert .gmat, merge .gmer, or use installed optional FITS/ROOT tools.</td></tr><tr><td><b>Add files… / Remove selected</b></td><td>Add completed local input files or remove list entries without deleting originals.</td></tr><tr><td><b>Browse…</b></td><td>Choose this tool’s output location; use a new output path for conversion.</td></tr><tr><td><b>Run tool / Stop tool / Close</b></td><td>Start/stop the independent tool process or close its window; follow prompts if still busy.</td></tr></table>
+<h2>CoBo information (direct, read-only)…</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Connect / refresh CoBo</b></td><td>Query the BOARD hardware-control IP/port, not the SOAP ECC computer endpoint.</td></tr><tr><td><b>Disconnect observation / Close</b></td><td>Detach or close this read-only diagnostic window; it does not stop acquisition.</td></tr></table>
+<h2>Three common workflows</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>Single computer</b></td><td>Master → Create ECC / data services → source → Use this computer → Add boards / ECC → select groups → Start selected groups and use → Progress to Ready → Run start.</td></tr><tr><td><b>Multiple hosts</b></td><td>Slave chooses local folders and Enable → Copy pairing code → master Add slave → groups choose execution hosts → master selects and starts groups.</td></tr><tr><td><b>Update electronics configuration</b></td><td>Editor Save in source → Tools / Sync project configuration → select targets → Sync selected hosts → relevant ECC Configure.</td></tr></table>
+<blockquote>OK/Yes accepts the described operation; Cancel/No declines. Stop waiting stops local waiting only. Consult Refresh and logs rather than repeating uncertain hardware commands.</blockquote>
+
+</body></html>

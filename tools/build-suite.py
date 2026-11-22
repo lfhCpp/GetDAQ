@@ -219,7 +219,11 @@ def stage_files():
     files = [(ROOT / 'README.md', 'README.md'),
              (ROOT / 'examples/ecc-control-mcp.example.json', 'share/config/ecc-control-mcp.example.json'),
              (ROOT / 'config/product-features.json', 'share/product-features.json'),
-             (ROOT / 'docs/manual/GetDAQ-Quick-Guide.pdf', 'docs/manual/GetDAQ-Quick-Guide.pdf')]
+             (ROOT / 'docs/manual/GetDAQ-Quick-Guide.pdf', 'docs/manual/GetDAQ-Quick-Guide.pdf'),
+             (ROOT / 'docs/manual/GetDAQ-Quick-Guide-en.pdf', 'docs/manual/GetDAQ-Quick-Guide-en.pdf'),
+             (ROOT / 'docs/manual/GetDAQ-Quick-Guide-zh.html', 'docs/manual/GetDAQ-Quick-Guide-zh.html'),
+             (ROOT / 'docs/manual/GetDAQ-Quick-Guide-en.html', 'docs/manual/GetDAQ-Quick-Guide-en.html'),
+             (ROOT / 'docs/manual/fonts/LICENSE', 'share/licenses/user-guide/OFL.txt')]
     files += [(p, 'docs/' + p.name) for p in sorted((ROOT / 'docs').glob('*'))
               if p.is_file() and p.suffix in ('.md', '.png')]
     for p in sorted((ROOT / 'config').rglob('*')):

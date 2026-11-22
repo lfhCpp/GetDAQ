@@ -12,11 +12,14 @@ else
     echo 'XeLaTeX / XeTeX is required.' >&2
     exit 1
 fi
-for getdaq_manual_pass in 1 2; do
-    if ! (cd "$getdaq_manual_dir" && "${getdaq_manual_engine[@]}" -interaction=nonstopmode -halt-on-error "-output-directory=$getdaq_manual_build" GetDAQ-Quick-Guide.tex) >"$getdaq_manual_build/compile.log" 2>&1; then
-        tail -60 "$getdaq_manual_build/compile.log" >&2
-        exit 1
-    fi
+for getdaq_manual_name in GetDAQ-Quick-Guide GetDAQ-Quick-Guide-en; do
+    for getdaq_manual_pass in 1 2; do
+        if ! (cd "$getdaq_manual_dir" && "${getdaq_manual_engine[@]}" -interaction=nonstopmode -halt-on-error "-output-directory=$getdaq_manual_build" "$getdaq_manual_name.tex") >"$getdaq_manual_build/compile.log" 2>&1; then
+            tail -60 "$getdaq_manual_build/compile.log" >&2
+            exit 1
+        fi
+    done
+    cp "$getdaq_manual_build/$getdaq_manual_name.pdf" "$getdaq_manual_dir/$getdaq_manual_name.pdf"
+    echo "PDF generated: $getdaq_manual_dir/$getdaq_manual_name.pdf"
 done
-cp "$getdaq_manual_build/GetDAQ-Quick-Guide.pdf" "$getdaq_manual_dir/GetDAQ-Quick-Guide.pdf"
-echo "PDF generated: $getdaq_manual_dir/GetDAQ-Quick-Guide.pdf"
+python3 "$getdaq_manual_dir/../../tools/build-guide-html.py"

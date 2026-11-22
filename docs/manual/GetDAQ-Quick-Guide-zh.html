@@ -1,0 +1,279 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"/><title>GetDAQ 中文使用说明</title><style>body {color:#17364d;font-family:GetDAQ Guide Sans;font-size:11pt;} h1 {color:#17364d;} h2 {color:#087f8c;} table {border-collapse:collapse;width:100%;margin-top:8px;margin-bottom:16px;} td,th {border:1px solid #cbd5df;vertical-align:top;} th {background-color:#eff5f8;text-align:left;} blockquote {background-color:#eff5f8;margin:12px 0;padding:12px;} pre,code {font-family:monospace;} pre {background-color:#f4f6f8;padding:10px;white-space:pre-wrap;} .lead {color:#526477;} hr {color:#cbd5df;}</style></head><body><a name="chapter-1"></a><h1 id="chapter-1">1 运行原理与总览</h1>
+
+
+GetDAQ<br/><br/>
+ 安装、配置与采集操作指南<br/><br/>
+适用：原版 SOAP ECC + DataExporter / DataRouter；2026-11-22。<br/><br/>
+<h2>1  运行原理</h2>
+<blockquote><b>GetDAQ 是操作界面；getEccSoapServer 负责给板卡发命令；DataExporter / DataRouter 负责收数据、写磁盘。</b>原始数据不经过 GUI、ECC 或配置分发服务。</blockquote>
+
+<p class="note"><b>GetDAQ → SOAP ECC → CoBo / AsAd / AGET</b><br/>CoBo → DataExporter / DataRouter → raw data<br/>Sentry / node agent: monitoring and management</p>
+
+<h2>程序职责</h2>
+<br/><br/> <table cellspacing="0" cellpadding="7"><tr><th>程序</th><th>职责</th></tr><tr><td>GetDAQ</td><td>连接多个 ECC、采集操作、状态显示及本地运行记录。</td></tr><tr><td>getEccSoapServer</td><td>原版 SOAP ECC；Describe、Prepare、Configure、Start、Stop。</td></tr><tr><td>DataExporter</td><td>原版数据接收和 FrameStorage；另提供 TCP 导出供在线波形预览。</td></tr><tr><td>DataRouter</td><td>可选原版接收器；也兼容其他主机已有的外部 DataRouter。</td></tr><tr><td>getdaq-sentry</td><td>文件计数、磁盘、吞吐统计与 catalog 归档。</td></tr><tr><td>Node agent / 配置服务</td><td>主从配对、整目录分发、缓存、独立后台实例管理。</td></tr><tr><td>getdaq-control-mcp</td><td>AI 客户端的独立 stdio 接口，复用 GUI YAML 和 SOAP / Sentry 客户端。</td></tr></table><br/><br/> 
+<h2>最短操作顺序</h2>
+安装 → 确定目录 → 填 IP、端口和实验 ID → 启动服务或选择已有服务
+→ Connect → Progress 至 Ready → Run start → Run stop。<br/><br/>
+<b>ECC、接收器、GUI 可以同机或分布在多台电脑。多实例指多套后台，不要求多开主界面。</b>
+<h2>本文覆盖</h2>
+Configuration → User guide 可在软件内选择中文或英文；支持章节导航、搜索和 Save PDF 导出，离线可读。<br/><br/>
+第 2 页：Ubuntu 安装；第 3 页：macOS 与 IP / 端口；第 4 页：单机设置；
+第 5 页：主从与文件同步；第 6 页：采集与日志；第 7 页：离线 / 在线 / 3D 波形；第 8 页：MCP 与排错。第 9--20 页逐项解释界面按钮与配置字段，其中第 11--18 页集中说明配置。
+<blockquote>GET、Ice、Boost、CompoundConfig、gSOAP、MFM 等必需源码已内置。仍需基础编译工具和 Qt 5；不是“无需任何系统依赖”。历史 <code>source/</code> 不参与构建。</blockquote>
+
+<hr/>
+<a name="chapter-2"></a><h1 id="chapter-2">2  Ubuntu 安装教程</h1><p class="lead">建议在目标 Ubuntu 本机编译，安装到一个新的目录，保留旧版和用户数据。</p>
+<h2>第一步：安装基础工具</h2>
+使用具有 sudo 权限的账户，在 Ubuntu 终端执行：
+<pre>sudo apt update
+sudo apt install -y build-essential cmake python3 git openssl \
+  qtbase5-dev libqt5svg5-dev qttools5-dev-tools
+qmake -v</pre>
+<code>qmake -v</code> 应显示 Qt 5。机器装有多套 Qt 时，在构建参数中用 <code>--qmake /path/to/qmake</code> 指定 Qt 5。完整构建不需要另装旧 GET / Boost / Ice，也不必安装 ROOT。
+<h2>第二步：获取完整项目源码</h2>
+已有完整源码目录就直接进入，不要只拷贝某一个程序。
+<pre>git clone https://github.com/lfhCpp/GetDAQ.git
+cd GetDAQ
+python3 tools/verify-product-boundary.py
+python3 tools/verify-original-backends.py</pre>
+若复制的是已有安装包、源码位于 <code>code/</code>，先 <code>cd code</code> 再执行构建命令。
+<h2>第三步：编译并安装到新目录</h2>
+以下 <code>dist-linux</code> 必须尚不存在；再次构建可换新名称。
+<pre>python3 tools/build-suite.py --profile full --jobs 2 \
+  --stage &quot;$PWD/dist-linux&quot;
+python3 tools/build-suite.py --verify-stage &quot;$PWD/dist-linux&quot;
+./dist-linux/bin/GetDAQ</pre>
+编译成功后，<code>dist-linux/bin/</code> 包含主程序、原版后台、配置编辑器、波形查看器和 MCP；
+资源在 <code>share/</code>，说明书在 <code>docs/</code>。完整构建包含 16 个程序。<br/><br/>
+内存较小可把 <code>--jobs 2</code> 改为 <code>--jobs 1</code>；只需要连接外部 ECC 可选 <code>--profile control</code>，不包含本机整套后台。
+<h2>已有现场安装怎样启动或升级</h2>
+若安装目录已经有 <code>start-getdaq.sh</code>，可使用它；普通源码 / 新 stage 不保证有该脚本，直接运行 <code>bin/GetDAQ</code> 即可。
+复制同平台运行包时，整体保留 <code>bin/</code>、<code>share/</code> 和 <code>docs/</code>；目标机仍需匹配的 Qt / 系统运行库。<br/><br/>
+升级使用新的运行目录。不要清空配置、原始数据、运行记录或主从配对缓存；不在采集期间强制杀后台。
+<blockquote>首次打开不会自动复位或启动板卡。先完成第 4 / 5 页的路径与网络设置，再明确启动后台或连接已有 ECC。</blockquote>
+
+<hr/>
+<a name="chapter-3"></a><h1 id="chapter-3">3  macOS 与网络地址</h1><p class="lead">Ubuntu 可执行文件不能直接在 Mac 上运行，需在 Mac 本机编译。</p>
+<h2>macOS 安装步骤</h2>
+安装 Xcode 命令行工具、Python 3、CMake 和匹配 CPU 架构的 Qt 5。已有 Homebrew 可使用：
+<pre>xcode-select --install
+brew install cmake qt@5
+cd /Users/attpc/Documents/GetDAQ
+./build-macos.command --jobs 2</pre>
+也可使用已有 Qt 5.15 kit：<code>--qmake /path/to/Qt5/bin/qmake</code>。
+构建后打开 <code>dist-macos/GetDAQ.app</code>。重复打包选新目录，例如
+<code>--output dist-macos-new</code>。详细步骤见 <code>docs/MACOS_INSTALL.md</code>。<br/><br/>
+<b>macOS 已有适配入口，原生构建及实板验收尚未完成。</b>不要复制 Ubuntu 的绝对路径、配对缓存或网络设置当作 Mac 的有效配置。
+<h2>先分清五类 IP</h2>
+下表仅用于解释，不能直接套用到任意新电脑。
+<br/><br/> <table cellspacing="0" cellpadding="7"><tr><th>字段</th><th>示例</th><th>填什么</th></tr><tr><td>ECC host</td><td><code>192.168.40.16</code></td><td>运行 getEccSoapServer 的电脑 IP；不是 CoBo IP。</td></tr><tr><td>CoBo IP</td><td><code>192.168.40.64</code></td><td>板卡本身，填在原版 XML/XCFG 拓扑中。</td></tr><tr><td>Control IP</td><td><code>192.168.40.10</code></td><td>接收电脑的控制网卡，用于接收器管理连接。</td></tr><tr><td>Data / Router host</td><td><code>192.168.50.10</code></td><td>接收电脑的数据网卡，板卡数据实际发到这里。</td></tr><tr><td>Management / SSH</td><td>电脑管理网地址</td><td>主从管理或文件传输地址，可与控制/数据网卡不同。</td></tr></table><br/><br/> 
+<h2>端口用途</h2>
+<br/><br/> <table cellspacing="0" cellpadding="7"><tr><th>服务</th><th>常见端口</th><th>用途</th></tr><tr><td>SOAP ECC</td><td>8083</td><td>GUI / MCP 的电子学命令和状态。</td></tr><tr><td>Router control</td><td>46003</td><td>接收器管理，不能误填为数据接收端口。</td></tr><tr><td>Router data</td><td>46005</td><td>CoBo 发来的原始数据 TCP。</td></tr><tr><td>TCP export</td><td>46491</td><td>DataExporter 在线预览导出。</td></tr><tr><td>Sentry</td><td>8080</td><td>HTTP 状态与归档，不传输原始数据。</td></tr><tr><td>Node / 配置服务</td><td>24260 / 24250</td><td>主从 HTTPS 管理 / 文件分发。</td></tr></table><br/><br/> 
+<blockquote>这些是常见值，必须以实际启动的服务为准。同一台电脑多实例要分配独立端口。板卡控制 HwNode 常见 46001，属于直连信息工具，不是 GUI 的 SOAP ECC 端口。</blockquote>
+
+<hr/>
+<a name="chapter-4"></a><h1 id="chapter-4">4  单机配置教程</h1><p class="lead">先选目录，再确认本机网卡，最后填实验 ID 和启动服务。</p>
+<h2>第一步：明确三个目录</h2>
+<br/><br/> <table cellspacing="0" cellpadding="7"><tr><th>目录</th><th>示例与含义</th></tr><tr><td>Configuration source</td><td>主控安装目录 <code>config/</code>。放整套实验 XML/XCFG、拓扑和引用资源。</td></tr><tr><td>Project data folder</td><td>默认 <code>/home/user/GetDAQ/data</code>。ECC、接收器、Sentry 在此工作，配置复制到此，原始 <code>.graw</code> 也写在此。</td></tr><tr><td>GUI Run records root</td><td>默认 <code>/home/user/GetDAQ/runs</code>。GUI YAML、journal、备份和元信息；不是原始数据目录。</td></tr></table><br/><br/> 
+新配置、项目、日志和缓存默认放在 Home 下可见的 GetDAQ 目录。已有项目沿用保存路径；安装目录没有 config 时，配置源默认 Home/GetDAQ/config。<br/><br/>
+<b>从哪启动接收器决定其工作目录。</b>受管模式会明确设置 Project data folder，不依赖打开 GUI 时终端所在目录。
+<h2>第二步：启动新的原版后台</h2>
+<ol><li>在 Nodes / Paths 右侧的 <b>Master / Slave</b> 选择 <b>Master</b>，进入 <b>Create ECC / data services</b>。</li><li>首次使用点 <b>Use this computer (automatic)</b>，添加执行主机。</li><li>点 <b>Add boards / ECC…</b>，选择 Configuration source、Experiment ID，并指定 ECC host / Data receiver host 及该主机的 Project data folder。</li><li>填接收电脑的 Control IP、Data IP、Router control/data 端口、ECC SOAP 端口；核对 AsAd、AGET 和 CoBo 拓扑文件。</li><li>保留 <b>Sync configuration to project folders</b>，点击 <b>Start project services</b>。软件先分发配置，再在项目目录启动原版后台和共享 Sentry。</li></ol>
+下面只是对应关系示意，受管模式会生成实际参数：
+<pre>cd /home/user/DAQ/experiment-data
+dataRouter 192.168.40.10 192.168.50.10 TCP FrameStorage
+getEccSoapServer --port 8083 --alarm-port 46011 \
+  --config-repo-url /home/user/DAQ/experiment-data</pre>
+<b>不要在同端口再手工启动第二套程序。</b>DataExporter 的受管入口使用生成的控制 / 数据端口参数和实例文件，状态以实例管理显示的实际命令为准。
+<h2>已有 ECC / DataRouter：不必重建后台</h2>
+选择 <b>Connect existing ECC</b>，填写实际 SOAP ECC host / port，检查连接后保存使用；
+Router host 填接收数据网卡，Router port 填<b>数据端口</b>，Sentry 填对应目录的监控服务。
+外部 DataRouter 不需要另起 DataExporter；已有 NFS / ECC 仓库继续使用原配置。
+<blockquote>旧 ECC 准备成功不证明数据接收目标一定正确。先核对 Router 数据端口与地址，再看实际文件是否增长。</blockquote>
+
+<hr/>
+<a name="chapter-5"></a><h1 id="chapter-5">5  主从机、配置 ID 与同步</h1><p class="lead">从机选择自己的目录；实验配置只在主控维护。</p>
+<h2>从控 Slave 的设置</h2>
+<ol><li>选择 Slave，设置本机 <b>Configuration cache</b> 与 <b>Project data folder</b>。前者是软件缓存；后者是后台工作目录和原始数据目录。</li><li>点击 <b>Enable / check slave</b>，软件启用节点管理服务。</li><li>点 <b>Copy pairing code</b>，到主控的 <b>Add slave</b> 粘贴。邀请码有有效期，配对后即消费，不需反复复制。</li><li>主控不可达时保留配对。需要更换主控，用 <b>Remove master connection…</b> 明确确认；旧管理凭据失效，后台、数据和审计记录保留。</li></ol>
+<h2>主控 Master 的设置</h2>
+添加从机后，创建板卡组时选择 ECC host、Data receiver host；同一组的两类服务可以在不同电脑。
+各执行电脑使用<b>本机</b> Project data folder，不能把主机绝对路径直接当作从机目录。
+同机多开后台时，以主机、组名称、端口和实例身份区分，不共享同一块板卡的控制权。
+首次设置默认展开。在 ECC and boards 表中用 Ctrl / Shift 多选组，点 <b>Start selected groups and use</b>；只启动所选组，并自动带入 Run Setup 连接查询，不启动采集。各 ECC 的 CoBo 索引独立保留。从机的 <b>Remove selected inactive entry</b> 仅隐藏无进程的历史项，保留数据与审计。
+<h2>配置文件从哪里来、到哪里去</h2>
+<blockquote>主控 Configuration source 整目录 → 不可变配置版本 → 本机 / 从机缓存
+→ 该执行主机的 Project data folder。资源保持相对路径；原始数据不随配置分发传输。</blockquote>
+<br/><br/> <table cellspacing="0" cellpadding="7"><tr><th>GUI 字段 / 操作</th><th>原版 ECC 匹配的文件名（.xcfg 或 .xml）</th></tr><tr><td>Describe ID = cobo0</td><td><code>describe-cobo0</code></td></tr><tr><td>Prepare ID = pedestals</td><td><code>configure-pedestals</code>，不是 prepare-pedestals</td></tr><tr><td>Configure ID = pedestals</td><td><code>configure-pedestals</code></td></tr><tr><td>Experiment</td><td>Run 名称及缺省 ID；节点明确填写的 ID 优先。</td></tr></table><br/><br/> 
+<h2>修改配置以后</h2>
+<ol><li>用原版配置编辑器保存到 Configuration source。</li><li>Tools → <b>Sync project configuration…</b>，选择本机、指定从机或全部执行主机。</li><li>活动实例需确认警告；稳定 Ready / Running 也可同步，不强制退回 Idle。已观察到硬件命令仍在转换时暂缓替换文件，未知状态需明确确认。</li><li>同步只改变磁盘文件。板卡仍用上次加载的参数；通过相应 ECC Configure 才更新硬件。</li></ol>
+已保存连接可用 Remove saved connection 从历史列表移除。路径摘要即时显示当前设置，旧运行目录另列提示，正常重启后台后应用新工作目录。Nodes / Paths 的 Save and apply 主要保存连接 YAML，不等于立刻发布 XML/XCFG。
+后台启动和项目发布也会检查源目录；外部未托管 ECC 的 NFS / 仓库不被擅自覆盖。
+被替换配置保存在项目目录的备份中，不删除原始数据。
+
+<hr/>
+<a name="chapter-6"></a><h1 id="chapter-6">6  开始、停止与日志</h1><p class="lead">以 ECC 实际状态判断采集；以接收目录判断写盘。</p>
+<h2>开始采集</h2>
+<ol><li>Run setup 核对 Experiment、Run 编号，Save YAML 保存本次连接设置。</li><li>Connect 查询真实状态。若已经 Ready，可直接开始；不必因为重连再强制回到 Idle。</li><li>初次初始化，用 Progress all 或选定节点 Progress，依次 Describe、Prepare、Configure；MuTaNT / CoBo 顺序由界面流程协调。</li><li>Ready 后 Run start，观察 Running、Files / Data GB、数据率和磁盘空间。</li><li>核对接收主机项目目录里的 <code>.graw</code> 是否持续增长，必要时查看在线波形。</li></ol>
+<h2>停止采集</h2>
+点 Run stop，先等待所有参与 ECC 真实返回 Ready。之后是 Sentry catalog、配置备份与本地记录。
+<b>记录失败不等于硬件未停止；也不能仅凭本地日志断言板卡已停。</b><br/><br/>
+归档成功通常在项目目录 <code>&lt;Experiment&gt;/run_NNNN/</code>；归档警告时数据可能仍在原目录，以实际文件和日志为准。
+<h2>警告不再锁死操作</h2>
+<br/><br/> <table cellspacing="0" cellpadding="7"><tr><th>情况</th><th>行为</th></tr><tr><td>本地记录 / 备份失败</td><td>告警并保留已有记录，可手动开始下一次；不伪称已成功保存，自动续跑取消。</td></tr><tr><td>catalog 结果不确定</td><td>保留未知回执，不自动重试；确认 Ready 后允许关闭本地 Run 并继续手动操作。</td></tr><tr><td>状态过期、监控缺失</td><td>需要确认时弹出警告；硬件命令仍由 ECC 判断。</td></tr><tr><td>Start / Stop / Disconnect</td><td>连接后保持可用；正在执行的硬件命令串行处理，Stop 可排在当前命令后。</td></tr><tr><td>已有同号 Run / 接收文件</td><td>明确询问后才保留或替换记录；不直接删除原始数据。</td></tr></table><br/><br/> 
+<b>Start 观察到已经 Running 时只附着观察，不再重复 Start；停止外部开始的采集也可用 Stop。</b>
+断开可在确认后脱离未完成工作，不停止远端采集。
+<h2>查看、清屏和导出日志</h2>
+原 Event log 区域切换 <b>Event log / ECC log / DataExporter log / DataRouter log</b>，右侧选择主机和实例；也可选择共享 Sentry。
+每次重新打开 GUI，新日志会话从空白开始，不加载之前的输出；首次附着后台日志后只收集新内容。Data log 右侧 Clear 清显示，导出仅含本次会话。
+Tools → Logs → <b>Export combined logs…</b> 导出 TXT，按 GUI 接收时间与顺序号合并，分隔来源；远端原文时间保留，不能冒充完全同步的跨主机事件时钟。
+<blockquote>关闭 GUI、Disconnect、Stop acquisition、Stop backend services 是四件事。需要关闭后台时使用实例管理，并先核对采集状态。</blockquote>
+
+<hr/>
+<a name="chapter-7"></a><h1 id="chapter-7">7  波形查看与 3D</h1><p class="lead">在线、离线使用相同的电子学通道和绘图方式，没有 pad 映射。</p>
+<h2>离线：读已有 .graw / .gmat</h2>
+Tools 中打开波形查看器，Open waveform 选文件；用 Event ID / Go to event 选事件，Frame 选该事件的帧，AGET 选芯片，Channels… 勾选通道。
+<code>.gmat</code> 没有真实事件号，用帧号选择。PNG / CSV 从 <b>Export plot/data…</b> 导出。
+<h2>在线：独立连接 DataExporter</h2>
+Tools → <b>Online waveform viewer…</b>。直接从 <b>DataExporter</b> 选择框选择当前配置中的实例或全部实例，软件自动使用受管项目的导出地址，不再手填 IP。外部接收器在连接配置中选择 DataExporter 和预览端口（常见 46491），也可在 Nodes / Paths 设置 Preview host / Preview TCP port。选择后自动连接，再选 Source、CoBo、AsAd、AGET 与通道。<br/><br/>
+Follow latest 跟随最新事件；取消后选缓存事件或用 Event ID / Go。Cache 限 100 事件 / 4096 帧 / 256 MiB 并自动淘汰；Received total 仅累计计数，不保留等量数据。
+预览允许丢帧，正常落盘优先。关闭查看器不停止后台。
+旧 DataRouter 必须确实提供相同 TCP 导出协议才能在线预览，普通接收服务不会自动具备该功能。
+<h2>3D：三个轴和逐通道间距</h2>
+<br/><br/> <table cellspacing="0" cellpadding="7"><tr><th>轴 / 操作</th><th>含义</th></tr><tr><td>Time (sample bucket)</td><td>时间方向显示采样桶 0--511；未核对采样频率时不直接标为 ns。</td></tr><tr><td>Amplitude (ΔADC / ADC)</td><td>默认 Align baselines 减去各通道中位数基线，零参考等距；取消后显示绝对 ADC。共用幅度尺度，原始值保留。</td></tr><tr><td>Channel number</td><td>纵深轴，标注实际选中通道号；通道之间独立，不插值成曲面。</td></tr><tr><td>拖动 / 滚动</td><td>左键拖动调纵深角度；普通滚轮滚动多通道图；Ctrl+滚轮调通道间距；双击重置。</td></tr></table><br/><br/> 
+<p><img src="../waveform-3d-example.png" width="660"/></p>
+图示为 8 通道不同基线的合成脉冲，开启基线对齐，仅演示显示效果，不是实板采集结果。
+<blockquote>白色背景、浅色参考底面、独立彩色曲线；曲线下方不填充，也无白色遮挡描边。通道多时绘图区域可滚动，不把 68 条线强压在一屏。离线工具打开不再锁死 Run start；避免修改正在采集的文件。</blockquote>
+
+<hr/>
+<a name="chapter-8"></a><h1 id="chapter-8">8  MCP 设置与常见排错</h1><p class="lead">MCP 是独立 stdio 工具，复用已保存的 GUI YAML；不重新配一遍 IP。</p>
+<h2>配置 MCP 客户端</h2>
+复制安装包 <code>share/config/ecc-control-mcp.example.json</code>，保存为 <code>mcp.json</code>，填写：
+<pre>{
+  &quot;schema&quot;: 2,
+  &quot;run_config&quot;: &quot;/absolute/path/to/envoy.yml&quot;,
+  &quot;allow_control&quot;: false,
+  &quot;request_timeout_ms&quot;: 30000
+}</pre>
+MCP 客户端 command 设为安装目录 <code>bin/getdaq-control-mcp</code> 的绝对路径，
+args 为 <code>[&quot;--config&quot;, &quot;/absolute/path/to/mcp.json&quot;]</code>。macOS 位于
+<code>GetDAQ.app/Contents/MacOS/getdaq-control-mcp</code>。
+<h2>MCP 能做什么</h2>
+<code>ecc_configuration</code> 显示节点和目录；<code>ecc_status</code> 查询实际 ECC；
+<code>ecc_receivers</code> 查询 Sentry；<code>ecc_operation</code> 查询命令回执。
+默认只读。控制需在本地设置 <code>allow_control=true</code> 并重启 MCP，然后调用
+<code>ecc_submit_operation</code>，每次指定 node_id、command、唯一 operation_id 和确认文字：
+<pre>{&quot;node_id&quot;:0,&quot;command&quot;:&quot;stop&quot;,&quot;operation_id&quot;:&quot;stop-001&quot;,
+ &quot;confirmation&quot;:&quot;I_CONFIRM_stop_stop-001&quot;}</pre>
+命令确认只代表 SOAP 已应答，仍要用状态查询确认 Ready / Running。
+超时或中断为 unknown，同 ID 重试只读回执，不再发命令。关闭 MCP 不停止硬件。
+多节点完整 Run / 归档仍由 GUI 管理；不要同时从 GUI 和 MCP 操作同一块板卡。
+旧原生 HTTP 的 base_url / epoch 配置不再适用。详见 <code>docs/MCP_SETUP.md</code>。
+<h2>排错速查</h2>
+<br/><br/> <table cellspacing="0" cellpadding="7"><tr><th>现象</th><th>先查什么</th></tr><tr><td>Connection refused</td><td>对应电脑 IP、服务端口、后台是否真实监听；别混用 SOAP / 数据 / export 端口。</td></tr><tr><td>Node authentication required (401)</td><td>节点管理凭据失效。启动会检查本机配对并恢复当前项目凭据；远端从机需重新配对并 Add slave 更新原条目，不必删除板卡组。</td></tr><tr><td>Prepare timed out</td><td>可能远端已执行。先查询状态和 ECC log，不因超时自动重复发命令。</td></tr><tr><td>Unknown</td><td>当前没有可信状态；重启 GUI 不等于复位。核对服务输出、地址和连接。</td></tr><tr><td>无数据率 / 无波形</td><td>确认实际项目目录文件增长；再查 Sentry 监控目录、Data IP、数据端口及 export 端口。</td></tr><tr><td>缺少配置文件</td><td>核对源目录、同步目标、文件 ID 和原版 ECC 的仓库 / NFS。Prepare 匹配 configure-ID。</td></tr><tr><td>记录或 catalog 警告</td><td>确认 ECC Ready 后可手动下一次；保留原数据和未知回执，不直接重复归档。</td></tr></table><br/><br/> 
+
+依据当前源码与配置 / 在线波形 / MCP 说明整理。软件回归不能替代实板接线、数据质量和原生 macOS 验收。
+
+<hr/>
+<a name="chapter-9"></a><h1 id="chapter-9">9  按钮速查：入口与主界面</h1><p class="lead">按界面英文原名查找。先分清配置、后台、硬件命令和运行记录。</p>
+<h2>Run setup 与菜单入口</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Open YAML</b></td><td>读取 GetDAQ 连接与运行设置（YAML），填入节点、IP、端口、路径和实验名。它不是打开板卡 XML 的按钮。</td></tr><tr><td><b>Save YAML</b></td><td>把当前 GetDAQ 设置写入所选 YAML。保存设置不会将 XML/XCFG 发送给 ECC。</td></tr><tr><td><b>Nodes / Paths</b></td><td>打开节点配置表、源配置目录、GUI 记录目录及超时设置；详见第 11 页。</td></tr><tr><td><b>Master / Slave</b></td><td>选择本机角色并进入服务配置。单机也选 Master，然后 Use this computer。只改变角色选择不代表后台已经启动。</td></tr><tr><td><b>Configuration</b></td><td>配置菜单：进入 ECC 管理、配置编辑器；User guide 选择中英说明。</td></tr><tr><td><b>ECC / data service instances…</b></td><td>打开同一套主从与 ECC 服务管理界面；可以连接已有 ECC，也可以创建后台组。</td></tr><tr><td><b>GET configuration files...</b></td><td>启动独立的原版配置编辑器，编辑 Configuration source 目录中的 XML/XCFG。当前界面要求先 Disconnect。</td></tr><tr><td><b>Tools</b></td><td>工具入口：配置同步、直连 CoBo 信息、在线/离线波形、文件转换和日志导出。</td></tr><tr><td><b>ECC / data service manager…</b></td><td>与配置菜单的 ECC / data service instances 是同一管理入口，不是再启动一套后台。</td></tr><tr><td><b>Run</b></td><td>Pause run 在实际 Running 时暂停；Resume run 在实际 Paused 时继续。重连外部采集也可操作；恢复延续原 Run。</td></tr><tr><td><b>Recovery → Status and warnings…</b></td><td>查看并确认警告、检查当前状态，或明确执行退回 Idle；详见第 19 页。</td></tr></table>
+<h2>主界面输入与记录参数</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Experiment / Run</b></td><td>实验名和本次 Run 编号。实验名参与记录及归档命名；Describe/Prepare/Configure 显式 ID 优先决定 ECC 配置。</td></tr><tr><td><b>Run description / note</b></td><td>本次采集备注，随运行记录保存。</td></tr><tr><td><b>Add parameter</b></td><td>在 Run record parameters 中增加一行实验记录参数，不配置板卡寄存器。</td></tr><tr><td><b>Remove selected</b></td><td>删除参数表中当前选中的记录参数行。Nodes 中的同名按钮作用于节点行，见第 11 页。</td></tr></table>
+<blockquote>最常用入口：已有后台 → Master → Connect existing ECC；软件管理后台 → Master → Create ECC / data services。从机先选 Slave 并启用。</blockquote>
+
+<hr/>
+<a name="chapter-10"></a><h1 id="chapter-10">10  按钮速查：采集与自动运行</h1><p class="lead">这些按钮会操作硬件或本次 Run；不要和后台进程的 Start / Stop 混淆。</p>
+<h2>Acquisition controls</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Connect</b></td><td>按当前节点表连接 ECC，开始查询真实状态与接收监控；受管配置可先检查后台。连接本身不执行 Describe / Prepare / Configure。</td></tr><tr><td><b>Disconnect</b></td><td>断开 GUI 的控制/观察会话。仍有工作或采集时按提示确认；远端后台与硬件状态保留。</td></tr><tr><td><b>Progress all</b></td><td>对所有节点推进一个初始化阶段，依次 Idle → Described → Prepared → Ready；重复到 Ready。会发送对应硬件命令。</td></tr><tr><td><b>Regress all</b></td><td>对所有节点退回一个初始化阶段，执行相应 Undo / Breakup。不是关闭后台服务。</td></tr><tr><td><b>Progress selected node</b></td><td>只推进下方选择框中的一个节点；先选对节点。</td></tr><tr><td><b>Regress selected node</b></td><td>只让选择框中的一个节点退回一个初始化阶段。</td></tr><tr><td><b>Run start</b></td><td>开始本次采集并建立运行记录；若已观察到 Running，则附着观察。已有同号记录或接收文件时按确认提示处理。</td></tr><tr><td><b>Run stop</b></td><td>请求停止采集；ECC 确认 Ready 后处理归档、备份和本地记录。服务进程仍运行。</td></tr><tr><td><b>Retry finalization</b></td><td>重试可恢复的本地记录收尾；不等于再发送 Stop，也不直接重放结果不确定的 catalog。</td></tr><tr><td><b>Recover journal</b></td><td>读取已有运行日志 journal，恢复中断后的记录处理；不会凭空认定硬件已经停止。</td></tr><tr><td><b>Resume failed catalog replacement</b></td><td>仅特定同号替换失败、仍在原会话且检查通过时出现。继续原替换流程；普通归档警告不使用它。</td></tr></table>
+<h2>Automatic Run</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Enable / Time / File size</b></td><td>Enable 启用规则；Time 设置时长阈值；File size 设置接收数据量阈值。两项都选时，先到阈值者触发。</td></tr><tr><td><b>Stop / Next Run</b></td><td>阈值达到后，Stop 只停止本次；Next Run 在成功收尾、确认 Ready 后进入下一次。</td></tr><tr><td><b>Runs / Unlimited</b></td><td>自动序列总次数，包含第一次；0 显示 Unlimited。</td></tr><tr><td><b>Apply</b></td><td>在 Run start 前应用自动运行规则。仅修改输入还没有应用；手动 Run stop 取消自动续跑。</td></tr></table>
+<blockquote>日常顺序：Connect → Progress 至 Ready → Run start → Run stop。需要关闭 ECC / 接收进程，再进入服务管理使用 Stop，而不是只 Disconnect。</blockquote>
+
+<hr/>
+<a name="chapter-11"></a><h1 id="chapter-11">11  配置按钮：Nodes / Paths</h1><p class="lead">这里保存 GUI 连接设置；板卡的电子学参数仍在原版 XML/XCFG 中。</p>
+<h2>按钮与路径</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Configure and manage ECC / data services…</b></td><td>进入主从角色、已有 ECC 连接、后台创建/管理；接受配置后带回 Run Setup。</td></tr><tr><td><b>Add CoBo</b></td><td>在当前节点表新增一行，填写该节点对应 ECC 及接收器。不会启动一个 ECC 进程。</td></tr><tr><td><b>Remove selected</b></td><td>移除节点表当前行；不删除远端实例、配置文件或原始数据。</td></tr><tr><td><b>Browse…</b></td><td>选择它左边输入框的本机目录。配置源与 GUI 记录目录各有一个，不是远端目录浏览器。</td></tr><tr><td><b>Sync configuration to project folders before starting services</b></td><td>保存启动时的同步开关。勾选后由托管启动流程分发配置；仅勾选并保存 Nodes 不立即传文件。</td></tr><tr><td><b>Save and apply</b></td><td>检查节点/路径并保存到当前 YAML；新设置会创建自己的 YAML。应用到 GUI，不直接同步 XML 或配置硬件。</td></tr><tr><td><b>Cancel</b></td><td>放弃本窗口尚未保存的表格与路径修改。此前已接受的远端后台操作仍保留。</td></tr></table>
+<h2>节点表：每一列填什么</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>ID / Role / Name</b></td><td>GUI 唯一节点编号、cobo 或 mutant、显示名称。托管多 ECC 可各有 CoBo[0]，其实际板卡索引另行保留。</td></tr><tr><td><b>ECC host / ECC port</b></td><td>运行 SOAP ECC 的电脑地址及 SOAP 服务端口，例如 8083。这里不填 CoBo 的板卡 IP。</td></tr><tr><td><b>Sentry host / Sentry port</b></td><td>运行接收目录监控及归档服务的电脑地址、HTTP 端口，例如 8080。</td></tr><tr><td><b>Router host / Router port</b></td><td>板卡发送原始数据的接收地址及数据端口，例如数据网 IP:46005；不是接收器控制端口。</td></tr><tr><td><b>Legacy ECC target host / port</b></td><td>旧 ECC 可选第二条板卡数据目标。正常单入口配置端口留 0；这不是 DataExporter 的下游导出端口。</td></tr><tr><td><b>Describe / Prepare / Configure ID</b></td><td>ECC 用于匹配配置的 ID。例：cobo0 → describe-cobo0；pedestals → configure-pedestals。</td></tr><tr><td><b>Preview host / Preview TCP port</b></td><td>独立在线波形的 DataExporter TCP 导出地址，常见 46491；0 表示不配置预览。</td></tr></table>
+<blockquote>Configuration source folder 是本机 XML/XCFG 源目录；GUI Run records root 保存 YAML/journal/CSV/备份；Raw .graw folder 是 Sentry 返回的接收主机目录。三者用途不同。</blockquote>
+
+<hr/>
+<a name="chapter-12"></a><h1 id="chapter-12">12  配置按钮：连接已有 ECC</h1><p class="lead">Master → Connect existing ECC；用于已有的本机或其他电脑上的 SOAP ECC。</p>
+<h2>选择、检查与保存</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Saved ECC connections / New connection</b></td><td>选择已保存的连接，或新填一套。选择条目只载入设置，不证明服务在线。</td></tr><tr><td><b>Remove saved connection</b></td><td>从历史选择列表移除该条目。保留对应 YAML、远端服务和数据。</td></tr><tr><td><b>Existing receiver IP and data port</b></td><td>展开已有接收器、在线预览和 GUI 记录目录设置；不是启动接收器的开关。</td></tr><tr><td><b>Browse…</b></td><td>选择本机 Local Run records directory，保存 GUI 运行记录。</td></tr><tr><td><b>Check connection</b></td><td>探测 SOAP 协议并读取 ECC 状态；不会初始化板卡，也不会启动 ECC 或接收器。修改地址等输入后要重新检查。</td></tr><tr><td><b>Save and use in Run Setup</b></td><td>检查成功后保存连接 YAML 并带回主界面；当前入口会安排连接查询。</td></tr><tr><td><b>Stop waiting</b></td><td>结束本地检查等待，远端 ECC 服务保持原样。</td></tr><tr><td><b>Close (keep services running)</b></td><td>关闭窗口，已运行的后台继续运行。</td></tr></table>
+<h2>输入框含义</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Instance name</b></td><td>便于识别的连接名称，不是板卡配置文件 ID。</td></tr><tr><td><b>ECC computer IP / ECC service port</b></td><td>已有 ECC 所在电脑地址和 SOAP 监听端口。不同实例通过主机地址与端口区分。</td></tr><tr><td><b>Data receiver IP / port (SOAP ECC)</b></td><td>填写板卡应发送到的接收数据地址/端口。后台真实监听应事先设置一致。</td></tr><tr><td><b>Receiver type</b></td><td>选择 DataRouter / no TCP preview 或 DataExporter。这里只描述已有接收器，不切换远端程序。</td></tr><tr><td><b>TCP preview export port</b></td><td>仅 DataExporter 在线波形使用的导出端口，与板卡接收端口分开。</td></tr><tr><td><b>Local Run records directory</b></td><td>当前 GUI 电脑的运行记录路径；不是远端原始数据输出目录。</td></tr></table>
+<blockquote>外部 ECC 仍读取它自己 --config-repo-url 指向的目录或 NFS。这个连接页不会把本机 XML 自动发送到未托管的外部 ECC。多个已有 ECC 的连接参数可在 Nodes 表统一查看和编辑。</blockquote>
+
+<hr/>
+<a name="chapter-13"></a><h1 id="chapter-13">13  配置按钮：主控、主机与配置源</h1><p class="lead">Master → Create ECC / data services；先确定目录与主机，再创建板卡组。</p>
+<h2>主控页面与高级配置服务</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Configuration source folder / Browse…</b></td><td>选择主控电脑上保存完整 XML/XCFG 及附属资源的目录。此目录是分发源，不是从机上的路径。</td></tr><tr><td><b>Sync configuration to project folders before starting services</b></td><td>启动托管后台前同步源目录到执行主机项目目录。关闭时使用执行主机已有文件，并显示未核验警告。</td></tr><tr><td><b>Sync project configuration…</b></td><td>立即选择本机/从机同步完整源配置；不要求启动采集。详见第 17 页。</td></tr><tr><td><b>First-time setup / edit hosts and boards</b></td><td>展开 Hosts、ECC and boards 与 Advanced: master service；默认勾选。隐藏这些页不会停服务。</td></tr><tr><td><b>Start / check master service</b></td><td>启动或检查主控的配置分发服务。不是启动 SOAP ECC，也不是硬件 Start。</td></tr><tr><td><b>Open existing project…</b></td><td>选择含 project.json 的主控项目目录，恢复主机、组和部署记录；在线状态还需 Refresh。</td></tr><tr><td><b>Stop project configuration service</b></td><td>停止主控配置分发服务；ECC、接收器和节点管理服务保留。</td></tr></table>
+<h2>Hosts 页</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Project data folder on this computer / Browse…</b></td><td>启用本机执行节点前选定工作目录。ECC、接收器和 Sentry 在此工作；已启用主机保留原目录。</td></tr><tr><td><b>Use this computer (automatic)</b></td><td>把主控自己作为执行主机，建立/检查本机节点管理与项目目录。单机部署先点它。</td></tr><tr><td><b>Add slave</b></td><td>粘贴从机 Copy pairing code 生成的完整邀请码，再加入该执行主机；不是填写 CoBo 的 IP。</td></tr><tr><td><b>Name</b></td><td>主机显示名称。主机表还显示管理地址、身份、项目数据目录及最后观察状态。</td></tr></table>
+<h2>Advanced: master service 输入</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Master project directory</b></td><td>主控保存项目描述、版本、凭据和部署回执的目录，不是原始数据目录。</td></tr><tr><td><b>Master IP reachable from other hosts</b></td><td>从机能够访问的主控电脑地址，用于 HTTPS 配置服务。</td></tr><tr><td><b>Configuration service port</b></td><td>主控配置分发端口，常见 24250；不是 SOAP ECC 端口。</td></tr></table>
+<blockquote>主控源目录 → 配置版本 → 每个执行主机缓存 → 各自的 Project data folder。启用后的工作目录不会因为修改 GUI 记录目录而自动迁移。</blockquote>
+
+<hr/>
+<a name="chapter-14"></a><h1 id="chapter-14">14  配置按钮：ECC 组与启动范围</h1><p class="lead">ECC and boards 表支持 Ctrl 多选、Shift 连选。组代表后台实例及其板卡/接收器配置。</p>
+<h2>日常启动与采用配置</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>ECC configuration</b></td><td>上方选择框选一个组；选择它会切换表格到该组。要选多个组，在 ECC and boards 表中多选。</td></tr><tr><td><b>Start project services</b></td><td>使用当前表格选择，重新读源配置，准备并启动所选组及对应接收器、共享 Sentry；然后带回 Run Setup。</td></tr><tr><td><b>Start selected groups and use</b></td><td>与上面的启动采用相同流程；明确按多选范围操作。不同组通过独立实例/端口区分，不启动未选组。</td></tr><tr><td><b>Use this ECC in Run Setup</b></td><td>采用当前选中、已准备且活动的组；可多选。它不负责启动尚未运行的组。</td></tr><tr><td><b>Refresh / check original operation</b></td><td>查询主机、进程及已接受操作的回执。历史 failed 是历史记录，不等于当前服务仍离线。</td></tr><tr><td><b>Stop waiting</b></td><td>结束本地等待，不撤销远端已接受的准备、启动或停止。之后用 Refresh 查询。</td></tr></table>
+<h2>组的增删与停止</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Add boards / ECC…</b></td><td>新增组草稿，填写主机、端口、目录、实验 ID、CoBo index 和接收器类型。按 OK 保存草稿，不立即改变远端服务。</td></tr><tr><td><b>Edit selected group…</b></td><td>编辑当前组的草稿；该按钮针对当前一组，不批量编辑所有选中行。</td></tr><tr><td><b>Remove selected group from next release</b></td><td>从下一版本项目草稿移除当前组；活动后台需先正常停止或核查释放。不会删除原始数据与审计。</td></tr><tr><td><b>Save and sync only</b></td><td>保存并准备项目版本，分发配置但不激活后台。这一按钮处理项目中所有组，不采用表格的多选启动范围。</td></tr><tr><td><b>Stop selected group</b></td><td>正常停止当前一组后台，并非所有多选组。先在主界面结束采集，再关闭后台。</td></tr><tr><td><b>Terminate selected group…</b></td><td>确认后终止当前组匹配的后台进程。只用于正常停止无法完成时；进程退出不代表板卡已停。</td></tr><tr><td><b>Review terminated group…</b></td><td>确认板卡停止、数据保留后，节点再核验进程确实不存在，释放旧部署占用；不删除旧数据和回执。</td></tr><tr><td><b>Stop project services</b></td><td>正常停止项目中活动的受管后台组。采集中的组应先 Run stop。</td></tr><tr><td><b>Close (keep services running)</b></td><td>关闭管理窗口，后台独立继续运行。</td></tr></table>
+<blockquote>多选启动后，各组共同进入一个 Run Setup，应使用相同 Experiment。启动后台只准备进程与配置；Describe / Prepare / Configure / Run start 仍由采集流程发出。</blockquote>
+
+<hr/>
+<a name="chapter-15"></a><h1 id="chapter-15">15  配置字段：新增或编辑 ECC 组</h1><p class="lead">对应 Add boards / ECC… / Edit selected group… 中的每一项。</p>
+<h2>身份、路径与执行主机</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Instance name</b></td><td>自定义组名，便于从多个 ECC/接收器中识别。</td></tr><tr><td><b>Configuration source (master; edit above)</b></td><td>主控源配置目录；本对话框只读，要到上层 Configuration source 修改。</td></tr><tr><td><b>Experiment / configuration ID</b></td><td>如 pedestals；用于选择原版配置 ID 和运行命名。应存在 configure-pedestals.xml 或 .xcfg。</td></tr><tr><td><b>ECC execution host</b></td><td>选择执行 SOAP ECC 的电脑；来自已加入的本机/从机列表。</td></tr><tr><td><b>Project folder on ECC host</b></td><td>该 ECC 所在电脑的工作目录，收到的完整配置会同步到这里。</td></tr><tr><td><b>Data execution host</b></td><td>选择执行 DataExporter / DataRouter 的电脑，可与 ECC 相同或不同。</td></tr><tr><td><b>Project folder on receiver host</b></td><td>接收器工作目录，原始数据写入这里；归档后通常位于该目录下的实验/run 子目录。</td></tr><tr><td><b>Receiver</b></td><td>选择 DataExporter 或 dataRouter；只有实际提供 TCP 导出功能的接收器可用于在线预览。</td></tr></table>
+<h2>地址、端口与板卡索引</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>ECC computer IP / SOAP ECC port</b></td><td>ECC 监听的电脑控制网地址与 SOAP 端口，常见 8083。</td></tr><tr><td><b>Alarm callback port</b></td><td>原版 ECC 的报警回调端口；同机多实例也要避免冲突。</td></tr><tr><td><b>Receiver control IP / control port</b></td><td>接收器电脑的控制网地址与管理端口，常见 46003。</td></tr><tr><td><b>Receiver data IP</b></td><td>CoBo 能到达的接收电脑数据网地址；可以与控制 IP 不同。</td></tr><tr><td><b>CoBo data destination port</b></td><td>板卡数据接收端口，常见 46005。应与 ECC 数据目标一致。</td></tr><tr><td><b>Waveform TCP export port</b></td><td>DataExporter 转发给独立波形客户端的下游端口，常见 46491。选择 dataRouter 时不使用此项。</td></tr><tr><td><b>Sentry monitor port</b></td><td>监控该项目目录的 HTTP 端口，常见 8080。同一主机同一项目目录共享 Sentry。</td></tr><tr><td><b>CoBo index</b></td><td>该 ECC 对应的实际 CoBo[N] 索引；多个 ECC 可以各自控制 CoBo[0]。GUI 节点编号可能不同。</td></tr><tr><td><b>OK / Cancel</b></td><td>OK 校验并保存组草稿；Cancel 放弃本次编辑。保存草稿后，还需 Start 或 Sync 才会改变执行主机配置。</td></tr></table>
+<blockquote>端口属于不同进程和用途。同机多实例必须规划不冲突的 ECC、报警、接收控制/数据、导出端口。不同电脑可以使用相同端口号。</blockquote>
+
+<hr/>
+<a name="chapter-16"></a><h1 id="chapter-16">16  配置按钮：从控 Slave</h1><p class="lead">从机只需先选本机目录并启用；实验配置由主控整目录分发。</p>
+<h2>按钮和勾选项</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Slave: receive configuration and run backend services</b></td><td>把当前电脑作为执行节点，接收配置并运行后台；不要求在从机再手工选择主控的 XML 文件。</td></tr><tr><td><b>Browse…</b></td><td>选左侧对应的本机路径：缓存目录或项目数据目录。缓存选择器会在选定目录下使用 getdaq-node-cache。</td></tr><tr><td><b>Enable / check slave</b></td><td>保存/检查本机节点配置并启动管理服务。启用节点不等于已启动 ECC、接收器或采集。</td></tr><tr><td><b>Copy pairing code</b></td><td>复制尚未消费且在有效期内的邀请码，到主控 Add slave 粘贴；配对后此按钮不可用是正常状态。</td></tr><tr><td><b>Renew pairing code</b></td><td>尚未配对或邀请码过期时生成新码。部分旧标签显示 Renew / re-pair…。</td></tr><tr><td><b>Remove master connection…</b></td><td>已配对时显示。确认后撤销旧主控管理凭据并生成新码；已接受工作先完成，后台和数据保留。</td></tr><tr><td><b>Management network settings (optional)</b></td><td>展开节点管理地址与端口；通常使用默认值，只在需要指定可达网卡时更改。</td></tr><tr><td><b>Remove selected inactive entry</b></td><td>隐藏实例列表中选中的无进程历史项；只是从本机列表移除，不删除节点审计/数据。仍有实际进程的项会保持可见。</td></tr><tr><td><b>Close (keep services running)</b></td><td>关闭窗口。节点管理、ECC、接收器可继续独立运行。</td></tr></table>
+<h2>目录、地址和状态表</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Configuration cache (on this slave)</b></td><td>软件缓存、配对、部署版本及回执的本机目录，不是主控的路径。</td></tr><tr><td><b>Project data folder (on this slave)</b></td><td>该从机后台工作及原始数据目录。收到配置后自动同步到此目录；已启用的主机保留设置。</td></tr><tr><td><b>Local management IP / port</b></td><td>主控可访问的从机管理地址/HTTPS 端口，常见 24260；不是 ECC SOAP 或板卡数据端口。</td></tr><tr><td><b>Instance / Type / Process</b></td><td>后台实例身份、ecc/receiver 类型，以及是否发现匹配进程。Process found 不等于板卡已 Running。</td></tr><tr><td><b>Local record / ECC configuration cache / Raw data</b></td><td>部署记录阶段、ECC 使用目录、原始数据工作目录；可与主控路径摘要逐项核对。</td></tr></table>
+<blockquote>从机无需多开主界面来运行多个 ECC。主控为它创建多个后台组即可。主机配对与硬件连接是两层：配对成功还需启动服务，再通过 Run Setup 连接 ECC。</blockquote>
+
+<hr/>
+<a name="chapter-17"></a><h1 id="chapter-17">17  配置同步、超时与常用路径</h1><p class="lead">保存 YAML、同步 XML、让板卡加载参数是三个不同操作。</p>
+<h2>同步对话框与实际影响</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Tools → Sync project configuration…</b></td><td>重新读取主控源目录，选择执行主机。主控自己的执行节点也可以作为目标。</td></tr><tr><td><b>主机复选框</b></td><td>选择接收本次配置的主机，可多选；只有目标主机本地的项目目录会被处理。</td></tr><tr><td><b>Sync selected hosts</b></td><td>上传不可变版本，执行主机下载/校验后复制到本机项目数据路径。保留资源相对路径，并备份被替换的配置。</td></tr><tr><td><b>OK / Cancel</b></td><td>对话框确认按钮显示 Sync selected hosts；Cancel 放弃此次目标选择，不撤销以前已完成的同步。</td></tr><tr><td><b>活动实例更新确认</b></td><td>接受警告后可以在稳定 Ready / Running 下同步文件；已知命令忙时暂缓替换。同步不把硬件强制退回 Idle。</td></tr></table>
+<h2>Nodes / Paths 中的时间设置（单位 ms）</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Status polling</b></td><td>周期状态查询间隔；数值小会更频繁地访问 ECC/Sentry。</td></tr><tr><td><b>HTTP timeout</b></td><td>普通 HTTP 请求等待上限。此项不是硬件状态转换总时限。</td></tr><tr><td><b>Catalog timeout (server normally waits 30 s)</b></td><td>等待 Sentry 归档响应的上限；服务器归档自身可能等待约 30 秒。</td></tr><tr><td><b>Transition deadline</b></td><td>一次硬件转换及状态确认的等待时限；超时后可能远端已经执行，应先查状态。</td></tr><tr><td><b>Post-stop settling time</b></td><td>硬件停止后等待接收数据落稳的间隔，再进入收尾处理。</td></tr></table>
+<h2>四个目录分别放什么</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Configuration source folder (master)</b></td><td>你用配置编辑器修改的完整实验配置；这是复制源。</td></tr><tr><td><b>Project data folder</b></td><td>执行主机工作目录：ECC 配置副本、接收原始 .graw、Sentry 归档实验/run 子目录。</td></tr><tr><td><b>Configuration cache</b></td><td>软件管理缓存、版本和部署回执；收到文件后再同步到工作目录。</td></tr><tr><td><b>GUI Run records root</b></td><td>当前 GUI 的 run.yml、journal、CSV 与配置备份；与原始数据目录独立。</td></tr></table>
+<blockquote>修改 Nodes 并 Save and apply 不会立即传 XML。修改 XML 后手动 Sync，或在勾选同步时 Start project services。文件传完后，板卡仍需对应 Configure 命令才会加载新参数。外部未托管 ECC 继续使用原 NFS/仓库。</blockquote>
+
+<hr/>
+<a name="chapter-18"></a><h1 id="chapter-18">18  原版配置编辑器：按钮与菜单</h1><p class="lead">Configuration → GET configuration files...；此窗口编辑源文件，保存后再同步。</p>
+<h2>文件、编辑和显示</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>New / Open</b></td><td>新建配置或打开配置文件。New 是新文件，不是新建一次采集。</td></tr><tr><td><b>Save / Save As... / Save All</b></td><td>保存当前文件、另存为新路径、保存全部已打开文件。保存到主控 Configuration source 才会进入后续项目分发。</td></tr><tr><td><b>Quit / 标签页关闭</b></td><td>退出编辑器或关闭当前文档；有未保存修改时按提示处理。</td></tr><tr><td><b>Undo / Redo</b></td><td>撤销/重做编辑。EditConfigDialog 中也有对应图标按钮；它们不会撤销已发到硬件的命令。</td></tr><tr><td><b>Find... / Find Next / Search...</b></td><td>打开属性搜索或查找下一个匹配项。Search 也可从配置树右键进入。</td></tr><tr><td><b>Case sensitive / Whole words</b></td><td>搜索区分大小写/要求完整匹配项；具体匹配按原编辑器规则。</td></tr><tr><td><b>Keep open</b></td><td>找到属性后保留搜索窗口，便于继续查找。</td></tr><tr><td><b>Name / Value / Unit / Range</b></td><td>View 中切换属性名称、值、单位、范围列的显示；只改显示，不改采样参数。</td></tr><tr><td><b>Backtrack level / Include URL</b></td><td>显示继承回溯层级与外部引用地址，帮助判断参数从哪个文件继承。</td></tr><tr><td><b>Attribute builder / Insert</b></td><td>打开属性构造面板，按输入的名称、类型和值插入属性。编辑对话框的 builder 图标也用于打开该面板。</td></tr><tr><td><b>About</b></td><td>查看原版编辑器信息。</td></tr></table>
+<h2>配置树右键菜单</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>New... / Override / Rename...</b></td><td>新增节点/属性、在当前配置覆盖继承项、重命名当前项。Override 会改变当前层的有效参数。</td></tr><tr><td><b>Delete / Copy / Cut / Paste</b></td><td>删除、复制、剪切、粘贴配置树内容；删除有实际配置影响，保存前核对。</td></tr><tr><td><b>Expand all / Collapse all</b></td><td>展开/折叠配置树，不改变文件参数。</td></tr><tr><td><b>Import / Export → File...</b></td><td>将文件内容导入配置或把选定配置导出到文件，注意与 Open/Save 的文档范围区分。</td></tr><tr><td><b>Include → File...</b></td><td>添加文件引用，保留依赖关系；被引用资源也应放在完整源目录内。</td></tr><tr><td><b>Database...</b></td><td>原版保留的数据库入口，是否可用取决于已构建的存储插件；普通 XML 文件流程无需它。</td></tr><tr><td><b>Inheritance 子菜单</b></td><td>查看 Overrides / Overriden by / Inherits / Inherited by / Defined in 等继承来源与关联项。</td></tr></table>
+<br/><br/> 编辑后：Save → 主控 Sync → ECC Configure；外部未托管 ECC 继续使用原仓库。
+
+<hr/>
+<a name="chapter-19"></a><h1 id="chapter-19">19  工具按钮：波形、日志与状态</h1><p class="lead">在线查看独立于 GUI；清屏与接受警告不代表硬件状态变化。</p>
+<h2>离线 / 在线波形查看器</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Open waveform... / Previous / Next</b></td><td>离线打开 .graw/.gmat；Previous/Next 切换帧。Event ID + Go to event 查事件，Frame 选择其帧，AGET 选择芯片。</td></tr><tr><td><b>Auto scan / Period</b></td><td>离线按 Period 周期自动扫描帧；取消勾选停止扫描。</td></tr><tr><td><b>DataExporter / Refresh choices</b></td><td>在线选择当前配置中的一个或全部导出器，自动使用导出地址；Refresh choices 重新读 GUI 提供的列表。</td></tr><tr><td><b>Pause preview / Follow latest</b></td><td>Pause preview 暂停在线预览连接；Follow latest 跟随最新缓存事件，取消后可查看固定事件。</td></tr><tr><td><b>Event ID / Go / Source / CoBo / AsAd / AGET</b></td><td>在线从缓存选择或跳转事件，再筛选来源与电子学通道。未缓存的旧事件应读离线数据。</td></tr><tr><td><b>Channels… / All / None / OK / Cancel</b></td><td>勾选显示通道，All 全选，None 全不选，OK 应用，Cancel 放弃。</td></tr><tr><td><b>3D / Align baselines / Export plot/data…</b></td><td>3D 切换纵深图；Align baselines 默认减去每通道中位数并按零参考等距显示，幅度为 ΔADC，取消则用绝对 ADC。PNG 保存画面，CSV 保留原始 ADC。</td></tr><tr><td><b>New session</b></td><td>在线清除预览缓存并开始新预览会话；原始数据与采集 Run 保留。</td></tr></table>
+<h2>日志与警告</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Event log / ECC log / Data log</b></td><td>切换当前日志类别；数据日志按实例显示 DataExporter/DataRouter，右侧选择主机/实例或共享 Sentry。</td></tr><tr><td><b>Clear / Export combined logs…</b></td><td>Clear 只清当前显示。Tools → Logs 导出本次 GUI 会话收集的 TXT，按接收时间与序号合并，并标明来源。</td></tr><tr><td><b>Acknowledge selected</b></td><td>确认看过选中通知。不会证明不确定的硬件命令已完成。</td></tr><tr><td><b>Accept selected warning</b></td><td>接受选中的一般警告并记住处置；失败或结果不确定的动作仍需核查。</td></tr><tr><td><b>Clear acknowledged notifications / Clear displayed log</b></td><td>清除已确认的通知/事件框显示，保留持久日志和控制器状态。</td></tr><tr><td><b>Recheck state</b></td><td>更新本窗口的 ECC 阶段显示，依据 GUI 当前观察状态；不是硬件复位按钮。</td></tr><tr><td><b>Reset to Idle</b></td><td>确认后对已停止、符合条件的 ECC 逐步发送 Undo/Breakup，退回 Idle。与接受警告不同，会操作硬件。</td></tr><tr><td><b>Close</b></td><td>关闭状态窗口，不改变硬件与后台。</td></tr></table>
+<blockquote>每次 GUI 启动使用新日志会话。清屏后同一会话的导出历史仍保留。远端日志原文时间保留，合并顺序采用 GUI 接收时间，不能当作完全同步的跨主机时钟。</blockquote>
+
+<hr/>
+<a name="chapter-20"></a><h1 id="chapter-20">20  工具按钮：文件、CoBo 与操作示例</h1><p class="lead">补充工具不会替代 ECC 采集流程；下面给出可照着操作的入口顺序。</p>
+<h2>Data file tools…</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>模式选择框</b></td><td>Inspect raw frames 检查原始帧；Convert to waveform matrix 生成 .gmat；Merge events 生成 .gmer。FITS/ROOT 类选项依赖相应已安装工具。</td></tr><tr><td><b>Add files… / Remove selected</b></td><td>加入已完成采集的本机输入文件，或从本次工具输入列表移除所选项。移除列表项不删原文件。</td></tr><tr><td><b>Browse…</b></td><td>选择该工具的输出路径。转换使用新的输出位置，先核对模式和输入。</td></tr><tr><td><b>Run tool / Stop tool</b></td><td>运行所选独立数据工具/停止该工具子进程；不控制 ECC 采集。</td></tr><tr><td><b>Close</b></td><td>关闭工具窗口；工具仍工作时按窗口提示处理。</td></tr></table>
+<h2>CoBo information (direct, read-only)…</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>Connect / refresh CoBo</b></td><td>输入板卡的硬件控制地址和端口后，直连查询 CoBo 信息；这里填 CoBo IP，不填 SOAP ECC 电脑 IP。</td></tr><tr><td><b>Disconnect observation</b></td><td>断开该只读信息工具的观察连接；不执行 Run stop，也不关闭 ECC。</td></tr><tr><td><b>Close</b></td><td>关闭信息窗口。该工具不执行硬件配置或采集命令。</td></tr></table>
+<h2>三个最常用操作</h2>
+<table cellspacing="0" cellpadding="7"><tr><th>界面文字</th><th>含义、使用时机与实际影响</th></tr><tr><td><b>单机：启动软件管理的后台</b></td><td>Master → Create ECC / data services → 选择源目录 → Hosts / Use this computer → Add boards / ECC → 选组 → Start selected groups and use → 主界面 Progress 至 Ready → Run start。</td></tr><tr><td><b>多机：让从机运行后台</b></td><td>从机 Slave 选本机目录并 Enable → Copy pairing code → 主控 Add slave → 新建组选择该从机 → 主控多选组启动。配置会先传到从机缓存，再放入从机项目目录。</td></tr><tr><td><b>修改电子学配置</b></td><td>配置编辑器 Open/修改/Save 到源目录 → Tools / Sync project configuration → 勾选目标主机 → Sync selected hosts → 需要时通过 ECC Configure 加载。</td></tr></table>
+<blockquote>通用弹窗：OK/Yes 接受本次明确动作；Cancel/No 放弃本次选择。Stop waiting 只停止本地等待，不能据此判断远端操作被取消。灰色按钮应结合窗口状态提示判断，先 Refresh/查看日志，不反复发同一硬件命令。</blockquote>
+
+
+</body></html>
