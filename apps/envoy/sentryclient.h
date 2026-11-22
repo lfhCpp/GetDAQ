@@ -8,7 +8,8 @@ class SentryClient : public QObject
 public:
     SentryClient(const NodeConfig &node, const RunConfig &config, QObject *parent = nullptr);
     bool Send(bool catalog = false);
-    bool SendReplacementCatalog(const QString &operationId);
+    bool SendReplacementCatalog(const QString &operationId, const QString &filePolicy=QString());
+    bool SupportsFilePolicy(const QString &policy) const{return fRunFilePolicies.contains(policy);}
     bool FinalizeReplacement(const QString &operationId);
     void Cancel();
     void SetRunMetadata(const RunConfig &config) {
@@ -28,6 +29,7 @@ private:
     HttpClient *fStatusHttp;
     bool fStatusBusy = false;
     bool fBusy = false;
+    QStringList fRunFilePolicies;
 
 };
 #endif

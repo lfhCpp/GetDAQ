@@ -28,7 +28,7 @@ public slots:
     void CancelOperationWarningSlot(QString token);
     void ProgressSlot(int id = -1);
     void RegressSlot(int id = -1);
-    void StartRunSlot(bool replaceCompletedRun = false, bool acceptExistingIncoming = false);
+    void StartRunSlot(bool replaceCompletedRun = false, bool acceptExistingIncoming = false, RunConfig requested=RunConfig());
     void StopRunSlot();
     void FinalizeSlot();
     void RecoverSlot();

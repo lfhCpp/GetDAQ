@@ -12,6 +12,8 @@ struct MutationRequest {
     QString operationId;
     int run = 0;
     bool replaceCompletedRun = false;
+    bool overwriteExisting = false;
+    bool appendExisting = false;
 };
 
 bool ResolveRoute(const QString &method, const QString &path, Route *route,

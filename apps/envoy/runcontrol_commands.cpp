@@ -56,7 +56,7 @@ void RunControl::SetOfflineToolsOpenSlot(bool open) {
     if(open)CancelAutoRun("Automatic Run canceled: offline data tool opened.");
 }
 
-void RunControl::StartRunSlot(bool replaceCompletedRun, bool acceptExistingIncoming)
+void RunControl::StartRunSlot(bool replaceCompletedRun, bool acceptExistingIncoming, RunConfig requested)
 {
 
     const auto view=AutoRunView();
@@ -64,16 +64,21 @@ void RunControl::StartRunSlot(bool replaceCompletedRun, bool acceptExistingIncom
         fAutoRun.ManualStart(fAutoClock.elapsed(),view);
     
     if(!fConnected || All().isEmpty()){emit LogSignal("Connect a valid ECC target first.");return;}
-    if(fBusy && fStep>=0){fDeferredAction=[this,replaceCompletedRun,acceptExistingIncoming]{StartRunSlot(replaceCompletedRun,acceptExistingIncoming);};emit LogSignal("Start queued behind the in-flight hardware command.");return;}
+    if(fBusy && fStep>=0){fDeferredAction=[this,replaceCompletedRun,acceptExistingIncoming,requested]{StartRunSlot(replaceCompletedRun,acceptExistingIncoming,requested);};emit LogSignal("Start queued behind the in-flight hardware command.");return;}
     for(int id:Cobos())if(fStatus[id].sentryOnline && fStatus[id].totalGB>0 && fStatus[id].availableGB<=0){ReportLog("Receiver reports a full raw-data disk; correct raw recording before Start.",Diagnostics::Error);return;}
     QStringList warnings;
     if(fActive || fBusy)warnings<<"Local Run bookkeeping is unfinished; retain it and continue using observed hardware state.";
     if(!AllAt(All(),4) && !AllAt(All(),5))warnings<<"Not every ECC is freshly Ready. Continue sends Start once; ECC decides whether it is allowed.";
     if(fOfflineToolsOpen)warnings<<"An offline tool is open. Viewing remains independent; avoid changing files being acquired.";
     for(int id:Cobos()){const auto &s=fStatus[id];if(s.projectConfigurationPending)warnings<<QString("Node %1 has a newer configuration; this does not change the hardware's last configured version.").arg(id);if(!s.sentryOnline || s.availableGB<=0)warnings<<QString("Node %1 receiver monitoring or disk information is unavailable. Verify raw recording before continuing.").arg(id);}
-    if(!ConfirmWarnings("Start",warnings,[this,replaceCompletedRun,acceptExistingIncoming]{StartRunSlot(replaceCompletedRun,acceptExistingIncoming);}))return;
+    if(!ConfirmWarnings("Start",warnings,[this,replaceCompletedRun,acceptExistingIncoming,requested]{StartRunSlot(replaceCompletedRun,acceptExistingIncoming,requested);}))return;
     if(AllAt(All(),5)){fActive=true;fBusy=false;fPhase="Running";fJournal=QJsonObject{{"phase","Attached to existing Running ECC"},{"untracked",true}};fRunClock.start();Publish();return;}
     if(fActive || fBusy){Journal("Previous local work retained before operator-approved next Start");++fSequence;fActive=false;fBusy=false;fStep=-1;fAwaitCatalog.clear();fAwaitReplacementCleanup.clear();for(auto *s:fSentry)s->Cancel();}
+    if(!requested.nodes.isEmpty()){
+        QString error;if(!requested.Validate(&error) || requested.experiment!=fConfig.experiment || QDir::cleanPath(requested.outputDir)!=QDir::cleanPath(fConfig.outputDir)){ReportLog("Confirmed Run target differs from the connected configuration; disconnect before changing its experiment or records root. "+error,Diagnostics::Error);return;}
+        fConfig.runNumber=requested.runNumber;fConfig.description=requested.description;fConfig.fields=requested.fields;fConfig.autoRun=requested.autoRun;fConfig.existingRunPolicy=requested.existingRunPolicy;
+        for(auto *client:fSentry)client->SetRunMetadata(fConfig);
+    }
     QJsonArray retainedIncoming;
     for (int id : Cobos()) {
         const auto &status=fStatus[id];
@@ -96,8 +101,9 @@ void RunControl::StartRunSlot(bool replaceCompletedRun, bool acceptExistingIncom
     }
     QString error;
     if ((fFileTask && fFileTask->isRunning()) || !RunRecorder::Reserve(fConfig,replaceCompletedRun,&error)) {
+        if(replaceCompletedRun && !fConfig.existingRunPolicy.isEmpty()){ReportLog("Same-Run file operation failed; Start canceled: "+error,Diagnostics::Error);Publish();return;}
         if(QFileInfo::exists(fConfig.RunDirectory()) && !replaceCompletedRun && !(fFileTask && fFileTask->isRunning())){ReportLog(error+" Explicit same-Run replacement confirmation is required.",Diagnostics::Warning);return;}
-        if(!ConfirmWarnings("Local records",{error+" Use a separate fallback records directory; raw data is not moved."},[this,replaceCompletedRun,acceptExistingIncoming]{StartRunSlot(replaceCompletedRun,acceptExistingIncoming);}))return;
+        if(!ConfirmWarnings("Local records",{error+" Use a separate fallback records directory; raw data is not moved."},[this,replaceCompletedRun,acceptExistingIncoming,requested]{StartRunSlot(replaceCompletedRun,acceptExistingIncoming,requested);}))return;
         fConfig.outputDir=DefaultWorkspaceDirectory()+"/degraded-runs/"+QUuid::createUuid().toString(QUuid::WithoutBraces);emit RecordingDirectorySignal(fConfig.outputDir);replaceCompletedRun=false;
         if(!RunRecorder::Reserve(fConfig,false,&error)){fJournal=QJsonObject{{"recording_degraded",true}};ReportLog("Warning: volatile Run metadata only: "+error,Diagnostics::Warning);}
     }
@@ -106,7 +112,7 @@ void RunControl::StartRunSlot(bool replaceCompletedRun, bool acceptExistingIncom
         fJournal["existing_incoming_acknowledged"]=true;
         if (replaceCompletedRun) fJournal["same_run_existing_incoming_acknowledged"]=true;
         fJournal["existing_incoming_data"]=retainedIncoming;
-        if (replaceCompletedRun) {
+        if (replaceCompletedRun && fConfig.existingRunPolicy.isEmpty()) {
             fJournal["replacement_backup_policy"]="retain";
             fJournal["retained_previous_run"]=fJournal.value("replacement_backup");
         }

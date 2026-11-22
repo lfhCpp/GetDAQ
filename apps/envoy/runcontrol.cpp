@@ -63,6 +63,7 @@ void RunControl::UpdateRunMetadataSlot(RunConfig config)
     
     if (!fConnected || fBusy || fActive) return;
     fConfig.runNumber = config.runNumber;
+    fConfig.existingRunPolicy=config.existingRunPolicy;
     fConfig.autoRun=config.autoRun;
     fConfig.description = config.description;
     fConfig.fields = config.fields;

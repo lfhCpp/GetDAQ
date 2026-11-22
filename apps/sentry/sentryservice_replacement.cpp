@@ -63,6 +63,13 @@ ServiceResult SentryFiles::FinalizeReplacement(const SentryConfig &c, const QStr
         !backupName.startsWith("." + runName + ".replaced-"))
         return Failure(409, "Replacement backup path is invalid; preserve it.");
     const QString backupPath = QDir(experimentDirectory).filePath(backupName);
+    if(manifest["replacement_policy"]=="overwrite"){
+        if(QFileInfo(backupPath).isSymLink())return Failure(409,"Overwrite backup cannot be a symbolic link.");
+        if(QFileInfo::exists(backupPath) && !QDir(backupPath).removeRecursively())return Failure(500,"Cannot remove old Run files: "+backupPath);
+        manifest["replacement_backup"]=QString();manifest["replacement_cleanup_complete"]=true;
+        if(!SaveJson(manifestPath,manifest))return Failure(500,"Old Run files removed but overwrite receipt could not be saved.");
+        ServiceResult result;result.json={{"replacement_cleanup_complete",true},{"replacement_policy","overwrite"},{"experiment",experiment},{"run_number",run},{"operation_id",operationId}};return result;
+    }
     if (QFileInfo::exists(backupPath)) {
         const QStringList newNames = [&manifest]() {
             QStringList names;

@@ -34,6 +34,25 @@ bool SameRunIdentity(const RunConfig &saved, const RunConfig &current)
     return true;
 }
 
+bool AppendRunRecords(const RunConfig &c,QString *error){
+    const QDir run(c.RunDirectory());const QFileInfo target(run.absolutePath());
+    if(target.isSymLink() || !target.isDir()){*error="Existing Run must be a regular directory.";return false;}
+    const auto history="records-"+QDateTime::currentDateTimeUtc().toString("yyyyMMddTHHmmsszzz")+'-'+QUuid::createUuid().toString(QUuid::WithoutBraces).left(8);
+    QTemporaryDir stage(QDir(target.absolutePath()).filePath(".run-records-XXXXXX"));if(!stage.isValid()){*error=stage.errorString();return false;}
+    if(!c.Save(QDir(stage.path()).filePath("run.yml"),error))return false;
+    const QJsonObject journal{{"phase","Reserved"},{"existing_run_policy","append"},{"previous_record_history",history},{"catalog",QJsonObject()},{"started_utc",QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs)}};
+    if(!RunRecorderInternal::WriteRunFile(QDir(stage.path()).filePath("journal.json"),QJsonDocument(journal).toJson(),error))return false;
+    if(!QDir(run).mkdir(history)){*error="Cannot create same-Run record history.";return false;}
+    QStringList moved,published;
+    auto rollback=[&]{for(const auto &name:published)QFile::remove(run.filePath(name));bool restored=true;for(const auto &name:moved)restored=QDir().rename(run.filePath(history+'/'+name),run.filePath(name)) && restored;if(restored)QDir(run).rmdir(history);return restored;};
+    for(const auto &name:{"run.yml","journal.json","run.csv","configuration","backup.complete","configuration-backup-warning.json","catalog-warning.json"}){
+        const auto path=run.filePath(name);if(!QFileInfo::exists(path) && !QFileInfo(path).isSymLink())continue;
+        if(!QDir().rename(path,run.filePath(history+'/'+name))){const bool restored=rollback();*error=restored?"Cannot preserve previous Run records; original records restored.":"Cannot restore all previous records; inspect the same-Run history before retrying.";return false;}moved<<name;
+    }
+    for(const auto &name:{"run.yml","journal.json"}){if(!QFile::rename(QDir(stage.path()).filePath(name),run.filePath(name))){rollback();*error="Cannot publish new same-Run records; inspect preserved record history.";return false;}published<<name;}
+    return true;
+}
+
 bool InspectCompleteRun(const QString &directory, const RunConfig &expected, QString *error)
 {
     const QFileInfo root(directory);
@@ -87,11 +106,14 @@ bool RunRecorder::Reserve(const RunConfig &c, bool replaceCompletedRun, QString 
         *error = "The Run selected for replacement no longer exists; cancel and review the target again.";
         return false;
     }
+    if(targetPresent && replaceCompletedRun && c.existingRunPolicy=="append")return AppendRunRecords(c,error);
+    const bool overwrite=replaceCompletedRun && c.existingRunPolicy=="overwrite";
     if (targetPresent) {
         if (!replaceCompletedRun) {
             *error = "Run directory already exists: " + path.filePath(); return false;
         }
-        if (!InspectCompleteRun(path.filePath(), c, error)) {
+        if(overwrite && (path.isSymLink() || !path.isDir())){*error="Overwrite target must be a regular Run directory.";return false;}
+        if (!overwrite && !InspectCompleteRun(path.filePath(), c, error)) {
             // Legacy SOAP users can explicitly reuse an interrupted/warning Run.
             // Retain it intact; never treat it as a verified Complete backup to delete.
             if(c.nativeEcc || path.isSymLink() || !path.isDir())return false;
@@ -114,6 +136,7 @@ bool RunRecorder::Reserve(const RunConfig &c, bool replaceCompletedRun, QString 
     if (!c.Save(QDir(staging.path()).filePath("run.yml"), error)) return false;
     QJsonObject journal;
     journal["phase"] = "Reserved";
+    if(overwrite)journal["existing_run_policy"]="overwrite";
     journal["started_utc"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
     journal["catalog"] = QJsonObject();
     if (!backupName.isEmpty()) journal["replacement_backup"] = backupName;
@@ -139,6 +162,12 @@ bool RunRecorder::Reserve(const RunConfig &c, bool replaceCompletedRun, QString 
         else
             *error = "Cannot publish reservation; the previous Run was restored.";
         return false;
+    }
+    if(overwrite && !backupName.isEmpty()){
+        const auto previous=parent.filePath(backupName);
+        if(QFileInfo(previous).isSymLink() || !QDir(previous).removeRecursively()){*error="New Run reserved but old files could not be fully removed: "+previous;return false;}
+        journal.remove("replacement_backup");journal["previous_run_removed"]=true;
+        if(!WriteJournal(c,journal,error))return false;
     }
     return true;
 }

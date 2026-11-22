@@ -8,7 +8,8 @@
 namespace RunRecorder {
 bool Reserve(const RunConfig &config, QString *error);
 // replaceCompletedRun只能在操作员明确确认同号覆盖后为true。
-// 允许保留非Complete旧目录，明确标记retain，不能自动清理旧记录/旧数据。
+// existingRunPolicy=overwrite replaces records; append versions metadata in the same directory.
+// Empty policy retains legacy recovery semantics.
 bool Reserve(const RunConfig &config, bool replaceCompletedRun, QString *error);
 bool WriteJournal(const RunConfig &config, const QJsonObject &journal, QString *error);
 bool ReadJournal(const RunConfig &config, QJsonObject *journal, QString *error);

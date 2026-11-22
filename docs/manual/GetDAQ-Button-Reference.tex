@@ -37,7 +37,7 @@
 \ui{Regress all} & 对所有节点退回一个初始化阶段，执行相应 Undo / Breakup。不是关闭后台服务。\\
 \ui{Progress selected node} & 只推进下方选择框中的一个节点；先选对节点。\\
 \ui{Regress selected node} & 只让选择框中的一个节点退回一个初始化阶段。\\
-\ui{Run start} & 开始本次采集并建立运行记录；若已观察到 Running，则附着观察。已有同号记录或接收文件时按确认提示处理。\\
+\ui{Run start} & 开始本次采集并建立运行记录；若已观察到 Running，则附着观察。同号时选择覆盖、同目录保留新增或取消；本次 Run 编号不变。\\
 \ui{Run stop} & 请求停止采集；ECC 确认 Ready 后处理归档、备份和本地记录。服务进程仍运行。\\
 \ui{Retry finalization} & 重试可恢复的本地记录收尾；不等于再发送 Stop，也不直接重放结果不确定的 catalog。\\
 \ui{Recover journal} & 读取已有运行日志 journal，恢复中断后的记录处理；不会凭空认定硬件已经停止。\\

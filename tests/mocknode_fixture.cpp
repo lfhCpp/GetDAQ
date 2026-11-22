@@ -36,7 +36,7 @@ MockNode::MockNode(QString r, QStringList *t) : role(r), trace(t)
                 if (header.startsWith("POST /catalog/finalize")) {
                     ++replacementFinalizeCount; trace->append(role + ":FinalizeReplacement");
                     const auto params = QJsonDocument::fromJson(body).object();
-                    const bool okay = params.value("operation_id").toString() == replacementOperationId &&
+                    const bool okay = !property("legacy-no-cleanup").toBool() && params.value("operation_id").toString() == replacementOperationId &&
                         params.value("experiment").isString() && params.value("run_number").isDouble();
                     response = okay ? R"({"replacement_cleanup_complete":true})" : R"({"error":"replacement operation mismatch"})";
                 } else if (header.startsWith("GET /status") || header.startsWith("POST /catalog")) {
@@ -52,7 +52,9 @@ MockNode::MockNode(QString r, QStringList *t) : role(r), trace(t)
                             if (replacementOperationId != operationId) return;
                         }
                     }
-                    response = R"({"disk":"test","process":"dataRouter","data_path":"/incoming","data_written_gb":0,"data_path_files":0,"disk_avail_gb":90,"disk_total_gb":100})";
+                    response = R"({"run_file_policies":["overwrite","append"],"disk":"test","process":"dataRouter","data_path":"/incoming","data_written_gb":0,"data_path_files":0,"disk_avail_gb":90,"disk_total_gb":100})";
+                    if(header.startsWith("POST /catalog")){const auto params=QJsonDocument::fromJson(body).object();auto receipt=QJsonDocument::fromJson(response).object();if(params["overwrite_existing_run"].toBool())receipt["replacement_policy"]="overwrite";if(params["append_existing_run"].toBool())receipt["replacement_policy"]="append";response=QJsonDocument(receipt).toJson(QJsonDocument::Compact);}
+                    if(property("legacy-file-policy").toBool()){auto receipt=QJsonDocument::fromJson(response).object();receipt.remove("run_file_policies");response=QJsonDocument(receipt).toJson(QJsonDocument::Compact);}
                     if(generateData) {
                         if(header.startsWith("POST /catalog"))generatedBytes=0;
                         else if(state==5)generatedBytes+=1000000;

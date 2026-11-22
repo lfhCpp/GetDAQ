@@ -41,7 +41,7 @@ void SentryService::Handle(QString method, QString path, QByteArray body, HttpCo
         });
         const SentryConfig config = fConfig;
         watcher->setFuture(QtConcurrent::run([config, catalog, finalizeReplacement, request]() {
-            if (catalog) return SentryFiles::Catalog(config, request.experiment, request.run, request.replaceCompletedRun, request.operationId);
+            if (catalog) return SentryFiles::Catalog(config, request.experiment, request.run, request.replaceCompletedRun, request.operationId, request.overwriteExisting, request.appendExisting);
             if (finalizeReplacement) return SentryFiles::FinalizeReplacement(config, request.experiment, request.run, request.operationId);
             return SentryFiles::Status(config);
         }));

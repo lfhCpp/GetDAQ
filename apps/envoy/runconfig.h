@@ -44,6 +44,7 @@ struct RunConfig
     QString experiment = "Exp";
     int runNumber = 0;
     QString description;
+    QString existingRunPolicy; // Explicit per-acquisition choice: overwrite or append; never authorizes replacement alone.
     QString configurationBackupWarning;
     QString configurationSnapshot; // Immutable managed release used for Run backups.
     QStringList deploymentGroups;

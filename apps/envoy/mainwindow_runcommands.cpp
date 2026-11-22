@@ -7,6 +7,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QUuid>
+#include <QPushButton>
 
 void MainWindow::on_Connect_clicked()
 {
@@ -30,24 +31,27 @@ void MainWindow::on_StartRun_clicked()
         return;
     }
     bool replaceCompletedRun = false;
+    fConfig.existingRunPolicy.clear();
     if (target.exists()) {
-        const QString prompt = tr("Run %1 / %2 already exists. Start a new acquisition using this same Run number?\n\n"
-                 "The previous local records will first be moved to a separate backup directory. "
-                 "Interrupted or warning Run records are retained and will not be deleted automatically. "
-                 "Existing raw data is retained until the receiver confirms replacement; an archive error remains a warning.\n\n"
-                 "Unarchived files already in the incoming directory will remain there and may be archived together with this same-number Run.\n\n"
-                 "Continue only when the previous acquisition is stopped and no other controller is using this Run.");
-        const QString formattedPrompt=prompt.arg(fConfig.experiment).arg(fConfig.runNumber);
-        if (QMessageBox::question(this, tr("Confirm same Run number replacement"), formattedPrompt,
-                                  QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel) != QMessageBox::Yes)
-            return;
-        replaceCompletedRun = true;
+        QMessageBox prompt(QMessageBox::Warning,tr("Run already exists"),
+            tr("Experiment: %1\nRun: %2\nGUI records: %3\n\n"
+               "Overwrite replaces this Run's old records and archived raw files.\n"
+               "Keep and add files keeps the same Run number and directory; existing timestamped raw files remain and new files are added.\n"
+               "Raw files are archived by Sentry after Stop. Unarchived incoming files are included; files outside this Run are not deleted." )
+                .arg(fConfig.experiment).arg(fConfig.runNumber).arg(target.absoluteFilePath()),QMessageBox::NoButton,this);
+        prompt.setObjectName("ExistingRunFileChoice");
+        auto *overwrite=prompt.addButton(tr("Overwrite"),QMessageBox::DestructiveRole);overwrite->setObjectName("OverwriteExistingRun");
+        auto *keep=prompt.addButton(tr("Keep and add files"),QMessageBox::AcceptRole);keep->setObjectName("KeepAndAddRunFiles");
+        auto *cancel=prompt.addButton(QMessageBox::Cancel);cancel->setObjectName("CancelExistingRun");prompt.setDefaultButton(cancel);prompt.setEscapeButton(cancel);prompt.exec();
+        if(prompt.clickedButton()!=overwrite && prompt.clickedButton()!=keep)return;
+        fConfig.existingRunPolicy=prompt.clickedButton()==overwrite?"overwrite":"append";
+        replaceCompletedRun=true;
     }
     ApplyAutoRunSettings(fConfig.autoRun);
     emit UpdateRunMetadataSignal(fConfig);
     fWaveformViewerAction->setEnabled(false);
     fDataToolsAction->setEnabled(false);
-    fPlot->Clear(); emit StartSignal(replaceCompletedRun);
+    fPlot->Clear(); emit StartSignal(replaceCompletedRun,false,fConfig);
 }
 void MainWindow::on_StopRun_clicked() {
     if(!fActive && fAutomaticArmed)emit CancelAutomaticRunSignal(tr("Automatic Run canceled: manual Run stop during the interval."));

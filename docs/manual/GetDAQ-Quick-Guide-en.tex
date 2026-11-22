@@ -189,17 +189,19 @@ Run → Pause run is enabled when every ECC is stably Running and no command is 
 \subsection*{Stop}
 Run stop first waits for every ECC to confirm Ready; catalog, configuration backup and local finalization follow. Successful archive is usually <project>/<Experiment>/run\_NNNN/. On archive warning, files may remain in the incoming directory. A record failure is not proof of a hardware stop failure; a local message alone is not proof the boards stopped.
 
+\subsection*{Existing Run: three choices}
+Overwrite replaces old records/raw files. Keep and add files preserves this Run number and directory, adding timestamped files; raw files retain their original time-based names without extra suffixes. Cancel does nothing. GUI metadata history is under records-timestamp-ID. Raw archiving occurs after Stop and uses the updated file policy on new Sentry; old receivers use their original catalog interface.
 \subsection*{Warnings and continued operation}
 \begin{tabularx}{\linewidth}{@{}L{58mm}Y@{}}\toprule
 Control / field & Meaning and effect \\\midrule
 \ui{Local record / backup failure} & Warn and retain records; allow a manual next Run. Automatic continuation is canceled.\\
 \ui{Uncertain catalog result} & Keep the unknown receipt; no automatic replay. With Ready confirmed, close local Run processing and continue manually.\\
 \ui{Stale state / missing monitor} & Request acknowledgment where appropriate. The ECC decides whether hardware commands are valid.\\
-\ui{Existing Run / incoming files} & Require explicit confirmation; do not silently delete raw data.\\
+\ui{Existing Run / incoming files} & Choose Overwrite, Keep and add files, or Cancel; the current Run number stays unchanged.\\
 \ui{Start / Stop / Disconnect} & Remain available after connection. In-flight hardware commands are serialized. Disconnect detaches observation; it does not stop remote acquisition.\\
 \bottomrule\end{tabularx}
 \subsection*{Read, clear and export logs}
-Use Event log / ECC log / Data log and the host/instance selector; shared Sentry is also selectable. Each GUI launch starts a new log session and attaches at the current end of backend logs. Clear affects the display, while export retains this session’s collected history. Tools → Logs → Export combined logs writes TXT ordered by GUI receipt time and sequence, with source separators and original remote timestamps.
+Choose Event / ECC / Data log and host/instance. Clear affects display; export includes this launch’s collected history. Tools → Logs → Export combined logs writes TXT by receipt time and sequence, preserving sources and remote timestamps. A new GUI launch starts fresh.
 
 \note{On main-window exit, managed backends offer Stop ECC + data and exit, Keep services running and exit, or Cancel. Stop acquisition first. A backend-stop failure keeps the GUI open. External ECC services are left running.}
 

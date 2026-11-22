@@ -54,6 +54,7 @@ RunConfig RunConfig::NewAcquisition(const QString &experimentName) const
     config.experiment = experimentName.trimmed();
     config.runNumber = 0;
     config.description.clear();
+    config.existingRunPolicy.clear();
     config.configurationBackupWarning.clear();
     config.autoRun = AutoRunSettings();
     for (auto it = config.fields.begin(); it != config.fields.end(); ++it) it.value().clear();
@@ -82,6 +83,7 @@ bool RunConfig::Validate(QString *error) const
     // 实验名同时用于 GET 配置 ID 和目录，限制路径字符以避免越界。
     if (!QRegularExpression("^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$").match(experiment).hasMatch())
         problem = "Experiment must contain 1–80 letters, digits, '_' or '-', starting with a letter/digit.";
+    else if (!existingRunPolicy.isEmpty() && existingRunPolicy!="overwrite" && existingRunPolicy!="append") problem="Invalid existing Run file policy.";
     else if (runNumber < 0 || runNumber == std::numeric_limits<int>::max()) problem = "Invalid run number.";
     else if (nodes.isEmpty() || nodes.size() > 256) problem = "Configure at least one CoBo (maximum 256 nodes).";
     else if (pollMs < 50 || timeoutMs < 100 || catalogTimeoutMs < 100 || stepTimeoutMs < timeoutMs || settleMs < 0)

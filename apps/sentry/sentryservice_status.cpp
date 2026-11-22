@@ -67,6 +67,7 @@ ServiceResult SentryFiles::Status(const SentryConfig &config) {
 
     }
     ServiceResult result;
+    result.json["run_file_policies"]=QJsonArray{"overwrite","append"};
     result.json["disk"]=config.diskName.isEmpty() ? disk.rootPath() : config.diskName;
     result.json["process"]=config.checkProcess ? config.processName : "Process check disabled";
     result.json["data_path"]=directory.absolutePath();

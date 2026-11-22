@@ -102,6 +102,11 @@ void RunControl::ReplacementFinalizedSlot(int id, QString error)
 {
     if (!fConnected || fShuttingDown || !fAwaitReplacementCleanup.contains(id)) return;
     QJsonObject results = fJournal.value("replacement_cleanup").toObject();
+    if (!error.isEmpty() && fJournal["legacy_catalog_hosts"].toObject()[QString::number(id)].toBool()){
+        results[QString::number(id)]="legacy-unconfirmed";fJournal["replacement_cleanup"]=results;fJournal["legacy_cleanup_warning"]=error;
+        Journal("Legacy archive complete; cleanup unconfirmed");ReportLog(QString("Node %1 legacy receiver archived the Run but did not confirm optional replacement cleanup: %2. Old-service file behavior is retained; no cleanup replay will be sent.").arg(id).arg(error),Diagnostics::Warning);
+        fAwaitReplacementCleanup.remove(id);if(fAwaitReplacementCleanup.isEmpty())StartReplacementCleanup();return;
+    }
     if (!error.isEmpty()) {
         results[QString::number(id)] = "unknown";
         fJournal["replacement_cleanup"] = results;

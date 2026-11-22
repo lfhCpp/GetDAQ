@@ -29,7 +29,9 @@ void RunControl::StartCatalog()
     fJournal["catalog"]=results;
     if (fAwaitCatalog.isEmpty()) { StartFiles(); return; }
     // 发送前持久化，崩溃恢复时不会把归档命令当成从未发送过。
-    for (int id : fAwaitCatalog) results[QString::number(id)] = "sent";
+    auto legacy=fJournal["legacy_catalog_hosts"].toObject();
+    for (int id : fAwaitCatalog){results[QString::number(id)]="sent";const auto policy=fJournal["existing_run_policy"].toString();if(!policy.isEmpty() && !fSentry[id]->SupportsFilePolicy(policy))legacy[QString::number(id)]=true;}
+    fJournal["legacy_catalog_hosts"]=legacy;
     fJournal["catalog"] = results;
     if (!Journal(fPhase)) { Fail("Cannot journal catalog requests."); return; }
     fDeadline->start(fConfig.catalogTimeoutMs + 1000);
@@ -37,7 +39,7 @@ void RunControl::StartCatalog()
         fSentry[id]->Cancel();
         const bool sent = fReplacementOperationId.isEmpty()
             ? fSentry[id]->Send(true)
-            : fSentry[id]->SendReplacementCatalog(fReplacementOperationId);
+            : fSentry[id]->SendReplacementCatalog(fReplacementOperationId,fJournal["existing_run_policy"].toString());
         if (!sent) { Fail(QString("Node %1 catalog request could not be started.").arg(id)); return; }
     }
     Publish();
@@ -107,9 +109,11 @@ void RunControl::StartReplacementCleanup()
     if (fReplacementOperationId.isEmpty()) { CompleteRun(); return; }
     QJsonObject results = fJournal.value("replacement_cleanup").toObject();
     fAwaitReplacementCleanup.clear();
-    for (int id : MonitorRepresentatives()) if (results.value(QString::number(id)).toString() != "complete") fAwaitReplacementCleanup.insert(id);
+    for (int id : MonitorRepresentatives()) if (results.value(QString::number(id)).toString() != "legacy-unconfirmed" && results.value(QString::number(id)).toString() != "complete") fAwaitReplacementCleanup.insert(id);
     if (fAwaitReplacementCleanup.isEmpty()) {
         if (fDeadline) fDeadline->stop();
+        bool legacyWarning=false;for(const auto &value:results)legacyWarning=legacyWarning || value.toString()=="legacy-unconfirmed";
+        if(legacyWarning){Journal("CompleteWithWarnings");fReplacementOperationId.clear();CompleteRun();return;}
         if (fJournal.value("phase").toString() != "Complete" && !Journal("Complete")) {
             Fail("All Sentry hosts confirmed old-Run cleanup, but Complete could not be journaled."); return;
         }
@@ -143,7 +147,7 @@ void RunControl::CompleteRun()
     fActive = false; fBusy = false;
     const bool archiveWarning=fJournal.value("closed_with_archive_warning").toBool();
     fCatalogResultUncertain=false;
-    fPhase = fRecordingDegraded ? "Stopped (local records warning)" : archiveWarning ? "Stopped (archive warning)" : fJournal.value("closed_with_retained_previous_run").toBool() ? "Complete (previous Run retained)" : fJournal.value("configuration_backup_status").toString()=="missing" ? "Complete (configuration backup warning)" : "Complete";
+    fPhase = fRecordingDegraded ? "Stopped (local records warning)" : archiveWarning ? "Stopped (archive warning)" : fJournal.value("closed_with_retained_previous_run").toBool() ? "Complete (previous Run retained)" : fJournal.contains("legacy_cleanup_warning") ? "Complete (legacy cleanup warning)" : fJournal.value("configuration_backup_status").toString()=="missing" ? "Complete (configuration backup warning)" : "Complete";
     if(fRecordingDegraded){CancelAutoRun("Local records incomplete; automatic continuation canceled.");emit LogSignal("Acquisition stopped; local records are incomplete. Retained records: "+fConfig.RunDirectory());}
     else emit LogSignal((archiveWarning ? QString("Run record saved; archive unconfirmed: ") : QString("Run saved: ")) + fConfig.RunDirectory());
     const QString snapshot = QDir(fConfig.RunDirectory()).filePath("run.yml");

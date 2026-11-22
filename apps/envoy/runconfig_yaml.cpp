@@ -42,6 +42,7 @@ bool RunConfig::Load(const QString &path, QString *error)
             if(settings["deployment_groups"]){if(!settings["deployment_groups"].IsSequence())throw std::runtime_error("deployment_groups must be a sequence");for(const auto &group:settings["deployment_groups"])c.deploymentGroups.append(Text(group));}
             if(settings["deployment_project"])c.deploymentProject=Resolve(base,Text(settings["deployment_project"]));
             if(settings["sync_configuration"])c.syncConfiguration=settings["sync_configuration"].as<bool>();
+            if(settings["existing_run_policy"])c.existingRunPolicy=Text(settings["existing_run_policy"]);
             if(settings["ecc_name"])c.eccName=Text(settings["ecc_name"]);
             if(settings["auto_run"]) {
                 const auto a=settings["auto_run"];
@@ -108,6 +109,7 @@ bool RunConfig::Save(const QString &path, QString *error) const
     root["fields"] = YAML::Node(YAML::NodeType::Map);
     for (auto it = fields.constBegin(); it != fields.constEnd(); ++it) root["fields"][Utf8(it.key())] = Utf8(it.value());
     YAML::Node g = root["getdaq"];
+    if(!existingRunPolicy.isEmpty())g["existing_run_policy"]=Utf8(existingRunPolicy);
     if(!eccName.isEmpty())g["ecc_name"]=Utf8(eccName);
     auto automation=g["auto_run"];
     automation["enabled"]=autoRun.enabled;

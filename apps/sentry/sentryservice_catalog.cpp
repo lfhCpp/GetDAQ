@@ -9,6 +9,7 @@
 #include <QLockFile>
 #include <QDateTime>
 #include <QUuid>
+#include <QSet>
 #include <memory>
 #include <stdexcept>
 #ifdef Q_OS_UNIX
@@ -17,11 +18,46 @@
 
 using namespace SentryCatalogInternal;
 
+namespace {
+ServiceResult AppendRunFiles(const SentryConfig &c,const QString &target,const QString &experiment,int run,const QString &operationId){
+    const QDir root(c.dataDir),destination(target);const QFileInfo targetInfo(target);
+    if(targetInfo.isSymLink() || (targetInfo.exists() && !targetInfo.isDir()))return Failure(409,"Append target must be a regular Run directory.");
+    const auto manifestPath=destination.filePath("catalog.json");
+    if(QFileInfo(manifestPath).isSymLink())return Failure(409,"Run manifest cannot be a symbolic link.");
+    if(QFileInfo::exists(manifestPath)){
+        QFile old(manifestPath);if(!old.open(QIODevice::ReadOnly) || old.size()>1024*1024)return Failure(409,"Cannot inspect previous Run archive receipt.");
+        const auto bytes=old.readAll();old.close();const auto previous=QJsonDocument::fromJson(bytes).object();
+        if(previous["replacement_operation_id"]==operationId){if(previous["status"]!="complete" || previous["replacement_policy"]!="append")return Failure(409,"This append operation is incomplete; inspect its original receipt before retrying.");auto result=SentryFiles::Status(c);result.json["replacement_policy"]="append";return result;}
+        const auto history=destination.filePath("catalog-"+QDateTime::currentDateTimeUtc().toString("yyyyMMddTHHmmsszzz")+'-'+QUuid::createUuid().toString(QUuid::WithoutBraces).left(8)+".json");
+        QFile saved(history);if(!saved.open(QIODevice::WriteOnly|QIODevice::NewOnly) || saved.write(bytes)!=bytes.size())return Failure(500,"Cannot preserve previous Run archive receipt.");
+    }
+    if(!QDir().mkpath(target))return Failure(500,"Cannot create same-Run archive directory.");
+    QJsonArray planned,moved;for(const auto &file:destination.entryInfoList({"*.graw"},QDir::Files|QDir::NoSymLinks,QDir::Name)){planned.append(file.fileName());moved.append(file.fileName());}
+    QMap<QString,QString> transfers;QSet<QString> reserved;
+    for(const auto &file:root.entryInfoList({"*.graw"},QDir::Files|QDir::NoSymLinks,QDir::Name)){
+        const QString name=file.fileName();
+        if(QFileInfo::exists(destination.filePath(name)) || QFileInfo(destination.filePath(name)).isSymLink() || reserved.contains(name))return Failure(409,"A timestamped raw filename already exists; keep mode preserves it without renaming. Inspect the unexpected collision or choose Overwrite.");
+        reserved.insert(name);transfers[file.fileName()]=name;planned.append(name);
+    }
+    QJsonObject manifest{{"experiment",experiment},{"run_number",run},{"status","moving"},{"replacement_operation_id",operationId},{"replacement_policy","append"},{"replacement_backup",""},{"replacement_cleanup_complete",true},{"planned",planned},{"moved",moved},{"started_utc",QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs)}};
+    if(!SaveJson(manifestPath,manifest))return Failure(500,"Cannot journal same-Run file append.");
+    for(auto it=transfers.begin();it!=transfers.end();++it){
+        if(QFileInfo(destination.filePath(it.value())).exists() || QFileInfo(destination.filePath(it.value())).isSymLink() || !QFile::rename(root.filePath(it.key()),destination.filePath(it.value()))){manifest["status"]="partial";SaveJson(manifestPath,manifest);return Failure(500,"Same-Run append incomplete; existing files were preserved.");}
+        moved.append(it.value());manifest["moved"]=moved;if(!SaveJson(manifestPath,manifest))return Failure(500,"Same-Run append receipt failed after a file move; inspect it before retrying.");
+    }
+    auto result=SentryFiles::Status(c);if(result.code!=200 || result.json["data_path_files"].toInt()!=0){manifest["status"]="incomplete";SaveJson(manifestPath,manifest);return Failure(409,"Incoming files remain; inspect same-Run append before retrying.");}
+    manifest["status"]="complete";manifest["finished_utc"]=QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
+    if(!SaveJson(manifestPath,manifest))return Failure(500,"Files appended but completion receipt failed.");result.json["replacement_policy"]="append";return result;
+}
+}
+
 ServiceResult SentryFiles::Catalog(const SentryConfig &c, const QString &experiment, int run,
-                                   bool replaceCompletedRun, const QString &operationId)
+                                   bool replaceCompletedRun, const QString &operationId, bool overwriteExisting, bool appendExisting)
 {
     if (!QRegularExpression("^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$").match(experiment).hasMatch() || run < 0)
         return Failure(400, "Invalid experiment or run_number.");
+    if(appendExisting && (!replaceCompletedRun || overwriteExisting))return Failure(400,"Append requires explicit confirmation and cannot also overwrite.");
+    if(overwriteExisting && !replaceCompletedRun)return Failure(400,"Overwrite requires explicit replacement confirmation.");
     if (replaceCompletedRun && !QRegularExpression("^[A-Za-z0-9_-]{1,80}$").match(operationId).hasMatch())
         return Failure(400, "Replacement requires a bounded operation_id.");
     if (!replaceCompletedRun && !operationId.isEmpty())
@@ -54,10 +90,12 @@ ServiceResult SentryFiles::Catalog(const SentryConfig &c, const QString &experim
     if (QFileInfo(experimentDir).isSymLink()) return Failure(400, "Experiment directory cannot be a symlink.");
     const QString relative = QString("%1/run_%2").arg(experiment).arg(run, 4, 10, QLatin1Char('0'));
     const QString target = root.filePath(relative);
+    if(appendExisting)return AppendRunFiles(c,target,experiment,run,operationId);
     QString backupName;
     bool movedOld = false;
     if (QFileInfo::exists(target) || QFileInfo(target).isSymLink()) {
         if (!replaceCompletedRun) return Failure(409, "Run already exists; files have not been moved.");
+        if(overwriteExisting){QFile receipt(QDir(target).filePath("catalog.json"));if(receipt.open(QIODevice::ReadOnly) && receipt.size()<=1024*1024){const auto previous=QJsonDocument::fromJson(receipt.readAll()).object();if(previous["replacement_operation_id"]==operationId && previous["status"]!="complete")return Failure(409,"This overwrite is incomplete; inspect its original receipt before retrying.");}}
         QString completedError;
         if (CompleteLegacyCatalog(target, experiment, run, &completedError)) {
             QFile existingManifest(QDir(target).filePath("catalog.json"));
@@ -68,11 +106,12 @@ ServiceResult SentryFiles::Catalog(const SentryConfig &c, const QString &experim
             if (existingParse.error == QJsonParseError::NoError && existingDocument.isObject() &&
                 existing.value("replacement_operation_id").toString() == operationId) {
                 // Same explicit operation may have completed even if its HTTP reply was lost.
-                return Status(c);
+                auto result=Status(c);if(existing["replacement_policy"]=="overwrite")result.json["replacement_policy"]="overwrite";return result;
             }
         }
         QString inspectError;
-        if (!CompleteLegacyCatalog(target, experiment, run, &inspectError)) return Failure(409, inspectError);
+        if(overwriteExisting){if(QFileInfo(target).isSymLink() || !QFileInfo(target).isDir())return Failure(409,"Overwrite target must be a regular Run directory.");}
+        else if (!CompleteLegacyCatalog(target, experiment, run, &inspectError)) return Failure(409, inspectError);
         backupName = "." + QFileInfo(target).fileName() + ".replaced-" + QUuid::createUuid().toString(QUuid::WithoutBraces);
         if (QFileInfo::exists(QDir(experimentDir).filePath(backupName))) return Failure(409, "Replacement backup path collision; preserve old Run.");
         if (!QDir(experimentDir).rename(QFileInfo(target).fileName(), backupName))
@@ -89,6 +128,7 @@ ServiceResult SentryFiles::Catalog(const SentryConfig &c, const QString &experim
     manifest["started_utc"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
     manifest["status"] = "moving";
     if (replaceCompletedRun) {
+        if(overwriteExisting)manifest["replacement_policy"]="overwrite";
         manifest["replacement_operation_id"] = operationId;
         manifest["replacement_backup"] = backupName;
     }
@@ -123,5 +163,11 @@ ServiceResult SentryFiles::Catalog(const SentryConfig &c, const QString &experim
     }
     manifest["finished_utc"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
     if (!SaveJson(journal, manifest)) return Failure(500, "Files moved but completion manifest failed.");
+    if(overwriteExisting){
+        if(!backupName.isEmpty()){const auto previous=QDir(experimentDir).filePath(backupName);if(QFileInfo(previous).isSymLink() || !QDir(previous).removeRecursively())return Failure(500,"New Run archived but old Run files could not be removed: "+previous);}
+        manifest["replacement_cleanup_complete"]=true;manifest["replacement_backup"]=QString();
+        if(!SaveJson(journal,manifest))return Failure(500,"Overwrite completed but its receipt could not be saved.");
+        after.json["replacement_policy"]="overwrite";
+    }
     return after;
 }

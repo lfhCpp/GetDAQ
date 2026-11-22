@@ -25,7 +25,7 @@ struct ServiceResult
 namespace SentryFiles {
 ServiceResult Status(const SentryConfig &config);
 ServiceResult Catalog(const SentryConfig &config, const QString &experiment, int run,
-                      bool replaceCompletedRun = false, const QString &operationId = QString());
+                      bool replaceCompletedRun = false, const QString &operationId = QString(), bool overwriteExisting = false, bool appendExisting = false);
 ServiceResult FinalizeReplacement(const SentryConfig &config, const QString &experiment, int run,
                                   const QString &operationId);
 }

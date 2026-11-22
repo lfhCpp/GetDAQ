@@ -65,6 +65,16 @@ bool ParseMutation(Route route, const QByteArray &body, MutationRequest *request
             return Reject(400, "replace_completed_run must be boolean.", errorCode, error);
         request->replaceCompletedRun = object.value("replace_completed_run").toBool();
     }
+    if(catalog && object.contains("overwrite_existing_run")){
+        if(!object["overwrite_existing_run"].isBool())return Reject(400,"overwrite_existing_run must be boolean.",errorCode,error);
+        request->overwriteExisting=object["overwrite_existing_run"].toBool();
+        if(request->overwriteExisting && !request->replaceCompletedRun)return Reject(400,"Overwrite requires explicit replacement confirmation.",errorCode,error);
+    }
+    if(catalog && object.contains("append_existing_run")){
+        if(!object["append_existing_run"].isBool())return Reject(400,"append_existing_run must be boolean.",errorCode,error);
+        request->appendExisting=object["append_existing_run"].toBool();
+        if(request->appendExisting && (!request->replaceCompletedRun || request->overwriteExisting))return Reject(400,"Append requires explicit confirmation and cannot also overwrite.",errorCode,error);
+    }
     if (object.contains("operation_id")) {
         if (!object.value("operation_id").isString())
             return Reject(400, "operation_id must be a string.", errorCode, error);

@@ -3,6 +3,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QUrl>
+#include <QJsonArray>
 
 namespace {
 QString SentryFailure(const QByteArray &body,const QString &failure) {
@@ -41,11 +42,14 @@ bool SentryClient::Send(bool catalog)
     return true;
 }
 
-bool SentryClient::SendReplacementCatalog(const QString &operationId)
+bool SentryClient::SendReplacementCatalog(const QString &operationId, const QString &filePolicy)
 {
     if (operationId.isEmpty() || fBusy) return false;
     if (fConfig.simulation) return false;
-    fBusy = true;
+    // Keep the original replacement request for legacy Sentry. New policy
+    // fields are sent only to receivers that explicitly support them.
+    const bool supported=!filePolicy.isEmpty() && SupportsFilePolicy(filePolicy);
+    fBusy=true;
     QUrl url;
     url.setScheme("http"); url.setHost(fNode.sentryHost.isEmpty() ? fNode.host : fNode.sentryHost); url.setPort(fNode.sentryPort);
     url.setPath("/catalog");
@@ -54,9 +58,12 @@ bool SentryClient::SendReplacementCatalog(const QString &operationId)
     params["run_number"] = fConfig.runNumber;
     params["replace_completed_run"] = true;
     params["operation_id"] = operationId;
+    if(supported && filePolicy=="overwrite")params["overwrite_existing_run"]=true;
+    if(supported && filePolicy=="append")params["append_existing_run"]=true;
     fHttp->Request(url, QJsonDocument(params).toJson(QJsonDocument::Compact), QByteArray("application/json"),
-                   fConfig.catalogTimeoutMs, [this](const QByteArray &body, const QString &failure) {
+                   fConfig.catalogTimeoutMs, [this,filePolicy,supported](const QByteArray &body, const QString &failure) {
         QString error = SentryFailure(body,failure);
+        if(error.isEmpty() && supported && QJsonDocument::fromJson(body).object()["replacement_policy"].toString()!=filePolicy)error="Sentry did not confirm the requested same-Run file policy. Upgrade the receiver's getdaq-sentry; inspect raw files before retrying archive.";
         NodeStatus status;
         if (error.isEmpty()) ParseObservation(body,true,&status,&error);
         fBusy = false;
@@ -96,6 +103,7 @@ void SentryClient::Cancel() { if (fHttp) fHttp->Cancel(); if(fStatusHttp)fStatus
 
 void SentryClient::ParseObservation(const QByteArray &body,bool catalog,NodeStatus *status,QString *error){
  auto object=QJsonDocument::fromJson(body).object();const auto aggregate=object;
+ fRunFilePolicies.clear();for(const auto &value:aggregate["run_file_policies"].toArray())fRunFilePolicies<<value.toString();
  const bool perSource=!catalog && object.contains("per_source");
  if(perSource){const auto source=object["per_source"].toObject()[QString::number(fNode.boardIndex>=0?fNode.boardIndex:fNode.id)].toObject();object["data_written_bytes"]=source["data_written_bytes"].toString("0");object["data_written_gb"]=source["data_written_gb"].toDouble();object["data_path_files"]=source["data_path_files"].toInt();}
  if(!Protocol::ParseSentry(QJsonDocument(object).toJson(),status,error))return;

@@ -234,6 +234,9 @@ Experiment & Run 名称及缺省 ID；节点明确填写的 ID 优先。\\\botto
 点 Run stop，先等待所有参与 ECC 真实返回 Ready。之后是 Sentry catalog、配置备份与本地记录。
 \textbf{记录失败不等于硬件未停止；也不能仅凭本地日志断言板卡已停。}\par
 归档成功通常在项目目录 \code{<Experiment>/run\_NNNN/}；归档警告时数据可能仍在原目录，以实际文件和日志为准。
+\subsection*{同号 Run：覆盖、保留新增、取消}
+Overwrite 替换同号旧记录与归档文件；Keep and add files 保留原文件，在同目录新增；Cancel 取消。本次 Run 编号不变，原始文件保持时间命名，不增加额外序号。\par
+原始数据在 Stop 后归档；旧接收端沿用原有归档接口。旧 GUI 元数据放入同 Run 的 \code{records-时间-标识} 子目录，新元数据仍用 run.yml / journal.json / run.csv。
 \subsection*{警告不再锁死操作}
 \par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{40mm}Y@{}}\toprule
 情况 & 行为 \\\midrule
@@ -241,14 +244,12 @@ Experiment & Run 名称及缺省 ID；节点明确填写的 ID 优先。\\\botto
 catalog 结果不确定 & 保留未知回执，不自动重试；确认 Ready 后允许关闭本地 Run 并继续手动操作。\\
 状态过期、监控缺失 & 需要确认时弹出警告；硬件命令仍由 ECC 判断。\\
 Start / Stop / Disconnect & 连接后保持可用；正在执行的硬件命令串行处理，Stop 可排在当前命令后。\\
-已有同号 Run / 接收文件 & 明确询问后才保留或替换记录；不直接删除原始数据。\\\bottomrule
+接收目录有旧文件 & 确认后归入本次 Run；不据此认定 Run 编号重复。\\\bottomrule
 \end{tabularx}\par\smallskip
 \textbf{Start 观察到已经 Running 时只附着观察，不再重复 Start；停止外部开始的采集也可用 Stop。}
 断开可在确认后脱离未完成工作，不停止远端采集。
 \subsection*{查看、清屏和导出日志}
-原 Event log 区域切换 \ui{Event log / ECC log / DataExporter log / DataRouter log}，右侧选择主机和实例；也可选择共享 Sentry。
-每次重新打开 GUI，新日志会话从空白开始，不加载之前的输出；首次附着后台日志后只收集新内容。Data log 右侧 Clear 清显示，导出仅含本次会话。
-Tools $\rightarrow$ Logs $\rightarrow$ \ui{Export combined logs…} 导出 TXT，按 GUI 接收时间与顺序号合并，分隔来源；远端原文时间保留，不能冒充完全同步的跨主机事件时钟。
+日志区切换 Event / ECC / Data log 与主机/实例。Clear 只清显示，导出仍含本次启动后收集的日志；重开 GUI 不加载旧日志。Tools $\rightarrow$ Logs $\rightarrow$ \ui{Export combined logs…} 导出 TXT，按接收时间与顺序号排列，保留来源和远端原文时间。
 \note{关闭主界面时，若有托管后台，提示 Stop ECC + data and exit（停后台后退出）、Keep services running and exit（保留后台退出）或 Cancel。先 Run stop 再停后台；失败则保留界面。外部 ECC 不关闭。}
 
 \newpage

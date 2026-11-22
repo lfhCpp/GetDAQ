@@ -100,6 +100,6 @@ def main():
   if len(renderer.chapters)!=20:raise ValueError('Expected 20 guide chapters: '+str(renderer.chapters))
   style='body {color:#17364d;font-family:GetDAQ Guide Sans;font-size:11pt;} h1 {color:#17364d;} h2 {color:#087f8c;} table {border-collapse:collapse;width:100%;margin-top:8px;margin-bottom:16px;} td,th {border:1px solid #cbd5df;vertical-align:top;} th {background-color:#eff5f8;text-align:left;} blockquote {background-color:#eff5f8;margin:12px 0;padding:12px;} pre,code {font-family:monospace;} pre {background-color:#f4f6f8;padding:10px;white-space:pre-wrap;} .lead {color:#526477;} hr {color:#cbd5df;}'
   output='<!doctype html><html lang="'+language+'"><head><meta charset="utf-8"/><title>'+title+'</title><style>'+style+'</style></head><body>'+prefix+body+'</body></html>\n'
-  destination=MANUAL/('GetDAQ-Quick-Guide-'+language+'.html');destination.write_text(output);print('Generated',destination.name,'chapters:',len(renderer.chapters))
+  destination=MANUAL/('GetDAQ-Quick-Guide-'+language+'.html');destination.write_text("\n".join(line.rstrip() for line in output.splitlines())+"\n");print('Generated',destination.name,'chapters:',len(renderer.chapters))
 
 if __name__=='__main__':main()
