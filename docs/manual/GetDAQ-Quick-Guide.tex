@@ -258,7 +258,7 @@ Tools 中打开波形查看器，Open waveform 选文件；用 Event ID / Go to 
 \code{.gmat} 没有真实事件号，用帧号选择。PNG / CSV 从 \ui{Export plot/data…} 导出。
 \subsection*{在线：独立连接 DataExporter}
 Tools $\rightarrow$ \ui{Online waveform viewer…}。直接从 \ui{DataExporter} 选择框选择当前配置中的实例或全部实例，软件自动使用受管项目的导出地址，不再手填 IP。外部接收器在连接配置中选择 DataExporter 和预览端口（常见 46491），也可在 Nodes / Paths 设置 Preview host / Preview TCP port。选择后自动连接，再选 Source、CoBo、AsAd、AGET 与通道。\par
-Follow latest 跟随最新事件；取消后选缓存事件或用 Event ID / Go。Cache 限 100 事件 / 4096 帧 / 256 MiB 并自动淘汰；Received total 仅累计计数，不保留等量数据。
+Refresh interval 调节显示间隔（默认 1000 ms，范围 100～10000 ms）。Follow latest 跟随匹配事件；取消后固定查看，接收继续。Cache 限 100 事件 / 4096 帧 / 256 MiB 并自动淘汰；Received total 仅累计计数，不保留等量数据。
 预览允许丢帧，正常落盘优先。关闭查看器不停止后台。
 旧 DataRouter 必须确实提供相同 TCP 导出协议才能在线预览，普通接收服务不会自动具备该功能。
 \subsection*{3D：三个轴和逐通道间距}

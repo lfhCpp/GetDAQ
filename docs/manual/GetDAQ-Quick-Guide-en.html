@@ -121,7 +121,7 @@ Use Event log / ECC log / Data log and the host/instance selector; shared Sentry
 Tools → Waveform viewer opens .graw/.gmat. Open waveform selects a file; Event ID / Go to event chooses an event; Frame and AGET select its frame and chip. .gmat uses frame indices instead of real event IDs. Channels chooses visible channels; Export plot/data saves PNG or CSV.
 
 <h2>Online preview</h2>
-Tools → Online waveform viewer starts an independent process. Select a current DataExporter or all configured exporters; it uses the configured preview export port, not the incoming board-data port. Then select Source, CoBo, AsAd and AGET. Follow latest tracks recent events; uncheck it or use Event ID / Go to freeze a cached event.
+Tools → Online waveform viewer starts an independent process. Select a current DataExporter or all configured exporters; it uses the configured preview export port, not the incoming board-data port. Then select Source, CoBo, AsAd and AGET. Refresh interval controls display updates (100–10000 ms; default 1000 ms). Follow latest tracks matching events; uncheck it or use Event ID / Go to freeze a cached event while receiving continues.
 
 <h2>Memory counters</h2>
 Cache is current raw-frame payload, bounded by 100 events, 4096 frames or 256 MiB. Old events are evicted. Received total is only a cumulative byte counter. A frozen event, decoding and network buffers use additional bounded memory. New session clears preview frames; closing the viewer releases its process memory. Preview may drop frames; raw recording is independent.

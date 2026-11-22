@@ -1,0 +1,9 @@
+QT += widgets network concurrent testlib
+CONFIG += c++11 testcase console
+TEMPLATE = app
+TARGET = online-waveform-controls-test
+INCLUDEPATH += ../apps/waveformviewer ../apps/onlinewaveform
+SOURCES += online_waveform_controls_test.cpp waveformviewer_testfixtures.cpp
+SOURCES += ../apps/onlinewaveform/onlinestore.cpp ../apps/onlinewaveform/onlinereceiver.cpp
+SOURCES += ../apps/waveformviewer/grawreader_index.cpp ../apps/waveformviewer/grawreader_waveform.cpp ../apps/waveformviewer/grawreader_decode_type1.cpp ../apps/waveformviewer/grawreader_decode_type2.cpp ../apps/waveformviewer/waveformcanvas.cpp ../apps/waveformviewer/waveformcanvas_surface.cpp ../apps/waveformviewer/waveformexport.cpp
+HEADERS += ../apps/onlinewaveform/onlinereceiver.h
