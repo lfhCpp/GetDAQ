@@ -1,0 +1,14 @@
+{
+  "feature": "New acquisition YAML reusing existing ECC and receiver services",
+  "qt_tests_passed": 60,
+  "qt_tests_failed": 0,
+  "original_backends_verified": true,
+  "product_boundary_verified": true,
+  "main_ui_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec",
+  "guide_pages": {
+    "zh": 20,
+    "en": 20
+  },
+  "backend_services_restarted": false,
+  "hardware_commands_sent": false
+}

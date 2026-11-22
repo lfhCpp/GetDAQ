@@ -37,6 +37,10 @@
 void MainWindow::InitializeMenus()
 {
     QMenu *configurationMenu=new QMenu(tr("Configuration"),this);
+    auto *newConfiguration=configurationMenu->addAction(tr("New configuration…"));
+    newConfiguration->setObjectName("NewAcquisitionConfiguration");
+    connect(newConfiguration,&QAction::triggered,this,&MainWindow::NewConfiguration);
+    configurationMenu->addSeparator();
     const auto manageBackends=[this]{
 #ifdef Q_OS_LINUX
         if(fConnected || fBusy){ShowLogSlot(tr("Disconnect before changing backend service groups."));return;}

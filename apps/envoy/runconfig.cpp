@@ -47,6 +47,21 @@ RunConfig RunConfig::Default()
     return c;
 }
 
+RunConfig RunConfig::NewAcquisition(const QString &experimentName) const
+{
+    auto config = *this;
+    config.filePath.clear();
+    config.experiment = experimentName.trimmed();
+    config.runNumber = 0;
+    config.description.clear();
+    config.configurationBackupWarning.clear();
+    config.autoRun = AutoRunSettings();
+    for (auto it = config.fields.begin(); it != config.fields.end(); ++it) it.value().clear();
+    // Keep endpoints, explicit ECC IDs, deployed release and directories: this is
+    // a new acquisition profile using the same services, not a new deployment.
+    return config;
+}
+
 QString NodeConfig::ConfigId(const QString &kind, const QString &experiment) const
 {
     const QString explicitId = kind == "describe" ? describeId : (kind == "prepare" ? prepareId : configureId);

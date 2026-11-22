@@ -61,6 +61,21 @@ using namespace GetDAQTestSupport;
 class ProductTests:public QObject {Q_OBJECT
  QTemporaryDir fWorkspace;
 private slots:
+ void newAcquisitionReusesServicesWithoutOldMetadata(){
+    auto old=RunConfig::Default();old.experiment="pedestals";old.runNumber=17;old.description="old notes";old.filePath="/tmp/old.yml";
+    old.fields["Beam"]="old beam";old.autoRun.enabled=true;old.configurationBackupWarning="old warning";
+    old.deploymentProject="/tmp/project/project.json";old.deploymentGroups=QStringList{QString("group-a")};old.configurationSnapshot="/tmp/release";
+    old.nodes[0].prepareId="pedestals";
+    const auto fresh=old.NewAcquisition(" next ");
+    QCOMPARE(fresh.experiment,QString("next"));QCOMPARE(fresh.runNumber,0);QVERIFY(fresh.filePath.isEmpty());QVERIFY(fresh.description.isEmpty());
+    QVERIFY(fresh.configurationBackupWarning.isEmpty());QVERIFY(!fresh.autoRun.enabled);QVERIFY(fresh.fields["Beam"].isEmpty());
+    QCOMPARE(fresh.nodes.size(),old.nodes.size());QCOMPARE(fresh.nodes[0].host,old.nodes[0].host);QCOMPARE(fresh.nodes[0].prepareId,QString("pedestals"));
+    QCOMPARE(fresh.deploymentProject,old.deploymentProject);QCOMPARE(fresh.deploymentGroups,old.deploymentGroups);QCOMPARE(fresh.configurationSnapshot,old.configurationSnapshot);
+    QCOMPARE(fresh.configDir,old.configDir);QCOMPARE(fresh.outputDir,old.outputDir);QCOMPARE(old.runNumber,17);QCOMPARE(old.fields["Beam"],QString("old beam"));
+    QTemporaryDir dir;QString error;QVERIFY2(fresh.Save(dir.filePath("new.yml"),&error),qPrintable(error));RunConfig loaded;QVERIFY(loaded.Load(dir.filePath("new.yml"),&error));
+    QCOMPARE(loaded.runNumber,0);QCOMPARE(loaded.deploymentProject,old.deploymentProject);QCOMPARE(loaded.nodes[0].prepareId,QString("pedestals"));
+    MainWindow window;QVERIFY(window.findChild<QAction *>("NewAcquisitionConfiguration"));
+ }
  void initTestCase(){QVERIFY(fWorkspace.isValid());qputenv("GETDAQ_WORKSPACE",fWorkspace.path().toUtf8());QCoreApplication::setOrganizationName("GetDAQ-Product-Tests");QCoreApplication::setApplicationName("OriginalBackendBaseline");qRegisterMetaType<QVector<NodeStatus>>();}
  void bilingualGuideIsEmbeddedAndReadableWithoutInstalledDocuments(){
     for(const auto &language:{QString("zh"),QString("en")}){QFile pdf(":/getdaq/manual/guide-"+language+".pdf");QVERIFY(pdf.open(QIODevice::ReadOnly));QVERIFY(pdf.read(5)==QByteArray("%PDF-"));QVERIFY(pdf.size()>100000);}

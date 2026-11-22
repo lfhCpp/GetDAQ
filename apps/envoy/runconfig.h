@@ -65,6 +65,7 @@ struct RunConfig
     int settleMs = 2000;
 
     static RunConfig Default();
+    RunConfig NewAcquisition(const QString &experimentName) const;
     bool Validate(QString *error) const;
     bool Load(const QString &path, QString *error);
     bool Save(const QString &path, QString *error) const;

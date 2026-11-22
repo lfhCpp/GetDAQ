@@ -60,6 +60,7 @@ private slots:
     void on_StopRun_clicked();
     void on_Finalize_clicked();
     void on_Recover_clicked();
+    void NewConfiguration();
     void on_LoadConfig_clicked();
     void on_SaveConfig_clicked();
     void ExportVisibleLog();

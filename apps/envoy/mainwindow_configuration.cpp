@@ -7,6 +7,12 @@
 #include "consolepresentation.h"
 
 #include <QDialog>
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QDateTime>
+#include <QDir>
+#include <QFileInfo>
 #include <QFileDialog>
 #include <QTableWidget>
 
@@ -32,6 +38,41 @@ bool MainWindow::LoadConfig(const QString &path)
     if (!config.Load(path, &error)) { ShowLogSlot("Load failed: " + error); return false; }
     if(!AdoptConfiguration(config))return false;
     ShowLogSlot("Loaded " + path); return true;
+}
+
+void MainWindow::NewConfiguration()
+{
+    if (fConnected || fBusy || fActive || !ui->Connect->isEnabled()) {
+        ShowLogSlot(tr("Disconnect before creating a new acquisition configuration. Backend services remain running."));
+        return;
+    }
+    bool accepted = false;
+    const auto experiment = QInputDialog::getText(this, tr("New acquisition configuration"),
+        tr("Experiment name (used by ECC unless explicit configuration IDs are set):\n"
+           "Keep the existing name to reuse its ECC configuration.\n"
+           "ECC / receiver connections and paths are retained. Run resets to 0; notes, parameter values and automatic Run rules are cleared.\n"
+           "Unsaved edits to the current acquisition metadata will be discarded after saving the new YAML."),
+        QLineEdit::Normal, fConfig.experiment, &accepted).trimmed();
+    if (!accepted || experiment.isEmpty()) return;
+    auto config = fConfig.NewAcquisition(experiment);
+    QString error;
+    if (!config.Validate(&error)) { ShowLogSlot(error); return; }
+    const auto directory = QDir(DefaultWorkspaceDirectory()).filePath("configurations");
+    if (!QDir().mkpath(directory)) { ShowLogSlot(tr("Cannot create configuration directory: %1").arg(directory)); return; }
+    const auto path = QFileDialog::getSaveFileName(this, tr("Save new acquisition configuration"),
+        QDir(directory).filePath("acquisition-" + QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss-zzz") + ".yml"),
+        "YAML (*.yml *.yaml)");
+    if (path.isEmpty()) return;
+    if (!fConfig.filePath.isEmpty() && QFileInfo(path).canonicalFilePath() == QFileInfo(fConfig.filePath).canonicalFilePath()
+        && QFileInfo(path).exists()) {
+        QMessageBox::warning(this, tr("New configuration"), tr("Choose a different YAML file to preserve the current configuration."));
+        return;
+    }
+    if (!config.Save(path, &error)) { ShowLogSlot("Save failed: " + error); return; }
+    config.filePath = path;
+    if (!AdoptConfiguration(config)) return;
+    RememberStartupConfiguration();
+    ShowLogSlot(tr("New acquisition configuration saved: %1. Existing ECC / receiver services and files are retained. Check the experiment and Run number, then Connect.").arg(path));
 }
 
 void MainWindow::on_LoadConfig_clicked()
