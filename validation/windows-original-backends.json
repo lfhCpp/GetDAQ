@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "platform": "Windows",
+  "checks": [
+    "two original SOAP ECC instances start independently in Idle, enumerate Windows configuration paths and exit cleanly without hardware commands",
+    "DataExporter TCP preview forwards exact synthetic MFM frame",
+    "DataExporter.exe stores 64 exact MFM frames with a Windows-safe filename, including frames after preview disconnect",
+    "DataExporter.exe stops gracefully with Ctrl+Break",
+    "dataRouter.exe stores 64 exact MFM frames with a Windows-safe filename, including frames after preview disconnect",
+    "dataRouter.exe stops gracefully with Ctrl+Break"
+  ],
+  "real_hardware": false,
+  "sha256": {
+    "getEccSoapServer.exe": "d002582e5543be59c20103a1f72f6a3f7315b96829cf106eee17e6e2c8e86b00",
+    "DataExporter.exe": "dadf75f5ffa2e69acad04da2ec9bc0184294c7c1ebb22bcda5dadd6eed2a0862",
+    "dataRouter.exe": "34ff53370256c4be3d94ae238a9098cabe58d3871b038b13196095f3dd06d08f"
+  },
+  "date": "2026-11-23",
+  "toolchain": {
+    "Qt": "5.14.2",
+    "MinGW": "7.3.0 x86_64",
+    "Python": "3.10",
+    "CMake": "3.27.9"
+  },
+  "execution": "Native Windows executables invoked from WSL; Windows loopback sockets",
+  "independent_windows_computer_validated": false,
+  "automatic_master_slave_management": false,
+  "main_ui_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec",
+  "source_bundle_files": 2519,
+  "qmake_optional_backend_generation": "passed",
+  "portable_tests": 7,
+  "linux_regression": {
+    "original_backends_recompiled": true,
+    "distributed_lifecycle_checks": 12,
+    "qt_tests": {
+      "passed": 85,
+      "failed": 0,
+      "skipped": 0
+    }
+  }
+}

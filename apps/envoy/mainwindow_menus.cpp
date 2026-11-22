@@ -46,6 +46,8 @@ void MainWindow::InitializeMenus()
         if(fConnected || fBusy){ShowLogSlot(tr("Disconnect before changing backend service groups."));return;}
         HostRoleWindow window(fConfig,this);
         if(window.exec()==QDialog::Accepted && AdoptConfiguration(window.Configuration())){RememberStartupConfiguration();QTimer::singleShot(0,this,[this]{if(!fConnected && !fBusy)on_Connect_clicked();});}
+#elif defined(Q_OS_WIN)
+        QMessageBox::information(this,tr("Native Windows backends"),tr("Build getEccSoapServer.exe and DataExporter.exe with GETDAQ_BUILD_BACKENDS=1 in the Qt Creator qmake arguments, or use tools/build-windows-backends.py. CMake, Python 3 and matching MinGW are required. Start the services with scripts/start-windows-backends.cmd, then configure their ECC / router endpoints in Nodes / Paths. See docs/WINDOWS_BACKENDS.md. Automatic Master / Slave deployment management requires Linux."));
 #else
         QMessageBox::information(this,tr("Original backends"),tr("Use the bundled getEccSoapServer and DataExporter programs, then configure their endpoints in Nodes / Paths. Automatic Master / Slave service management currently requires Linux."));
 #endif

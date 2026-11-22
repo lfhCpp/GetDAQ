@@ -18,7 +18,7 @@
 \definecolor{signal}{HTML}{B14B30}
 \pagestyle{fancy}\fancyhf{}
 \fancyhead[L]{\small\color{navy}GetDAQ \quad 简易说明书}
-\fancyhead[R]{\small\color{muted}2026-11-22}
+\fancyhead[R]{\small\color{muted}2026-11-23}
 \fancyfoot[L]{\footnotesize\color{muted}操作、配置与运行原理}
 \fancyfoot[R]{\footnotesize\thepage\,/\,\pageref{guide-last}}
 \renewcommand{\headrulewidth}{0.4pt}
@@ -42,7 +42,7 @@
 \fontsize{10.1}{15.0}\selectfont
 {\fontsize{29}{34}\selectfont\bfseries\color{navy}GetDAQ}\par
 {\fontsize{17}{23}\selectfont 安装、配置与采集操作指南}\par
-\textcolor{muted}{适用：原版 SOAP ECC + DataExporter / DataRouter；2026-11-22。}\par
+\textcolor{muted}{适用：原版 SOAP ECC + DataExporter / DataRouter；2026-11-23。}\par
 \subsection*{1\quad 运行原理}
 \note{\textbf{GetDAQ 是操作界面；getEccSoapServer 负责给板卡发命令；DataExporter / DataRouter 负责收数据、写磁盘。}原始数据不经过 GUI、ECC 或配置分发服务。}
 \begin{center}
@@ -117,7 +117,7 @@ python3 tools/build-suite.py --verify-stage "$PWD/dist-linux"
 \note{首次打开不会自动复位或启动板卡。先完成第 4 / 5 页的路径与网络设置，再明确启动后台或连接已有 ECC。}
 
 \newpage
-\pagehead{3\quad macOS 与网络地址}{Ubuntu 可执行文件不能直接在 Mac 上运行，需在 Mac 本机编译。}
+\pagehead{3\quad macOS / Windows 与网络地址}{Ubuntu 可执行文件不能直接在 Mac 上运行，需在 Mac 本机编译。}
 \subsection*{macOS 安装步骤}
 安装 Xcode 命令行工具、Python 3、CMake 和匹配 CPU 架构的 Qt 5。已有 Homebrew 可使用：
 \begin{verbatim}
@@ -130,6 +130,9 @@ cd /Users/attpc/Documents/GetDAQ
 构建后打开 \code{dist-macos/GetDAQ.app}。重复打包选新目录，例如
 \code{--output dist-macos-new}。详细步骤见 \code{docs/MACOS\_INSTALL.md}。\par
 \textbf{macOS 已有适配入口，原生构建及实板验收尚未完成。}不要复制 Ubuntu 的绝对路径、配对缓存或网络设置当作 Mac 的有效配置。
+\subsection*{Windows 原生后台}
+安装 Qt 5.14.2 / MinGW 7.3 64 位、Python 3 和 CMake。在 Qt Creator 的 qmake 参数添加 \code{GETDAQ\_BUILD\_BACKENDS=1}，重新运行 qmake 并构建；也可使用 \code{tools/build-windows-backends.py}。原版 ECC、DataExporter、DataRouter 和只读 CoBo 工具输出为 .exe。在项目数据目录中显式启动服务；自动主从部署仍使用 Linux。完整命令见 \code{docs/WINDOWS\_BACKENDS.md}，Windows 实板采集仍需验收。
+
 \subsection*{先分清五类 IP}
 下表仅用于解释，不能直接套用到任意新电脑。
 \par\smallskip\noindent\begin{tabularx}{\linewidth}{@{}L{37mm}L{33mm}Y@{}}\toprule

@@ -52,3 +52,5 @@ check remains `python3 tools/verify-original-backends.py`.
 
 Native macOS compilation/physical deployment and physical hardware acquisition
 still need validation. Linux software-only tests do not replace those checks.
+
+Native Windows original ECC / DataExporter / DataRouter and the read-only CoBo helper have an optional MinGW/CMake build recipe. Windows services are started explicitly; automatic Master / Slave deployment remains Linux-only. Windows loopback service and synthetic-frame tests are distinct from physical hardware acceptance.

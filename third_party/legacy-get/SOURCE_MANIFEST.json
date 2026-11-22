@@ -5054,6 +5054,10 @@
       "origin": "third_party/validation/boost_1_55_0.tar.bz2!boost_1_55_0/boost/thread/detail/thread_interruption.hpp",
       "sha256": "3d68cfbd328054e16a74ceb0d6fea71360cc09f4ee1e30fd6bb9fa250429d7de"
     },
+    "boost_1_55_0/boost/thread/detail/tss_hooks.hpp": {
+      "origin": "third_party/validation/boost_1_55_0.tar.bz2!boost_1_55_0/boost/thread/detail/tss_hooks.hpp",
+      "sha256": "21c9957f4c54f767a8ab58cdd5e80090f4350658ec51d93a3e5219e6813391cc"
+    },
     "boost_1_55_0/boost/thread/exceptions.hpp": {
       "origin": "third_party/validation/boost_1_55_0.tar.bz2!boost_1_55_0/boost/thread/exceptions.hpp",
       "sha256": "18f6cbf70f48293caab3c1add2d23cba4e828facd610be5f9902b53d370d298e"
@@ -6109,6 +6113,10 @@
     "boost_1_55_0/libs/filesystem/src/utf8_codecvt_facet.cpp": {
       "origin": "third_party/validation/boost_1_55_0.tar.bz2!boost_1_55_0/libs/filesystem/src/utf8_codecvt_facet.cpp",
       "sha256": "e6ab7d9c5e64bf4a8b4453ee3b7f113953cafec990bbddee1736bd0e8b72203d"
+    },
+    "boost_1_55_0/libs/filesystem/src/windows_file_codecvt.cpp": {
+      "origin": "third_party/validation/boost_1_55_0.tar.bz2!boost_1_55_0/libs/filesystem/src/windows_file_codecvt.cpp",
+      "sha256": "5b07b24fe873324d4b75bab048be23df9f47403742ad6ffd366db93e9e9f68c1"
     },
     "boost_1_55_0/libs/filesystem/src/windows_file_codecvt.hpp": {
       "origin": "third_party/validation/boost_1_55_0.tar.bz2!boost_1_55_0/libs/filesystem/src/windows_file_codecvt.hpp",

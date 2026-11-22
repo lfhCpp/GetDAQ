@@ -1,8 +1,9 @@
 # Windows / Qt Creator build
 
-Windows builds the GetDAQ control GUI and its local tools. Deploy SOAP ECC,
-DataExporter/DataRouter and node services on Linux/macOS hosts; Windows can
-connect to those existing services. See [PRODUCT_SCOPE.md](PRODUCT_SCOPE.md).
+Windows builds the GetDAQ control GUI and local tools. Original SOAP ECC and
+DataExporter/DataRouter can also be built as native Windows services using the
+optional backend recipe. Linux retains automatic Master / Slave node management.
+See [PRODUCT_SCOPE.md](PRODUCT_SCOPE.md).
 
 ## Build with Qt Creator
 
@@ -41,3 +42,10 @@ verifies Linux, macOS and Windows platform headers and refresh of an existing
 configuration-editor shadow build. Windows compiler/linker verification uses
 Qt 5.14.2 and MinGW 7.3.0 x86_64 through WSL interoperability. It does not replace
 an acquisition test on an independent Windows computer and physical hardware.
+
+## Native ECC and receiver services
+
+Native Windows ECC, DataExporter and DataRouter can now be built separately or
+with the optional Qt Creator backend target. See
+[Windows backend build and configuration](WINDOWS_BACKENDS.md).
+Automatic Master / Slave deployment management still uses Linux.

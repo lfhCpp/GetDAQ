@@ -2,7 +2,7 @@
 
 
 
-<a name="chapter-1"></a><h1 id="chapter-1">1  GetDAQ installation and user guide</h1><p class="lead">Original SOAP ECC + DataExporter / DataRouter · 2026-11-22</p>
+<a name="chapter-1"></a><h1 id="chapter-1">1  GetDAQ installation and user guide</h1><p class="lead">Original SOAP ECC + DataExporter / DataRouter · 2026-11-23</p>
 <blockquote>GetDAQ is the console. getEccSoapServer controls electronics. DataExporter / dataRouter receive raw frames and write to disk. Raw data does not pass through the GUI or the configuration distribution service.</blockquote>
 <h2>Programs and responsibilities</h2>
 <table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>GetDAQ</b></td><td>Connect multiple ECCs; control acquisition; show state and receiver statistics; keep local Run records.</td></tr><tr><td><b>getEccSoapServer</b></td><td>Original SOAP control server: Describe, Prepare, Configure, Start, Stop, Pause and Resume.</td></tr><tr><td><b>DataExporter / dataRouter</b></td><td>Receive CoBo frames and write raw data. DataExporter also offers downstream TCP export for online preview.</td></tr><tr><td><b>getdaq-sentry</b></td><td>Monitor the project data directory, report files and throughput, and perform catalog/archive operations.</td></tr><tr><td><b>Node agent / configuration service</b></td><td>Pair execution hosts, distribute complete configuration folders, cache releases and manage independent backend instances.</td></tr><tr><td><b>getdaq-control-mcp</b></td><td>Independent stdio interface using the saved GUI YAML and original SOAP / Sentry clients.</td></tr></table>
@@ -43,7 +43,7 @@ Use start-getdaq.sh if that installation supplies it; a generic new stage can ru
 <blockquote>The first GUI launch does not reset or start boards. Complete the directory and network setup before starting backends or connecting existing ECCs.</blockquote>
 
 <hr/>
-<a name="chapter-3"></a><h1 id="chapter-3">3  macOS and network addresses</h1><p class="lead">Linux executables cannot run on macOS; compile native binaries on the Mac.</p>
+<a name="chapter-3"></a><h1 id="chapter-3">3  macOS / Windows and network addresses</h1><p class="lead">Linux executables cannot run on macOS; compile native binaries on the Mac.</p>
 <h2>macOS build entry</h2>
 <pre>xcode-select --install
 brew install cmake python qt@5
@@ -52,6 +52,9 @@ export PATH=&quot;$GETDAQ_QT5_PREFIX/bin:$PATH&quot;
 python3 tools/build-macos.py --help</pre>
 <h2>Packaging</h2>
 Follow docs/MACOS.md for native build and GetDAQ.app packaging. Native Mac and real-hardware acceptance have not yet been completed. The app carries its helpers and embedded guides. Automated Master / Slave service management currently requires Linux; external SOAP ECC connections remain available on other platforms.
+
+<h2>Native Windows backends</h2>
+Use Qt 5.14.2 / MinGW 7.3 x86_64, Python 3 and CMake. In Qt Creator add <code>GETDAQ_BUILD_BACKENDS=1</code>, then run qmake and build. Alternatively use <code>tools/build-windows-backends.py</code>. This builds original ECC, DataExporter, DataRouter and the read-only CoBo helper as .exe files. Start services explicitly in the project data folder; automatic Master / Slave deployment remains Linux-only. Full commands: <code>docs/WINDOWS_BACKENDS.md</code>. Physical Windows acquisition still needs acceptance.
 
 <h2>Which IP belongs where?</h2>
 <table cellspacing="0" cellpadding="7"><tr><th>Control / field</th><th>Meaning and effect</th></tr><tr><td><b>ECC host</b></td><td>Control-network address of the COMPUTER running getEccSoapServer.</td></tr><tr><td><b>CoBo IP</b></td><td>Address of the BOARD, defined in the original topology / describe XML/XCFG. The direct information tool also uses it.</td></tr><tr><td><b>Receiver control IP</b></td><td>Control-network address of the COMPUTER running the receiver.</td></tr><tr><td><b>Receiver data IP</b></td><td>Data-network interface reachable by CoBo. It is the board data destination.</td></tr><tr><td><b>Management / SSH IP</b></td><td>Address used for pairing, configuration distribution or SSH; it may be a different interface.</td></tr></table>

@@ -18,6 +18,10 @@ def patch_config(source, destination):
     width='#if defined(__sun) && (defined(__sparcv9) || defined(__x86_64))'
     if text.count(width)!=1:raise ValueError('Unrecognized Ice pointer-width declaration')
     text=text.replace(width,'#if defined(__SIZEOF_POINTER__) && (__SIZEOF_POINTER__ == 8) || \\\n      defined(__sun) && (defined(__sparcv9) || defined(__x86_64))',1)
+    # MinGW uses LLP64: a pointer is 64-bit but long remains 32-bit. Ice's
+    # wire Int64 and its literals must use long long on this platform.
+    if text.count('#elif defined(ICE_64)')!=2:raise ValueError('Unrecognized Ice Int64 declarations')
+    text=text.replace('#elif defined(ICE_64)','#elif defined(ICE_64) && !defined(_WIN32)')
     destination.parent.mkdir(parents=True,exist_ok=True)
     if not destination.exists() or destination.read_text()!=text:destination.write_text(text)
 

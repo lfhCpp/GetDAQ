@@ -11,3 +11,10 @@ cconfigeditor.file = apps/cconfigeditor/cconfigeditor.pro
 onlinewaveform.file = apps/onlinewaveform/onlinewaveform.pro
 
 controlmcp.file = apps/controlmcp/controlmcp.pro
+
+# Set GETDAQ_BUILD_BACKENDS=1 in Qt Creator's qmake arguments to also build
+# native Windows ECC / DataExporter / DataRouter (requires CMake + Python 3).
+win32:equals(GETDAQ_BUILD_BACKENDS, 1) {
+    SUBDIRS += windowsbackends
+    windowsbackends.file = apps/original-backends/windows-backends.pro
+}

@@ -60,3 +60,15 @@ open dist-macos/GetDAQ.app
 `dist-macos/config/` contains the same 26 files. Select it as the configuration source during initial setup and use the Mac's own network and data paths. Do not copy Ubuntu `site/` state. The output directory must not exist; use `./build-macos.command --output dist-macos-new --jobs 2` for another build. Select a standalone Qt 5 kit with `--qmake /path/to/qmake` if needed.
 
 macOS adaptations are provided; native compilation, application launch, and hardware acquisition still require validation on the target Mac. See the [macOS installation notes](docs/MACOS_INSTALL.md).
+
+## Windows build
+
+Open `GetDAQ.pro` in Qt Creator, select Qt 5.14.2 / MinGW 7.3.0 x86_64, install Python 3, run qmake and build. The main GUI is `bin/GetDAQ.exe`.
+
+Original ECC, DataExporter and DataRouter can also be built as native Windows executables. Install CMake and add `GETDAQ_BUILD_BACKENDS=1` to Qt Creator's qmake arguments, or run:
+
+```bat
+python tools\build-windows-backends.py --compiler-bin "D:\Software\QT\Tools\mingw730_64\bin" --jobs 4
+```
+
+The backend programs and matching compiler runtime DLLs go into `bin/`. No separate Ice, Boost, gSOAP or CompoundConfig installation is needed. See [Windows backend setup](docs/WINDOWS_BACKENDS.md) for working folders, IPs, ports and launch commands. Automatic Master / Slave deployment management remains Linux-only; native Windows physical acquisition still requires acceptance on the target computer.

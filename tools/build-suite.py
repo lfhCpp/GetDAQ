@@ -59,7 +59,7 @@ def source_hashes():
             if path.is_file() and (path.suffix in suffixes or path.name == 'CMakeLists.txt'):
                 files.add(path)
     files.add(ROOT / 'third_party/ice-compat/CMakeLists.txt')
-    for name in ('original-backend-patches.py', 'verify-original-backends.py', 'build-original-backends.py', 'prepare-original-cconfig.py', 'verify-legacy-sources.py', 'prepare-ice-platform.py', 'build-macos.py', 'package-macos.py'):
+    for name in ('original-backend-patches.py', 'verify-original-backends.py', 'build-original-backends.py', 'prepare-original-cconfig.py', 'verify-legacy-sources.py', 'prepare-ice-platform.py', 'prepare-original-windows.py', 'build-windows-backends.py', 'build-macos.py', 'package-macos.py'):
         files.add(ROOT / 'tools' / name)
     files.update(p for directory in ('third_party/legacy-get', 'third_party/DataExporter') for p in (ROOT/directory).rglob('*') if p.is_file())
     files.update((ROOT / 'third_party/archives').glob('*.tar.gz'))

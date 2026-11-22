@@ -39,6 +39,8 @@ IPWindow::IPWindow(const RunConfig &config, QWidget *parent, const QVector<NodeS
     const auto originalServices=[this]{
 #ifdef Q_OS_LINUX
         HostRoleWindow window(fConfig,this);if(window.exec()==QDialog::Accepted){fConfig=window.Configuration();setProperty("BackendServicesReady",true);accept();}
+#elif defined(Q_OS_WIN)
+        QMessageBox::information(this,tr("Native Windows backends"),tr("Build getEccSoapServer.exe and DataExporter.exe with GETDAQ_BUILD_BACKENDS=1 in the Qt Creator qmake arguments, or use tools/build-windows-backends.py. CMake, Python 3 and matching MinGW are required. Start the services with scripts/start-windows-backends.cmd, then configure their ECC / router endpoints in Nodes / Paths. See docs/WINDOWS_BACKENDS.md. Automatic Master / Slave deployment management requires Linux."));
 #else
         QMessageBox::information(this,tr("Original backends"),tr("Start the bundled getEccSoapServer and DataExporter programs, then enter their endpoints below. Automatic host management currently requires Linux."));
 #endif
