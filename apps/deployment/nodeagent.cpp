@@ -67,10 +67,10 @@ QJsonObject NodeAgent::ReleaseTerminated(const QJsonObject &request,bool *effect
         const auto recipe=Parse(Read(config));
         const auto base=fRoot+"/deployments/"+Digest(selected["release_id"].toString())+'/'+instance+'/';
         Require(QDir::cleanPath(config).startsWith(base) && recipe["program"]==program,"Inspection recipe differs from the registered instance");
-        Require(QDir::isAbsolutePath(program) && !QFileInfo(program).isSymLink() && Sha(Read(program,256*1024*1024))==selected["program_sha256"].toString(),"Registered original backend executable changed; inspect before release");
+        Require(QDir::isAbsolutePath(program) && !QFileInfo(program).isSymLink(),"Registered original backend executable path is invalid");
         const auto argument=recipe["role"]=="ecc"?QByteArray("--port"):QByteArray("--instance");
         const auto marker=recipe["role"]=="ecc"?QString::number(recipe["port"].toInt()):recipe["marker"].toString();
-        Require(!marker.isEmpty() && FindLocalArgumentProcesses(program,argument,marker).isEmpty(),"Registered backend is still running; inspection release refused");
+        Require(!marker.isEmpty() && (recipe["role"]=="ecc"?FindLocalArgumentValueProcesses(program,argument,marker):FindLocalArgumentProcesses(program,argument,marker)).isEmpty(),"Registered backend is still running; inspection release refused");
     }else{
         Require(QFileInfo(program).absolutePath()==fPrograms,"Inspection target installation differs");
         Require(FindLocalServiceProcesses(program,config).isEmpty(),"Backend process is still active; inspection release refused");
@@ -79,7 +79,7 @@ QJsonObject NodeAgent::ReleaseTerminated(const QJsonObject &request,bool *effect
     if(DeploymentInstanceReleased(selected)){selected.remove("checked_files");selected.remove("plan");selected.remove("plan_bytes");return selected;}
     const QJsonObject receipt{{"kind","getdaq.inspected-deployment-release"},{"instance_id",instance},{"release_id",request["release_id"]},{"operation_id",request["operation_id"]},
         {"previous_phase",selected["phase"]},{"operator_confirmed_stopped",true},{"data_preserved",true},{"no_matching_processes",true},
-        {"hardware_state_source","operator confirmation; not inferred from process exit"},{"time_utc",QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs)}};
+        {"hardware_state_source","operator confirmation; not inferred from process exit"},{"original_program_sha256",selected["program_sha256"]},{"installed_program_sha256",QFile::exists(program)?Sha(Read(program,256*1024*1024)):QString()},{"time_utc",QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs)}};
     *effects=true;
     Write(QFileInfo(config).absolutePath()+"/inspection-release-"+Id(request["operation_id"].toString())+".json",Json(receipt),true);
     selected["inspection_release"]=receipt;selected["phase"]="released-after-inspection";selected["stopped"]=false;

@@ -8,6 +8,7 @@ struct LocalServiceProcess {qint64 pid=0;QString executable;QByteArray started;}
 QVector<LocalServiceProcess> FindLocalServiceProcesses(const QString &program,const QString &config);
 QVector<LocalServiceProcess> FindLocalArgumentProcesses(const QString &program,const QByteArray &argument,const QString &path);
 QVector<LocalServiceProcess> FindLocalReceiverProcesses(const QString &program,const QString &supervisorConfig);
+QVector<LocalServiceProcess> FindLocalArgumentValueProcesses(const QString &program,const QByteArray &argument,const QString &value);
 QStringList LocalServiceConfigurations(const QString &program);
 bool SameLocalServiceProcess(const LocalServiceProcess &process);
 int CleanupOrphanedLocalServiceProcesses(const QString &program,const QByteArray &argument);

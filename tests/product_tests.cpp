@@ -73,6 +73,11 @@ private slots:
     QVERIFY_EXCEPTION_THROWN(Deployment::ResolvePendingActivationJob(master,QJsonObject{{"directory",dir.path()+"/unrelated/jobs/activate-original"}}),std::exception);
     Deployment::Write(middle+"/relocated-to.json",Deployment::Json({{"directory",old}}));QVERIFY_EXCEPTION_THROWN(Deployment::ResolvePendingActivationJob(master,context),std::exception);
  }
+ void literalPortProcessLookupDoesNotTreatPortAsFilePath(){
+    QTemporaryDir dir;const auto exe=dir.path()+"/ecc";QVERIFY(QFile::copy("/bin/sh",exe));QVERIFY(QFile::setPermissions(exe,QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner));
+    QProcess process;process.start(exe,{"-c","read value","--port","18083"});QVERIFY(process.waitForStarted());
+    const auto found=FindLocalArgumentValueProcesses(exe,"--port","18083");QCOMPARE(found.size(),1);QCOMPARE(found.first().pid,process.processId());QVERIFY(FindLocalArgumentValueProcesses(exe,"--port","18084").isEmpty());process.terminate();QVERIFY(process.waitForFinished());
+ }
  void ownedProcessStillMatchesAfterAtomicExecutableUpdate(){
     QTemporaryDir dir;const auto exe=dir.path()+"/backend",marker=dir.path()+"/service.json";
     Deployment::Write(marker,"{}");QVERIFY(QFile::copy("/bin/sh",exe));QVERIFY(QFile::setPermissions(exe,QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner));

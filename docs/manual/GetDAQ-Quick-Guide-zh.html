@@ -127,7 +127,7 @@ Stop 后归档。Overwrite 需运行新版 Sentry；原版遇同号目录会拒�
 断开可在确认后脱离未完成工作，不停止远端采集。
 <h2>查看、清屏和导出日志</h2>
 日志区切换 Event / ECC / Data log 与主机/实例。Clear 只清显示，导出仍含本次启动后收集的日志；重开 GUI 不加载旧日志。日志及 TXT 默认放在 GUI Run records 下的 logs 中，可在 Nodes / Paths 选择根目录。Tools → Logs → <b>Export combined logs…</b> 导出 TXT，按接收时间与顺序号排列，保留来源和远端原文时间。
-<blockquote>Stop 显示 ECC state machine is busy 时，软件只查询已经接受的转换，不反复重发 Stop；只有新的 Ready 且 Transition=0 才认定停止。内置 SOAP ECC 对停止周期脉冲及数据发送的 Ice 调用分别设置 30 秒超时，失败保留错误，不能自动视为采集结束。配置准备按 ECC/接收器分别执行，同一主机复用校验过的内容缓存；第二次校验不重复下载已有内容。</blockquote>
+<blockquote>Stop 显示 ECC state machine is busy 时，软件只查询已经接受的转换，不反复重发 Stop；只有新的 Ready 且 Transition=0 才认定停止。内置 SOAP ECC 先禁止固件采集、关闭中断并读回零值，再停止并刷新数据发送器，最后停止周期脉冲。单步失败仍尝试其余独立停止步骤；停止调用等待限制为 30 秒，任一步失败都保留错误，不能自动报告 Ready。配置准备按 ECC/接收器分别执行，同一主机复用校验过的内容缓存；第二次校验不重复下载已有内容。</blockquote>
 
 <blockquote>关闭主界面时，若有托管后台，提示 Stop ECC + data and exit（停后台后退出）、Keep services running and exit（保留后台退出）或 Cancel。正常停止前先 Run stop。若 ECC 卡住，可选 Force terminate backends and exit… 并再次确认；先等待 10 秒，仍不退出才强制结束身份匹配的受管进程。强制结束不证明 CoBo 已停止，可能丢失尚未落盘的数据，采集日志保留；外部 ECC 不关闭。</blockquote>
 

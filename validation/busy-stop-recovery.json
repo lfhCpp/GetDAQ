@@ -1,23 +1,38 @@
 {
-  "scope": "busy Stop, owned backend termination and moved project activation",
+  "scope": "disable production before pulser waits; independent Stop attempts; updated executable release and restart",
   "qt_tests": {
-    "passed": 83,
+    "passed": 84,
     "failed": 0
   },
   "original_stop_fault_probe": {
-    "timeout_ms": 30001,
+    "timeout_ms": 30010,
     "stop_rpc_calls": 1,
     "propagated_exception": "Ice::TimeoutException",
-    "physical_hardware": false
+    "physical_hardware": false,
+    "independent_failure_cases_passed": true
   },
   "original_distributed_lifecycle": {
-    "passed_checks": 9,
+    "passed_checks": 11,
     "blocked_ecc_termination": "explicit confirmation required; exact owned process only; no hardware-stopped claim"
   },
   "original_vendor_sources_unchanged": true,
   "main_ui_sha256": "9aa55c1681bd55d3c9026a50b02619be1000c3f64c297a5770c72531dbf4ddec",
   "limitations": [
-    "Fault injection does not validate a high-volume physical CoBo Stop.",
-    "Killing ECC or a receiver cannot confirm the CoBo has stopped."
-  ]
+    "The physical recovery sequence succeeded; a new high-volume Run with the revised ECC Stop still needs an operator trial."
+  ],
+  "verified_recovery": {
+    "old_ecc_process_terminated": true,
+    "firmwareEnable": 0,
+    "intEnable": 0,
+    "daqStop_acknowledged": true,
+    "stopPeriodicPulser_acknowledged": true,
+    "receiver_retained": true,
+    "raw_data_deleted": false,
+    "new_ecc": {
+      "state": "Idle",
+      "transition": 0,
+      "error_code": 0,
+      "hardware_acquisition_restarted": false
+    }
+  }
 }

@@ -197,8 +197,10 @@ as experiment resources.
 
 ### Busy Stop and a project folder move
 
-A busy SOAP ECC is still executing a transition. GetDAQ waits for a fresh Ready with Transition=0 and does not automatically replay Stop. The bundled ECC bounds pulser-stop and sender-stop RPC calls to 30 seconds; failed calls remain errors. A CoBo that does not acknowledge stopping must be inspected; disconnecting or killing ECC does not prove it stopped.
+A busy SOAP ECC is still executing a transition. GetDAQ waits for a fresh Ready with Transition=0 and does not automatically replay Stop. The bundled ECC disables firmware acquisition and interrupts with zero readbacks, then stops/flushes the sender, and finally stops periodic pulsing. It attempts every independent stop step even after another step fails; failed calls remain errors and cannot fabricate Ready. Stop RPC waits are bounded to 30 seconds. A CoBo that does not acknowledge stopping must be inspected; disconnecting or killing ECC does not prove it stopped.
 
 On exit, **Force terminate backends and exit…** allows explicit termination even during an active Run or unavailable SOAP state. It first signals the selected owned processes, waits 10 seconds, then kills only processes with the same PID, start time and executable identity. Audit records remain; hardware stop is not fabricated. Unreachable hosts remain unconfirmed.
 
 Project relocation rebases mutable pending-activation references and retains original request hashes and results. Already moved projects can resolve an old job through their recorded relocation chain. Configuration preparation runs once for each service role but reuses the same host content cache; the second verification does not download existing objects again.
+
+An installed executable update does not prevent inspection release of an already terminated original backend. The release audit retains both its original and installed executable digests. Another running ECC on the same literal `--port` still blocks release. No process exit or binary update is taken as proof of hardware stop.

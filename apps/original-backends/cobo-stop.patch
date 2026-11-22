@@ -1,6 +1,14 @@
 --- a/CoBoNode.cpp
 +++ b/CoBoNode.cpp
-@@ -698,7 +698,9 @@
+@@ -50,6 +50,7 @@
+ #include <iomanip>
+ #include <sstream>
+ #include <cmath>
++#include <functional>
+ #include <string>
+ 
+ using ::utl::BitFieldHelper;
+@@ -698,7 +699,9 @@
  	try
  	{
  		// Stop periodic AsAd pulser
@@ -11,7 +19,7 @@
  
  		// Read temperature of all active AsAd boards
  		readAsAdTemperatures();
-@@ -706,10 +708,12 @@
+@@ -706,10 +709,12 @@
  	catch (mdaq::utl::CmdException & e)
  	{
  		NODE_ERROR() << e.reason;
@@ -24,18 +32,65 @@
  	}
  }
  // --------------------------------------------------------------------------------------------------------------------
-@@ -732,12 +736,13 @@
- 
- 		// Stop listening to interrupts and flush data
- 		if (hwNode().dataSenderCtrlPrx)
+@@ -718,27 +723,40 @@
+  */
+ void CoBoNode::impl_stop()
+ {
+-	if (not isCoBoActive()) return;
+-
+-	try
+-	{
+-		preStop();
+-
+-		// Disable firmware acquisition
+-		ctrl()->writeField("pipeCtrl", "firmwareEnable", 0);
+-
+-		// Stop interrupts
+-		pipeInterruptEnable(false);
+-
+-		// Stop listening to interrupts and flush data
+-		if (hwNode().dataSenderCtrlPrx)
 -			hwNode().dataSenderCtrlPrx->daqStop();
-+			mdaq::DaqCtrlNodePrx::uncheckedCast(hwNode().dataSenderCtrlPrx->ice_timeout(30000))->daqStop();
- 	}
- 	// Protect against call on rebooted CoBo board ('ctrl' device no longer exist).
- 	catch (const Ice::LocalException & e)
- 	{
- 		NODE_WARN() << "Error stopping CoBo board (" << e.ice_name() << ')';
-+        throw;
- 	}
+-	}
+-	// Protect against call on rebooted CoBo board ('ctrl' device no longer exist).
+-	catch (const Ice::LocalException & e)
+-	{
+-		NODE_WARN() << "Error stopping CoBo board (" << e.ice_name() << ')';
+-	}
++    if (not isCoBoActive()) return;
++    std::string errors;
++    // Stop production before waiting for pulser/DAQ workers. Attempt every
++    // independent stop step even if another RPC fails; never report Ready
++    // unless all required steps and production readbacks succeeded.
++    const auto attempt = [&](const char *label, const std::function<void()> &action) {
++        NODE_INFO() << "Stop: " << label;
++        try { action(); }
++        catch (const mdaq::utl::CmdException &e) { errors += std::string(label)+": "+e.reason+" | "; }
++        catch (const std::exception &e) { errors += std::string(label)+": "+e.what()+" | "; }
++    };
++    attempt("disable firmware acquisition", [&] {
++        auto device=mdaq::hw::DevicePrx::uncheckedCast(ctrl()->ice_timeout(30000));
++        device->writeField("pipeCtrl", "firmwareEnable", 0);
++        if(device->readField("pipeCtrl", "firmwareEnable")!=0)
++            throw mdaq::utl::CmdException("firmwareEnable did not read back zero");
++    });
++    attempt("disable interrupts", [&] {
++        auto device=mdaq::hw::DevicePrx::uncheckedCast(ctrl()->ice_timeout(30000));
++        device->writeField("pipeCtrl", "intEnable", 0);
++        if(device->readField("pipeCtrl", "intEnable")!=0)
++            throw mdaq::utl::CmdException("intEnable did not read back zero");
++        IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(500));
++    });
++    attempt("stop data sender and flush", [&] {
++        if(hwNode().dataSenderCtrlPrx)
++            mdaq::DaqCtrlNodePrx::uncheckedCast(hwNode().dataSenderCtrlPrx->ice_timeout(30000))->daqStop();
++    });
++    attempt("stop periodic pulser", [&] { preStop(); });
++    if(!errors.empty()) {
++        NODE_ERROR() << "Stop incomplete: " << errors;
++        throw mdaq::utl::CmdException("CoBo Stop incomplete; inspect hardware: "+errors);
++    }
++    NODE_INFO() << "Stop complete: firmware and interrupts disabled, data sender and pulser acknowledged.";
  }
  // --------------------------------------------------------------------------------------------------------------------
+ /**

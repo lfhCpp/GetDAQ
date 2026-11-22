@@ -67,6 +67,11 @@ QVector<LocalServiceProcess> FindLocalArgumentProcesses(const QString &program,c
     for(const auto &p:Candidates(program))if(QFileInfo(Arg(p,argument)).canonicalFilePath()==expected)result.append(p);
     return result;
 }
+QVector<LocalServiceProcess> FindLocalArgumentValueProcesses(const QString &program,const QByteArray &argument,const QString &value) {
+    QVector<LocalServiceProcess> result;
+    for(const auto &p:Candidates(program))if(Arg(p,argument)==value)result.append(p);
+    return result;
+}
 QVector<LocalServiceProcess> FindLocalReceiverProcesses(const QString &program,const QString &supervisorConfig) {
     QVector<LocalServiceProcess> result;
     const auto doc=QJsonDocument::fromJson(Read(supervisorConfig));const auto plan=doc.object()["receiver_plan"].toObject();

@@ -61,6 +61,11 @@ def wait(action, timeout=30):
         time.sleep(.05)
 
 
+def listening(port):
+    with socket.socket() as sock:
+        sock.settimeout(.1)
+        return sock.connect_ex(('127.0.0.1',port))==0
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('bin', type=Path)
@@ -231,6 +236,7 @@ def main():
         pid = int(restarted['result']['processes'][0]['pid'])
         replacement = programs / 'getEccSoapServer.replacement'
         shutil.copy2(programs / 'getEccSoapServer', replacement)
+        with replacement.open('ab') as stream: stream.write(b'\n') # Valid ELF, different installed digest.
         os.replace(replacement, programs / 'getEccSoapServer')
         os.kill(pid, signal.SIGSTOP)
         denied = terminal(nodes[0], dict(restart, operation_id='deny-unconfirmed-termination', action='terminate'))
@@ -241,6 +247,26 @@ def main():
         require(forced['result']['phase'] == 'terminated-needs-inspection' and not forced['result']['stopped'], 'Force termination fabricated a normal hardware stop')
         require(request(nodes[0], 'GET', '/v1/inventory', token=nodes[0]['token'])[0] == 200, 'Force termination killed node agent')
         checks.append('explicit force termination kills only owned blocked ECC; unconfirmed request rejected; hardware stop remains unconfirmed')
+        # A newly started, unregistered ECC on the same literal --port must
+        # block release; treating a port number as a canonical file path misses it.
+        blocker = subprocess.Popen([str(programs/'getEccSoapServer'), '--port',str(config['port']), '--alarm-port',str(config['group']['ecc']['callback_port']), '--config-repo-url',config['repository']], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        children.append(blocker)
+        wait(lambda: blocker.poll() is None and listening(config['port']))
+        refused = terminal(nodes[0],dict(restart,operation_id='deny-release-with-new-listener',action='release-terminated',accepted_repair=True))
+        require(refused['phase']=='failed','Release ignored an ECC with the same literal port')
+        blocker.send_signal(signal.SIGINT);blocker.wait(timeout=10)
+        released = terminal(nodes[0],dict(restart,operation_id='release-updated-terminated-ecc',action='release-terminated',accepted_repair=True))
+        require(released['phase']=='complete',json.dumps(released))
+        receipt=released['result']['inspection_release']
+        require(receipt['original_program_sha256']!=receipt['installed_program_sha256'],'Updated executable digests were not retained in release audit')
+        checks.append('inspection release handles installed executable updates and rejects another ECC on the same literal port')
+        new_prepare=dict(prepare_ecc,operation_id='prepare-updated-ecc')
+        ready=terminal(nodes[0],new_prepare);require(ready['phase']=='complete',json.dumps(ready))
+        new_start=dict(restart,operation_id='start-updated-ecc',preparation_id=new_prepare['operation_id'])
+        ready=terminal(nodes[0],new_start);require(ready['phase']=='complete',json.dumps(ready))
+        ready=terminal(nodes[0],dict(new_start,operation_id='stop-updated-ecc',action='stop'));require(ready['phase']=='complete',json.dumps(ready))
+        checks.append('freshly prepared updated ECC restarts after inspected termination and stops normally')
+
 
         (root / 'result.json').write_text(json.dumps({'passed': True, 'checks': checks, 'real_hardware': False,
                                                     'physical_multi_host': False, 'release_id': release,
