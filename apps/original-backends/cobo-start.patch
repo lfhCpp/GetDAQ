@@ -41,7 +41,7 @@
 +        progress("fast control writes acknowledged");
  
  		postStart();
-+        progress("command sequence acknowledged; incoming data not yet verified");
++        progress("Start steps completed; inspect pulser warnings and incoming data");
  	}
  }
  // --------------------------------------------------------------------------------------------------------------------
@@ -59,14 +59,14 @@
  	catch (mdaq::utl::CmdException & e)
  	{
 -		NODE_ERROR() << e.reason;
-+		NODE_ERROR() << "Periodic AsAd pulse start failed: " << e.reason;
-+        throw;
++		NODE_WARN() << "WARNING: Periodic AsAd pulse start returned an error: " << e.reason
++            << ". Continuing the original Start transition; pulse generation and received data are unconfirmed. Use Stop if needed.";
  	}
  	catch (std::exception & e)
  	{
 -		NODE_ERROR() << e.what();
-+		NODE_ERROR() << "Periodic AsAd pulse start failed: " << e.what();
-+        throw;
++		NODE_WARN() << "WARNING: Periodic AsAd pulse start returned an error: " << e.what()
++            << ". Continuing the original Start transition; pulse generation and received data are unconfirmed. Use Stop if needed.";
  	}
  }
  // --------------------------------------------------------------------------------------------------------------------

@@ -1,12 +1,16 @@
 {
   "date": "2026-11-23",
-  "scope": "Propagate original periodic pulser Start exceptions and distinguish RPC acknowledgement from observed data",
+  "scope": "Report periodic AsAd pulser Start exceptions as warnings while preserving original state transitions",
+  "supersedes": "363a904 pulser Start exception propagation",
   "hardware_sequence_changed": false,
   "wait_intervals_changed": false,
+  "pulser_start_exception_fatal_to_state_machine": false,
   "fault_injection": {
-    "stop_timeout_ms": 30011,
+    "stop_timeout_ms": 30001,
     "stop_failure_cases": "passed",
-    "pulser_start_disabled_success_and_exception": "passed"
+    "pulser_start_disabled_success_command_error_and_ice_error": "passed",
+    "explicit_warning_messages_checked": true,
+    "real_dhsm_engine_with_mock_board": "Ready -> Running -> Stop -> Ready passed in all four cases"
   },
   "physical_no_data_root_cause": "not established",
   "physical_acquisition_retested": false,

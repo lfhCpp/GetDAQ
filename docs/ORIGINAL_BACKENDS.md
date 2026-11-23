@@ -194,8 +194,11 @@ A local node may use agent_program to select an upgraded management executable w
 `Starting periodic AsAd pulses...` is printed before the board RPC. It is not
 proof that the pulser started. The original `postStart()` logged and swallowed
 pulser exceptions, allowing the Start transition to complete despite that error.
-The build overlay now propagates that failure and logs an acknowledged return
-with its elapsed time. Start stage logs also identify reset, sender start,
+The build overlay reports that exception explicitly as a warning and preserves
+the original Start transition to Running. It does not propagate this pulser-only
+exception into the state machine. Successful pulser calls log an acknowledged
+return with elapsed time. This keeps the normal Running-to-Stop path available;
+Running still does not confirm actual pulse generation or data flow. Start stage logs also identify reset, sender start,
 firmware enable and fast control, without changing their order or adding waits.
 An acknowledged RPC still does not prove physical pulse generation or received
 frames. The existing Stop order and 30-second pulser Stop timeout are unchanged.
