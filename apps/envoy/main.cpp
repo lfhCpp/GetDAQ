@@ -9,6 +9,7 @@
 #include <QSettings>
 #include <QFile>
 #include <QApplication>
+#include <QIcon>
 #include <QCommandLineParser>
 #include <QTimer>
 #include <QStyleFactory>
@@ -18,6 +19,7 @@ int main(int argc, char *argv[])
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     QApplication app(argc, argv);
+    app.setWindowIcon(QIcon(QStringLiteral(":/application/getdaq.png")));
     QCoreApplication::setOrganizationName("GetDAQ");
     QCoreApplication::setApplicationName("GetDAQ");
     QCoreApplication::setApplicationVersion("1.0");

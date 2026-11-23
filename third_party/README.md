@@ -4,6 +4,7 @@
 
 | 内容 | 本地位置 | 版本与使用者 |
 | --- | --- | --- |
+| 用户提供的程序图标 | `application-icons/` | 原始 PNG 与派生 ICO/ICNS，由 Qt 资源及平台应用图标使用；不是额外运行依赖 |
 | yaml-cpp源码 | `yaml-cpp/` | 0.8.0，提交f7320141120f720aecc4c32be25586e7da9eb978；仅操作端的实际envoy YAML读取 |
 | Ice源码归档 | `archives/ice-v3.5.1-40aac360.tar.gz` | 3.5.1，提交40aac3604b78513769adfa9246cc8afdb9287bc1；原生GET硬件兼容边界及可选ICE数据组件 |
 | bzip2源码归档 | `archives/bzip2-1.0.8.tar.gz` | 1.0.8；本地Ice压缩支持，静态构建 |

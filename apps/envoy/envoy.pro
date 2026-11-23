@@ -2,6 +2,9 @@ QT += core gui widgets network concurrent
 CONFIG += c++11
 TEMPLATE = app
 TARGET = GetDAQ
+RESOURCES += ../../third_party/application-icons/getdaq.qrc
+win32: RC_ICONS = ../../third_party/application-icons/icons/getdaq.ico
+macx: ICON = ../../third_party/application-icons/icons/getdaq.icns
 include(core.pri)
 SOURCES += main.cpp mainwindow.cpp mainwindow_runcommands.cpp mainwindow_configuration.cpp mainwindow_configpresentation.cpp mainwindow_maintenance.cpp mainwindow_menus.cpp mainwindow_recoverymenus.cpp mainwindow_connections.cpp mainwindow_status.cpp mainwindow_control_state.cpp  mainwindow_log.cpp mainwindow_layout.cpp ipwindow.cpp widgetplot2d.cpp         
 SOURCES += consolelogstore.cpp

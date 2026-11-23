@@ -1,0 +1,5 @@
+<RCC>
+ <qresource prefix="/application">
+  <file alias="getdaq.png">icons/getdaq.png</file>
+ </qresource>
+</RCC>
