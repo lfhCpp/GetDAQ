@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-23",
+  "scope": "Propagate original periodic pulser Start exceptions and distinguish RPC acknowledgement from observed data",
+  "hardware_sequence_changed": false,
+  "wait_intervals_changed": false,
+  "fault_injection": {
+    "stop_timeout_ms": 30011,
+    "stop_failure_cases": "passed",
+    "pulser_start_disabled_success_and_exception": "passed"
+  },
+  "physical_no_data_root_cause": "not established",
+  "physical_acquisition_retested": false,
+  "distributed_loopback_checks": 12
+}

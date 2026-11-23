@@ -64,7 +64,10 @@ def prepare(build,ice,windows=None):
     sources += [p for p in (v/'getbench/src/get/rc').glob('*.cpp') if p.name!='ConfigDatabaseManager.cpp']
     # Bound stop RPC waits and preserve failed stops. Upstream source stays intact.
     cobo_stop=build/'CoBoNode.cpp'
-    cobo_stop.write_text(patcher.apply_patch((v/'getbench/src/get/rc/CoBoNode.cpp').read_text(encoding='utf-8'),(ROOT/'apps/original-backends/cobo-stop.patch').read_text(encoding='utf-8')),encoding='utf-8')
+    cobo_text=(v/'getbench/src/get/rc/CoBoNode.cpp').read_text(encoding='utf-8')
+    for name in ['cobo-stop.patch','cobo-start.patch']:
+        cobo_text=patcher.apply_patch(cobo_text,(ROOT/'apps/original-backends'/name).read_text(encoding='utf-8'))
+    cobo_stop.write_text(cobo_text,encoding='utf-8')
     sources=[cobo_stop if p==v/'getbench/src/get/rc/CoBoNode.cpp' else p for p in sources]
     sources += list((v/'statemachine/src/dhsm').glob('*.cpp'))
     boost=v/'boost_1_55_0'

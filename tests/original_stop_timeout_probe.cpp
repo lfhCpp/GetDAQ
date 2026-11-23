@@ -10,14 +10,14 @@
 #include <mutex>
 #include <stdexcept>
 struct BlockedPulser : get::cobo::AsAdPulserMgr {
-    std::atomic<int> calls{0};std::atomic<int> *firmware=nullptr,*interrupts=nullptr,*daq=nullptr;std::mutex mutex;std::condition_variable done;bool release=false;
+    std::atomic<int> calls{0},startCalls{0};bool failStart=false;std::atomic<int> *firmware=nullptr,*interrupts=nullptr,*daq=nullptr;std::mutex mutex;std::condition_variable done;bool release=false;
     void setDefaultPulserVoltage(Ice::Long,const Ice::Current &) override {}
     void triggerPulser(Ice::Long,const Ice::Current &) override {}
     void configureExternalPulser(bool,Ice::Long,const Ice::Current &) override {}
     void configurePeriodicPulser(Ice::Long,Ice::Long,const Ice::Current &) override {}
     void setRandomPulserEnabled(bool,const Ice::Current &) override {}
     void configureDoublePulserMode(Ice::Long,const Ice::Current &) override {}
-    void startPeriodicPulser(const Ice::Current &) override {}
+    void startPeriodicPulser(const Ice::Current &) override {++startCalls;if(failStart)throw mdaq::utl::CmdException("injected periodic pulser start failure");}
     void stopPeriodicPulser(const Ice::Current &) override {++calls;if(firmware && *firmware==0 && *interrupts==0 && *daq>0)return;std::unique_lock<std::mutex> lock(mutex);done.wait(lock,[this]{return release;});}
     void Release(){std::lock_guard<std::mutex> lock(mutex);release=true;done.notify_all();}
 };
@@ -25,6 +25,8 @@ struct Probe : get::rc::CoBoNode {
     explicit Probe(mdaq::rc::HardwareNode *node):CoBoNode("0",node){}
     using CoBoNode::preStop;
     using CoBoNode::impl_stop;
+    using CoBoNode::postStart;
+    void PeriodicMode(bool enabled){configData_.asadPulserPeriodicModeEnabled=enabled;}
     ~Probe(){hwNode_=nullptr;} // Never run board-destructor register writes.
 };
 struct Control : Ice::Blobject {
@@ -59,7 +61,15 @@ int main(){
         bool failed=false;{Probe node(&h);try{node.impl_stop();}catch(const mdaq::utl::CmdException &){failed=true;}}
         pulser->Release();orderingPassed=orderingPassed && (failed==(failure!=0)) && control->firmware==0 && control->interrupts==0 && control->daq==1 && pulser->calls==1;
     }
+    bool startPassed=true;
+    for(int mode=0;mode<3;++mode){
+        IceUtil::Handle<BlockedPulser> pulser=new BlockedPulser;pulser->failStart=mode==2;
+        auto p=adapter->addWithUUID(pulser)->ice_collocationOptimized(false);
+        mdaq::rc::HardwareNode h;h.hwServerCtrlPrx=mdaq::hw::NodePrx::uncheckedCast(p);
+        bool failed=false;{Probe node(&h);node.PeriodicMode(mode!=0);try{node.postStart();}catch(const mdaq::utl::CmdException &e){failed=e.reason=="injected periodic pulser start failure";}}
+        startPassed=startPassed && (failed==(mode==2)) && pulser->startCalls==(mode==0?0:1);
+    }
     adapter->deactivate();adapter->waitForDeactivate();communicator->destroy();
-    if(!orderingPassed || !timedOut || elapsed<29000 || elapsed>35000 || servant->calls!=1){std::cerr<<"FAIL timeout="<<timedOut<<" ms="<<elapsed<<" calls="<<servant->calls<<'\n';return 1;}
-    std::cout<<"PASS original pulser stop propagated TimeoutException after "<<elapsed<<" ms; one RPC, no retry, no fabricated success; Stop order and independent failure cases passed\n";
+    if(!startPassed || !orderingPassed || !timedOut || elapsed<29000 || elapsed>35000 || servant->calls!=1){std::cerr<<"FAIL start="<<startPassed<<" timeout="<<timedOut<<" ms="<<elapsed<<" calls="<<servant->calls<<'\n';return 1;}
+    std::cout<<"PASS original pulser stop propagated TimeoutException after "<<elapsed<<" ms; one RPC, no retry, no fabricated success; Stop order, independent failures and pulser Start failure propagation passed\n";
 }

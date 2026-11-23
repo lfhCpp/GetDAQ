@@ -188,3 +188,16 @@ Installing a new GUI does not replace a running monitor. Original ATTPC Sentry r
 Project monitor startup now resolves getdaq-sentry from the installation's site/gui-runtime.txt. Existing live monitors remain untouched and report monitor_update_pending when they differ from the selected runtime. After a normal project service stop, the next monitor starts from the selected installed runtime instead of the old prepared receiver recipe. Process identity records retain the actual executable and birth time.
 
 A local node may use agent_program to select an upgraded management executable within the same installation while retaining program_directory for the unchanged original ECC/DataExporter binaries. Pairing, node identity and old instance recipes remain intact. A live switch must check pending node operations, hold the archive directory lease and confirm there are no accepted HTTP clients before replacing the monitor; it must never kill ECC/DataExporter processes or delete an actual Run to test the upgrade.
+
+### Running with no incoming frames
+
+`Starting periodic AsAd pulses...` is printed before the board RPC. It is not
+proof that the pulser started. The original `postStart()` logged and swallowed
+pulser exceptions, allowing the Start transition to complete despite that error.
+The build overlay now propagates that failure and logs an acknowledged return
+with its elapsed time. Start stage logs also identify reset, sender start,
+firmware enable and fast control, without changing their order or adding waits.
+An acknowledged RPC still does not prove physical pulse generation or received
+frames. The existing Stop order and 30-second pulser Stop timeout are unchanged.
+If Start is acknowledged but no files grow, correlate ECC and receiver logs;
+do not infer either a pulser failure or a receiver failure from Running alone.
